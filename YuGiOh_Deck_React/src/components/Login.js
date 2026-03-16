@@ -26,6 +26,8 @@ export default function Login({ setUser }) {
         
         const credentials = { email, password }
         console.log(`${API_URLS.IDENTITY}/login`);
+        console.log(`${API_URLS.IDENTITY}/login`);
+        console.log(`${API_URLS.IDENTITY}/login`);
 
         try{
             const response = await fetch(`${API_URLS.IDENTITY}/login`, {

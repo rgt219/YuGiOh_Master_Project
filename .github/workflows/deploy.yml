@@ -50,12 +50,24 @@ jobs:
           docker build -t yugiohapidocker.azurecr.io/identity:${{ github.sha }} ./YuGiOhIdentityApi
           docker push yugiohapidocker.azurecr.io/identity:${{ github.sha }}
 
+          # Build Analytics Consumer
+          docker build -t yugiohapidocker.azurecr.io/analytics:${{ github.sha }} ./YuGiOh_Analytics_Consumer
+          docker push yugiohapidocker.azurecr.io/analytics:${{ github.sha }}
+
+      - name: Build and Push Frontend Image
+        run: |
+          docker build \
+            --build-arg REACT_APP_IDENTITY_URL=https://identity.azurecontainerapps.io \
+            --build-arg REACT_APP_DECK_API_URL=https://api.azurecontainerapps.io \
+            -t yugiohapidocker.azurecr.io/frontend:${{ github.sha }} ./YuGiOh_Deck_React
+          docker push yugiohapidocker.azurecr.io/frontend:${{ github.sha }}
+
       # 5. Deploy Identity API (Direct Update)
       - name: Deploy Identity API
         uses: azure/container-apps-deploy-action@v1
         with:
           imageToDeploy: yugiohapidocker.azurecr.io/identity:${{ github.sha }}
-          containerAppName: identity-api # Ensure this matches your Azure resource name
+          containerAppName: identity # Ensure this matches your Azure resource name
           resourceGroup: ErreGeTe
           targetPort: 8080
 
@@ -69,6 +81,23 @@ jobs:
           resourceGroup: ErreGeTe
           targetPort: 8080
           revisionMode: Multiple
+
+      - name: Deploy Frontend
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: yugiohapidocker.azurecr.io/frontend:${{ github.sha }}
+          containerAppName: frontend
+          resourceGroup: ErreGeTe
+          targetPort: 80
+
+      # 7. Deploy Analytics Consumer (Background Worker)
+      - name: Deploy Analytics Consumer
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: yugiohapidocker.azurecr.io/analytics:${{ github.sha }}
+          containerAppName: analytics
+          resourceGroup: ErreGeTe
+          # Background workers don't need ingress
 
       - name: Run Smoke Test on Deck API
         run: |
