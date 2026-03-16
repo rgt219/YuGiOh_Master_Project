@@ -24,7 +24,7 @@ jobs:
       - name: Restore & Test Deck API
         run: |
           dotnet restore YuGiOh_Deck_API/YuGiOhDeckApi.sln
-          dotnet test YuGiOh_Deck_API.Tests/YuGiOh_Deck_API.Tests.csproj --verbosity normal
+          dotnet test YuGiOh_Deck_API.Tests/YuGiOhDeckAPI.Tests.csproj --verbosity normal
 
       # 3. Log in to Azure & ACR
       - name: Log in to Azure
