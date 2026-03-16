@@ -39,19 +39,19 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      # 4. Build and Push BOTH Images
+      # 4. Build and Push ALL Images
       - name: Build and Push Backend Images
         run: |
-          # Build Deck API
-          docker build -t yugiohapidocker.azurecr.io/api:${{ github.sha }} ./YuGiOh_Deck_API
+          # Build Deck API (Context is root '.' so it can see the Analytics project)
+          docker build -f YuGiOh_Deck_API/YuGiOhDeckApi/Dockerfile -t yugiohapidocker.azurecr.io/api:${{ github.sha }} .
           docker push yugiohapidocker.azurecr.io/api:${{ github.sha }}
 
           # Build Identity API
           docker build -t yugiohapidocker.azurecr.io/identity:${{ github.sha }} ./YuGiOhIdentityApi
           docker push yugiohapidocker.azurecr.io/identity:${{ github.sha }}
 
-          # Build Analytics Consumer
-          docker build -t yugiohapidocker.azurecr.io/analytics:${{ github.sha }} ./YuGiOh_Analytics_Consumer
+          # Build Analytics Consumer (Context is root '.' for consistency)
+          docker build -f YuGiOh_Analytics_Consumer/Dockerfile -t yugiohapidocker.azurecr.io/analytics:${{ github.sha }} .
           docker push yugiohapidocker.azurecr.io/analytics:${{ github.sha }}
 
       - name: Build and Push Frontend Image
