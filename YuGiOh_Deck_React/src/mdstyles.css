@@ -1,0 +1,461 @@
+.master-duel-theme {
+    background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+    min-height: 100vh;
+    color: white;
+}
+
+/* Glassmorphism Panel with Cyan Border */
+.md-panel {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Cyber Style Input */
+.md-input {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid #333 !important;
+    color: #00d4ff !important;
+    font-family: 'Cascadia Mono', monospace;
+    border-radius: 0;
+}
+
+.md-input:focus {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3) !important;
+}
+
+/* Glowing Save Button */
+.md-btn-save {
+    background: #00d4ff;
+    border: none;
+    color: black;
+    font-weight: bold;
+    padding: 10px 30px;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); /* Angled edges */
+    transition: 0.3s;
+}
+
+.md-btn-save:hover {
+    background: #fff;
+    box-shadow: 0 0 20px #00d4ff;
+}
+
+.deck-scroll-container {
+    height: 70vh;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Master Duel Global Backdrop */
+.md-theme-bg {
+    background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+    min-height: 100vh;
+    color: #fff;
+    padding-bottom: 50px;
+}
+
+/* Glassmorphism Panel for the Content Area */
+.md-content-panel {
+    background: rgba(16, 18, 27, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 8px;
+    padding: 40px;
+    margin-top: -30px; /* Slight overlap with carousel for depth */
+    position: relative;
+    z-index: 2;
+}
+
+/* Nav Card Styling */
+.md-nav-card {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid #444 !important;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.md-nav-card:hover {
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    transform: translateY(-5px);
+}
+
+.md-card-overlay-text {
+    background: rgba(0, 212, 255, 0.15);
+    border-top: 2px solid #00d4ff;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+/* Container for the whole card */
+.deck-card-container {
+    background: rgba(18, 18, 24, 0.85);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.deck-card-container:hover {
+    border-color: #00d4ff;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+/* Title Styling */
+.deck-title a {
+    color: #00d4ff;
+    text-decoration: none;
+    font-family: 'Cascadia Code', monospace; /* Futuristic font */
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Stats Row */
+.deck-stats-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.deck-genre {
+    color: #aaa;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* Cyber Badge for Ratings */
+.deck-rating-badge {
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+.rating-good { background: #00ff88; color: #000; box-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
+.rating-ok   { background: #ffcc00; color: #000; }
+.rating-bad  { background: #ff4444; color: #fff; }
+
+/* Custom Master Duel Switch */
+.md-switch {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 34px;
+    cursor: pointer;
+}
+
+.md-switch input { opacity: 0; width: 0; height: 0; }
+
+.md-slider {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #444;
+    border-radius: 4px;
+    transition: .4s;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.md-knob {
+    position: absolute;
+    height: 26px;
+    width: 4px;
+    left: 4px;
+    background-color: #555;
+    transition: .4s;
+}
+
+.md-label {
+    margin-left: 15px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #888;
+    letter-spacing: 1px;
+}
+
+/* Switch Active State */
+.md-switch input:checked + .md-slider {
+    background-color: rgba(0, 212, 255, 0.1);
+    border-color: #00d4ff;
+}
+
+.md-switch input:checked + .md-slider .md-knob {
+    transform: translateX(230px); /* Adjust based on your card width */
+    background-color: #00d4ff;
+    box-shadow: 0 0 8px #00d4ff;
+}
+
+.md-switch input:checked + .md-slider .md-label {
+    color: #00d4ff;
+}
+
+/* Login Panel Container */
+.login-terminal-panel {
+    background: rgba(10, 12, 18, 0.9);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 212, 255, 0.1);
+    overflow: hidden;
+}
+
+/* Terminal Title Bar */
+.terminal-header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.terminal-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+.red { background: #ff5f56; }
+.yellow { background: #ffbd2e; }
+.green { background: #27c93f; }
+
+.terminal-title {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 0.7rem;
+    color: #00d4ff;
+    margin-left: 10px;
+    letter-spacing: 1px;
+}
+
+/* Form Styling */
+.login-form {
+    padding: 40px;
+    text-align: center;
+}
+
+.login-branding {
+    font-family: 'Cascadia Code', monospace;
+    color: white;
+    margin-bottom: 40px;
+    letter-spacing: 3px;
+}
+
+/* Input HUD Styles */
+.input-hud-group {
+    text-align: left;
+}
+
+.md-input-field {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-bottom: 2px solid #444;
+    color: white;
+    padding: 12px;
+    font-family: 'Cascadia Code', monospace;
+    transition: all 0.3s;
+}
+
+.md-input-field:focus {
+    outline: none;
+    border-bottom-color: #00d4ff;
+    background: rgba(0, 212, 255, 0.05);
+    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.1);
+}
+
+/* Primary Button */
+.md-btn-primary {
+    width: 100%;
+    background: transparent;
+    border: 1px solid #00d4ff;
+    color: #00d4ff;
+    padding: 12px;
+    font-family: 'Cascadia Code', monospace;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+}
+
+.md-btn-primary:hover {
+    background: #00d4ff;
+    color: #000;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+}
+
+.terminal-link {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: 0.3s;
+}
+
+.terminal-link:hover {
+    color: #00d4ff;
+}
+
+.terminal-divider {
+    color: #333;
+    margin: 0 10px;
+}
+
+.empty-avatar {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #00d4ff; /* Neon cyan from your HUD */
+    background: rgba(0, 212, 255, 0.1);
+    border-radius: 4px; /* Squared off terminal look */
+    position: relative;
+    box-shadow: 0 0 5px rgba(0, 212, 255, 0.3);
+}
+
+.terminal-user-link .dropdown-toggle {
+    color: #00d4ff !important;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.md-text-disabled {
+    color: rgba(255, 255, 255, 0.9) !important; /* Brighter white for legibility */
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8); /* Adds a shadow to pop against dark images */
+    font-weight: 600;
+    letter-spacing: 1.5px;
+}
+
+.md-search-input.form-control {
+    background-color: rgba(0, 0, 0, 0.7);
+    border: 1px solid #00d4ff;
+    color: #00d4ff;
+    font-family: 'Cascadia Mono', monospace;
+    border-radius: 2px;
+}
+
+/* Style the placeholder text */
+.md-search-input.form-control::placeholder {
+    color: rgba(0, 212, 255, 0.5);
+}
+
+/* Remove the blue Bootstrap glow on focus */
+.md-search-input.form-control:focus, 
+.md-select-box.form-select:focus {
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #00d4ff;
+    border-color: #00d4ff;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+}
+
+/* Styling the Dropdowns */
+.md-select-box.form-select {
+    background-color: rgba(20, 20, 20, 0.9);
+    color: #fff;
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    font-family: 'Cascadia Mono', monospace;
+    border-radius: 2px;
+    font-size: 0.85rem;
+    /* Custom Cyan Arrow */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2300d4ff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* Style the actual options list */
+.md-select-box option {
+    background-color: #111;
+    color: #fff;
+}
+
+/* Base Style for Deck Builder Buttons */
+.md-btn-add, .md-btn-delete {
+    font-family: 'Cascadia Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border-radius: 0; /* Sharp corners like the MD HUD */
+    letter-spacing: 1px;
+    padding: 4px 0;
+    transition: all 0.2s ease-in-out;
+    text-transform: uppercase;
+}
+
+/* Green "Add" Button */
+.md-btn-add {
+    background: rgba(0, 255, 150, 0.1);
+    border: 1px solid #00ff96;
+    color: #00ff96;
+}
+
+.md-btn-add:hover {
+    background: #00ff96;
+    color: #000;
+    box-shadow: 0 0 10px rgba(0, 255, 150, 0.6);
+}
+
+/* Red "Delete" Button */
+.md-btn-delete {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    color: #ff4444;
+}
+
+.md-btn-delete:hover {
+    background: #ff4444;
+    color: #000;
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.6);
+}
+
+/* Active state for both */
+.md-btn-add:active, .md-btn-delete:active {
+    transform: scale(0.95);
+}
+
+.md-card-img-container {
+    height: 220px; /* Increased height for a larger feel */
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(0, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: border 0.3s ease;
+}
+
+/* The Zoom Effect */
+.md-card-hover-zoom {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
+}
+
+/* Hover States */
+.md-nav-card:hover .md-card-img-container {
+    border: 1px solid rgba(0, 255, 255, 0.5);
+    box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.2);
+}
+
+.md-nav-card:hover .md-card-hover-zoom {
+    transform: scale(1.15) translateY(-5px); /* Scales up and lifts slightly */
+    filter: brightness(1.1) drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
+}
+
+/* Master Duel style border glow for the whole card */
+.md-nav-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: rgba(15, 15, 25, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.md-nav-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 255, 255, 0.1);
+    border-color: rgba(0, 255, 255, 0.3) !important;
+}

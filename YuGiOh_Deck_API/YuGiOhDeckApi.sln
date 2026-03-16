@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36203.30
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YuGiOhDeckApi", "YuGiOhDeckApi.csproj", "{F10EF4DF-C3EC-45A2-8EB6-4931F01FA94C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YuGiOhDeckAPI.Tests", "..\YuGiOh_Deck_API.Tests\YuGiOhDeckAPI.Tests.csproj", "{FADAAAB2-7C95-B88A-5D03-04A8CDC6E2B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YuGiOhIdentityApi", "..\YuGiOhIdentityApi\YuGiOhIdentityApi.csproj", "{B2EF85EA-62DB-40ED-91B0-E3C8016FAFC4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F10EF4DF-C3EC-45A2-8EB6-4931F01FA94C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F10EF4DF-C3EC-45A2-8EB6-4931F01FA94C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F10EF4DF-C3EC-45A2-8EB6-4931F01FA94C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F10EF4DF-C3EC-45A2-8EB6-4931F01FA94C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FADAAAB2-7C95-B88A-5D03-04A8CDC6E2B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FADAAAB2-7C95-B88A-5D03-04A8CDC6E2B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FADAAAB2-7C95-B88A-5D03-04A8CDC6E2B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FADAAAB2-7C95-B88A-5D03-04A8CDC6E2B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2EF85EA-62DB-40ED-91B0-E3C8016FAFC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2EF85EA-62DB-40ED-91B0-E3C8016FAFC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2EF85EA-62DB-40ED-91B0-E3C8016FAFC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2EF85EA-62DB-40ED-91B0-E3C8016FAFC4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FC1F6AF0-F276-4F59-9E2A-3FD3A33BD6C0}
+	EndGlobalSection
+EndGlobal

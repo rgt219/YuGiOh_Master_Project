@@ -1,0 +1,90 @@
+.header {
+  background-color: #000; /* Primary background color */
+  color: #fff; /* Text color */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky; /* Optional: Makes the navbar stick to the top */
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  max-width: 1200px; /* Optional: Center content on large screens */
+  margin: 0 auto;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: inherit;
+  text-decoration: none;
+}
+
+.navLinks {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.link {
+  color: inherit;
+  text-decoration: none;
+  padding: 0.5rem 0;
+  transition: color 0.3s ease;
+}
+
+.link:hover,
+.activeLink {
+  color: #007bff; /* Highlight color for active/hovered links */
+  border-bottom: 2px solid #007bff; /* Add a bottom border for style */
+}
+
+.activeLink {
+    text-decoration: none;
+    padding: 0.5rem 0;
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: none; /* Hide by default on desktop */
+}
+
+.mobileMenu {
+  display: none; /* Hide by default on desktop */
+  list-style: none;
+  padding: 1rem 2rem;
+  background-color: #1a1a1a; /* Darker background for mobile menu */
+  margin: 0;
+}
+
+.mobileLink {
+  display: block;
+  padding: 0.75rem 0;
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid #333;
+}
+
+/* Responsive design using media queries */
+@media (max-width: 768px) {
+  .navLinks {
+    display: none; /* Hide desktop links on mobile */
+  }
+
+  .menuButton {
+    display: block; /* Show hamburger menu on mobile */
+  }
+
+  .mobileMenu {
+    display: flex; /* Show mobile menu when the parent component logic allows */
+    flex-direction: column;
+  }
+}

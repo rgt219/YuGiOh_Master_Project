@@ -1,0 +1,291 @@
+[
+  {
+    "id": 1,
+    "title": "Dracotail",
+    "image": "Arthalion.jpg",
+    "extraDeckType": "Fusion",
+    "rating": "8.3",
+    "video": "Arthalion.mp4",
+    "description": "Dracotail!",
+    "keyCard1": "Arthalion.jpg",
+    "keyCard2": "UltimateSpiritDragon.png",
+    "keyCard3": "BEWD.jpg",
+    "keyCard4": "maiden.jpg",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "title": "White Forest/Azamina",
+    "image": "Diabell.jpg",
+    "extraDeckType": "Fusion",
+    "rating": "7.7",
+    "video": "Diabell.mp4",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  },
+  {
+    "id": 3,
+    "title": "White Forest/Centur-Ion",
+    "image": "Legatia.jpg",
+    "extraDeckType": "Synchro",
+    "rating": "6.3",
+    "video": "Legatia.mp4",
+    "keyCard1": "Legatia.jpg",
+    "keyCard2": "elzette.jpg",
+    "keyCard3": "Diabell.jpg",
+    "keyCard4": "Silvera.jpg",
+    "description": "White Forest / Centur-Ion!",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Astellar of the White Forest", "set":"The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "astellar.webp", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 1, "yugipedia": "https://yugipedia.com/wiki/Astellar_of_the_White_Forest",
+                "effect": "You can send 1 Spell/Trap from your hand or field to the GY; Special Summon 1 LIGHT Spellcaster Tuner from your Deck. If a Spell/Trap(s) is sent to your GY to activate a monster's effect, while this card is in your GY (except during the Damage Step): You can Special Summon this card. You can only use each effect of \"Astellar of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Astellar of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "astellar.webp", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 1, "yugipedia": "https://yugipedia.com/wiki/Astellar_of_the_White_Forest",
+                "effect": "You can send 1 Spell/Trap from your hand or field to the GY; Special Summon 1 LIGHT Spellcaster Tuner from your Deck. If a Spell/Trap(s) is sent to your GY to activate a monster's effect, while this card is in your GY (except during the Damage Step): You can Special Summon this card. You can only use each effect of \"Astellar of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Astellar of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "astellar.webp", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 1, "yugipedia": "https://yugipedia.com/wiki/Astellar_of_the_White_Forest",
+                "effect": "You can send 1 Spell/Trap from your hand or field to the GY; Special Summon 1 LIGHT Spellcaster Tuner from your Deck. If a Spell/Trap(s) is sent to your GY to activate a monster's effect, while this card is in your GY (except during the Damage Step): You can Special Summon this card. You can only use each effect of \"Astellar of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Elzette of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "elzette.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 1, "yugipedia": "https://yugipedia.com/wiki/Elzette_of_the_White_Forest",
+               "effect": "You can send 1 Spell/Trap from your hand or field to the GY; Special Summon this card from your hand, then add 1 \"White Forest\" monster from your Deck to your hand, except \"Elzette of the White Forest\". During your opponent's turn, if a LIGHT Spellcaster Tuner is Special Summoned to your field, while this card is in your GY (except during the Damage Step): You can add this card to your hand. You can only use each effect of \"Elzette of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Elzette of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "elzette.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 1, "yugipedia": "https://yugipedia.com/wiki/Elzette_of_the_White_Forest",
+               "effect": "You can send 1 Spell/Trap from your hand or field to the GY; Special Summon this card from your hand, then add 1 \"White Forest\" monster from your Deck to your hand, except \"Elzette of the White Forest\". During your opponent's turn, if a LIGHT Spellcaster Tuner is Special Summoned to your field, while this card is in your GY (except during the Damage Step): You can add this card to your hand. You can only use each effect of \"Elzette of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Elzette of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "elzette.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 1, "yugipedia": "https://yugipedia.com/wiki/Elzette_of_the_White_Forest",
+               "effect": "You can send 1 Spell/Trap from your hand or field to the GY; Special Summon this card from your hand, then add 1 \"White Forest\" monster from your Deck to your hand, except \"Elzette of the White Forest\". During your opponent's turn, if a LIGHT Spellcaster Tuner is Special Summoned to your field, while this card is in your GY (except during the Damage Step): You can add this card to your hand. You can only use each effect of \"Elzette of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Elzette, Azamina of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "elzetteazamina.jpg", "cardType": "Illusion", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 1, "yugipedia": "https://yugipedia.com/wiki/Elzette,_Azamina_of_the_White_Forest",
+               "effect": "You can reveal this card in your hand; Special Summon 1 \"White Forest\" or \"Azamina\" monster from your hand. During your Main Phase: You can Fusion Summon 1 \"Azamina\" Fusion Monster from your Extra Deck, using monsters from your hand or field. If this card is sent to the GY as Synchro Material: You can add 1 \"Sinful Spoils\" card from your Deck to your hand. You can only use each effect of \"Elzette, Azamina of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Silvy of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 1500,  "defense": 200, "count": 3, "image": "silvy.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 4, "yugipedia": "https://yugipedia.com/wiki/Silvy_of_the_White_Forest",
+               "effect": "If this card is Normal or Special Summoned: You can add 1 \"White Forest\" Spell/Trap from your Deck to your hand. If this card is in your GY (Quick Effect): You can target 1 \"White Forest\" Synchro Monster you control or in your GY; return it to the Extra Deck, and if you do, Special Summon this card, but negate its effects. You can only use each effect of \"Silvy of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Rucia of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 800,  "defense": 1500, "count": 3, "image": "rucia.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 4, "yugipedia": "https://yugipedia.com/wiki/Rucia_of_the_White_Forest",
+               "effect": "If you control a \"White Forest\" monster: You can Special Summon this card from your hand. You can send 1 Spell/Trap from your hand or field to the GY; draw 1 card. If this card is in your GY (Quick Effect): You can target 1 \"White Forest\" Synchro Monster you control or in your GY; return it to the Extra Deck, and if you do, Special Summon this card, but negate its effects. You can only use each effect of \"Rucia of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "fire.webp", "attribute": "FIRE", "level": 3, "yugipedia": "https://yugipedia.com/wiki/Ash_Blossom_%26_Joyous_Spring",
+               "effect": "When a card or effect is activated that includes any of these effects (Quick Effect): You can discard this card; negate that effect. \n● Add a card from the Deck to the hand. \n● Special Summon from the Deck. \n● Send a card from the Deck to the GY. \nYou can only use this effect of \"Ash Blossom & Joyous Spring\" once per turn."},
+        {"id": 1, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "fire.webp", "attribute": "FIRE", "level": 3, "yugipedia": "https://yugipedia.com/wiki/Ash_Blossom_%26_Joyous_Spring",
+               "effect": "When a card or effect is activated that includes any of these effects (Quick Effect): You can discard this card; negate that effect. \n● Add a card from the Deck to the hand. \n● Special Summon from the Deck. \n● Send a card from the Deck to the GY. \nYou can only use this effect of \"Ash Blossom & Joyous Spring\" once per turn."},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "fire.webp", "attribute": "FIRE", "level": 3, "yugipedia": "https://yugipedia.com/wiki/Ash_Blossom_%26_Joyous_Spring",
+               "effect": "When a card or effect is activated that includes any of these effects (Quick Effect): You can discard this card; negate that effect. \n● Add a card from the Deck to the hand. \n● Special Summon from the Deck. \n● Send a card from the Deck to the GY. \nYou can only use this effect of \"Ash Blossom & Joyous Spring\" once per turn."},
+        {"id": 1, "cardName": "Centur-Ion Primera", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "primera.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 4, "yugipedia": "https://yugipedia.com/wiki/Centur-Ion_Primera", 
+               "effect": "While this card is a Continuous Trap, Level 5 or higher \"Centur-Ion\" monsters you control cannot be destroyed by card effects. You can only use each of the following effects of \"Centur-Ion Primera\" once per turn. If this card is Normal or Special Summoned: You can add 1 \"Centur-Ion\" card from your Deck to your hand, except \"Centur-Ion Primera\", also you cannot Special Summon \"Centur-Ion Primera\" for the rest of this turn. During the Main Phase, if this card is a Continuous Trap: You can Special Summon this card."},
+        {"id": 1, "cardName": "Centur-Ion Primera", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "primera.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 4, "yugipedia": "https://yugipedia.com/wiki/Centur-Ion_Primera", "effect": "While this card is a Continuous Trap, Level 5 or higher \"Centur-Ion\" monsters you control cannot be destroyed by card effects. You can only use each of the following effects of \"Centur-Ion Primera\" once per turn. If this card is Normal or Special Summoned: You can add 1 \"Centur-Ion\" card from your Deck to your hand, except \"Centur-Ion Primera\", also you cannot Special Summon \"Centur-Ion Primera\" for the rest of this turn. During the Main Phase, if this card is a Continuous Trap: You can Special Summon this card."},
+        {"id": 1, "cardName": "Centur-Ion Primera", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "primera.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 4, "yugipedia": "https://yugipedia.com/wiki/Centur-Ion_Primera", "effect": "While this card is a Continuous Trap, Level 5 or higher \"Centur-Ion\" monsters you control cannot be destroyed by card effects. You can only use each of the following effects of \"Centur-Ion Primera\" once per turn. If this card is Normal or Special Summoned: You can add 1 \"Centur-Ion\" card from your Deck to your hand, except \"Centur-Ion Primera\", also you cannot Special Summon \"Centur-Ion Primera\" for the rest of this turn. During the Main Phase, if this card is a Continuous Trap: You can Special Summon this card."},
+        {"id": 1, "cardName": "Centur-Ion Trudea", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "trudea.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "fire.webp", "attribute": "FIRE", "level": 4, "yugipedia": "https://yugipedia.com/wiki/Centur-Ion_Trudea", "effect": "During your Main Phase: You can place this card you control and 1 \"Centur-Ion\" monster from your hand or Deck, except \"Centur-Ion Trudea\", in your Spell & Trap Zones as face-up Continuous Traps, also you cannot Special Summon \"Centur-Ion Trudea\" for the rest of this turn. During the Main Phase, if this card is a Continuous Trap: You can Special Summon this card, then you can increase its Level by 4. You can only use each effect of \"Centur-Ion Trudea\" once per turn."},
+        {"id": 1, "cardName": "Stand Up Centur-Ion!", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "standup.jpg", "cardType": "Field", "cardSuperType": "Spell", "attributeIcon": "spell.webp", "attribute": "SPELL", "level": "field.webp", "yugipedia": "https://yugipedia.com/wiki/Stand_Up_Centur-Ion!", "effect": "Cannot be destroyed by your opponent's card effects while you control a \"Centur-Ion\" Monster Card. You can only use each of the following effects of \"Stand Up Centur-Ion!\" once per turn. During your Main Phase, if this card was activated this turn: You can send 1 card from your hand to the GY; place 1 \"Centur-Ion\" monster from your Deck in your Spell & Trap Zone as a face-up Continuous Trap. If a monster(s) is Special Summoned, you can: Immediately after this effect resolves, Synchro Summon 1 Synchro Monster, using monsters you control as material, including a \"Centur-Ion\" monster."},
+        {"id": 1, "cardName": "Wake Up Centor-Ion!", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "wakeup.webp", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT", "level": 1, "yugipedia": "https://yugipedia.com/wiki/Wake_Up_Centur-Ion!", "effect": "If a Monster Card is face-up in your Spell & Trap Zone: You can declare Level 4 or 8; Special Summon 1 \"Centur-Ion Token\" (Pyro/DARK/ATK 0/DEF 0) with the declared Level, but it cannot be used as Fusion or Link Material. During your Main Phase: You can banish this card from your GY; send 1 \"Centur-Ion\" card from your Deck to the GY, except \"Wake Up Centur-Ion!\". You can only use each effect of \"Wake Up Centur-Ion!\" once per turn."},
+        {"id": 1, "cardName": "Centur-Ion Phalanx", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "phalanx.jpg", "cardType": "", "cardSuperType": "", "attributeIcon": "trap.webp", "attribute": "TRAP", "level": 0, "yugipedia": "https://yugipedia.com/wiki/Centur-Ion_Phalanx", "effect": "Target 1 face-up Monster Card on the field; banish it, and if you do, during the Standby Phase of the next turn, Special Summon that banished monster to its owner's field. You can banish this card from your GY, then target 1 \"Centur-Ion\" Synchro Monster in your GY; Special Summon it, but it loses 1500 ATK. You can only use 1 \"Centur-Ion Phalanx\" effect per turn, and only once that turn."},
+        {"id": 1, "cardName": "Infinite Impermanence", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "imperm.jpg", "cardType": "", "cardSuperType": "", "attributeIcon": "trap.webp", "attribute": "TRAP","level": 0, "yugipedia": "https://yugipedia.com/wiki/Infinite_Impermanence", "effect": "Target 1 face-up monster your opponent controls; negate its effects (until the end of this turn), then, if this card was Set before activation and is on the field at resolution, for the rest of this turn all other Spell/Trap effects in this column are negated. If you control no cards, you can activate this card from your hand."},
+        {"id": 1, "cardName": "Infinite Impermanence", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "imperm.jpg", "cardType": "", "cardSuperType": "", "attributeIcon": "trap.webp", "attribute": "TRAP","level": 0, "yugipedia": "https://yugipedia.com/wiki/Infinite_Impermanence", "effect": "Target 1 face-up monster your opponent controls; negate its effects (until the end of this turn), then, if this card was Set before activation and is on the field at resolution, for the rest of this turn all other Spell/Trap effects in this column are negated. If you control no cards, you can activate this card from your hand."},
+        {"id": 1, "cardName": "Infinite Impermanence", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "imperm.jpg", "cardType": "", "cardSuperType": "", "attributeIcon": "trap.webp", "attribute": "TRAP","level": 0, "yugipedia": "https://yugipedia.com/wiki/Infinite_Impermanence", "effect": "Target 1 face-up monster your opponent controls; negate its effects (until the end of this turn), then, if this card was Set before activation and is on the field at resolution, for the rest of this turn all other Spell/Trap effects in this column are negated. If you control no cards, you can activate this card from your hand."},
+        {"id": 1, "cardName": "Called By The Grave", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "calledby.jpg", "cardType": "Spellcaster", "cardSuperType": "", "attributeIcon": "light.webp", "attribute": "LIGHT","level": 0, "yugipedia": "https://yugipedia.com/wiki/Called_by_the_Grave", "effect": "Target 1 monster in your opponent's GY; banish it, and if you do, until the end of the next turn, its effects are negated, as well as the activated effects and effects on the field of monsters with the same original name."},
+        {"id": 1, "cardName": "Crossout Designator", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "crossout.jpg", "cardType": "Spellcaster", "cardSuperType": "", "attributeIcon": "light.webp", "attribute": "LIGHT","level": 0, "yugipedia": "https://yugipedia.com/wiki/Crossout_Designator", "effect": "Declare 1 card name; banish 1 of that declared card from your Main Deck, and if you do, negate its effects, as well as the activated effects and effects on the field of cards with the same original name, until the end of this turn. You can only activate 1 \"Crossout Designator\" per turn."},
+        {"id": 1, "cardName": "Tales of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "tales.webp", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT","level": 1, "yugipedia": "https://yugipedia.com/wiki/Tales_of_the_White_Forest", "effect": "If you control an Illusion or Spellcaster monster: Add 1 \"White Forest\" monster from your Deck to your hand. If this card is sent to the GY to activate a monster effect: You can Set this card. You can only use each effect of \"Tales of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Woes of the White Forest", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "woes.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT","level": 1, "yugipedia": "https://yugipedia.com/wiki/Woes_of_the_White_Forest", "effect": "Special Summon 1 \"White Forest\" monster from your hand or Deck, then immediately after this effect resolves, you can Synchro Summon 1 \"White Forest\" Synchro Monster. If this card is sent to the GY to activate a monster effect: You can Set this card. You can only use each effect of \"Woes of the White Forest\" once per turn."},
+        {"id": 1, "cardName": "Maxx \"C\"", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "maxxc.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT","level": 1, "yugipedia": "https://yugipedia.com/wiki/Maxx_\"C\"", "effect": "(Quick Effect): You can send this card from your hand to the GY; this turn, each time your opponent Special Summons a monster(s), immediately draw 1 card. You can only use this effect of \"Maxx \"C\" once per turn."},
+        {"id": 1, "cardName": "Centur-Ion Gargoyle II", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "gargoyle.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT","level": 1, "yugipedia": "https://yugipedia.com/wiki/Centur-Ion_Gargoyle_II", "effect": "You can send 1 face-up \"Centur-Ion\" card you control to the GY; Special Summon this card from your hand, also you cannot Special Summon \"Centur-Ion Gargoyle II\" for the rest of this turn. If this card is sent to the GY as Synchro Material: You can add this card to your hand. During the Main Phase, if this card is a Continuous Trap: You can Special Summon this card, then you can reduce its Level by 4. You can only use each effect of \"Centur-Ion Gargoyle II\" once per turn."},
+        {"id": 1, "cardName": "Triple Tactics Talent", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "talent.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT","level": 1, "yugipedia": "https://yugipedia.com/wiki/Triple_Tactics_Talent", "effect": "If your opponent has activated a monster effect during your Main Phase this turn: Activate 1 of these effects; <ul> <li>● Draw 2 cards.</li> ● Take control of 1 monster your opponent controls until the End Phase. ● Look at your opponent's hand, and choose 1 card from it to shuffle into the Deck. You can only activate 1 \"Triple Tactics Talent\" per turn."},
+        {"id": 1, "cardName": "Triple Tactics Thrust", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "thrust.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "attribute": "LIGHT","level": 1, "yugipedia": "https://yugipedia.com/wiki/Triple_Tactics_Thrust", "effect": "If your opponent has activated a monster effect during this turn: Set 1 Normal Spell/Trap from your Deck, except \"Triple Tactics Thrust\", or if your opponent controls a monster, you can add it to your hand instead. That Set card cannot be activated this turn. You can only activate 1 \"Triple Tactics Thrust\" per turn."},
+        {"id": 2, "cardName": "Synchro Rumble", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "rumble.webp", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/Synchro_Rumble", "effect": "Target 1 Tuner or 1 Level 7 or 8 Dragon Synchro Monster in your GY; Special Summon it in Defense Position, also for the rest of this turn after this card resolves, you cannot Special Summon from the Extra Deck, except Synchro Monsters. If a Level 7 or 8 Dragon Synchro Monster(s) or \"Crimson Dragon\" you control would be destroyed by battle or card effect, you can banish this card from your GY instead. You can only activate 1 \"Synchro Rumble\" per turn."},
+        {"id": 2, "cardName": "Emblema Oath", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "oath.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/Emblema_Oath", "effect": "Activate 1 of these effects; ● Place 1 \"Centur-Ion\" monster from your Deck in your Spell & Trap Zone as a face-up Continuous Trap. For the rest of this turn, while you control that card, or any card with that same original name, you cannot Special Summon from the Extra Deck, except \"Centur-Ion\" monsters. ● Set 1 \"Centur-Ion\" Spell/Trap directly from your Deck. You can only activate 1 \"Emblema Oath\" per turn."},
+        {"id": 2, "cardName": "Branded Regained", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "regained.png", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/Branded_Regained", "effect": "If a LIGHT or DARK monster(s) is banished (except during the Damage Step): You can target 1 of those monsters; place that monster on the bottom of the Deck, and if you do, draw 1 card. You can only use this effect of \"Branded Regained\" once per turn. Once per turn, if your opponent Normal or Special Summons a monster (except during the Damage Step): You can target 1 \"Bystial\" monster in your GY; Special Summon it. You can only activate this effect of \"Branded Regained\" once per Chain."},
+        {"id": 2, "cardName": "Bystial Magnamhut", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "magnamhut.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/Bystial_Magnamhut", "effect": "You can target 1 LIGHT or DARK monster in either GY; banish it, and if you do, Special Summon this card from your hand. This is a Quick Effect if your opponent controls a monster. If this card is Special Summoned: You can activate this effect; during the End Phase of this turn, add 1 Dragon monster from your Deck or GY to your hand, except \"Bystial Magnamhut\". You can only use each effect of \"Bystial Magnamhut\" once per turn."},
+        {"id": 2, "cardName": "Bystial Druiswurm", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "druiswurm.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/Bystial_Druiswurm", "effect": "You can target 1 LIGHT or DARK monster in either GY; banish it, and if you do, Special Summon this card from your hand. This is a Quick Effect if your opponent controls a monster. If this card is sent from the field to the GY: You can target 1 Special Summoned monster your opponent controls; send it to the GY. You can only use each effect of \"Bystial Druiswurm\" once per turn."},
+        {"id": 2, "cardName": "The Bystial Lubellion", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "attack": 0,  "defense": 0, "count": 3, "image": "lubellion.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/The_Bystial_Lubellion", "effect": "Cannot be Normal Summoned/Set. Must be Special Summoned (from your hand or GY) by Tributing 1 Level 6 or higher DARK Dragon monster. You can only Special Summon \"The Bystial Lubellion\" once per turn this way. You can send this card from your hand to the GY; add 1 \"Bystial\" monster from your Deck to your hand, except \"The Bystial Lubellion\". During your Main Phase: You can place 1 \"Branded\" Continuous Spell/Trap from your Deck face-up on your field. You can only use each effect of \"The Bystial Lubellion\" once per turn."},
+        {"id": 2, "cardName": "Piri Reis Map", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "reis.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/Piri_Reis_Map", "effect": "At the start of your Main Phase 1: Add 1 monster with 0 ATK from your Deck to your hand, but halve your LP. After adding it to your hand, until the end of the next turn after this card resolves, you cannot activate the added monster's effects, or the effects of cards with its name, until you Normal Summon that monster or a card with its name."},
+        {"id": 2, "cardName": "Piri Reis Map", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "reis.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/Piri_Reis_Map", "effect": "At the start of your Main Phase 1: Add 1 monster with 0 ATK from your Deck to your hand, but halve your LP. After adding it to your hand, until the end of the next turn after this card resolves, you cannot activate the added monster's effects, or the effects of cards with its name, until you Normal Summon that monster or a card with its name."},
+        {"id": 2, "cardName": "Monster Reborn", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "reborn.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "attribute": "LIGHT","level": 3, "yugipedia": "https://yugipedia.com/wiki/Monster_Reborn", "effect": "Target 1 monster in either GY; Special Summon it."}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  },
+  {
+    "id": 4,
+    "title": "Blue-Eyes",
+    "image": "Magia.jpg",
+    "extraDeckType": "Fusion",
+    "rating": "9.3",
+    "video": "Magia.mp4",
+    "keyCard1": "Magia.jpg",
+    "keyCard2": "UltimateSpiritDragon.png",
+    "keyCard3": "BEWD.jpg",
+    "keyCard4": "maiden.jpg",
+    "description": "The Blue-Eyes archetype is a long time duel monsters era fan favrorite built around the extremely iconic Blue-Eyes White Dragon. \n It has gotten a wave of fresh support every 6-12 months ever since their modern support in 2016 so the deck won't be falling off the grid completely anytime soon. \n However, the deck has had no tournament success since their 2016 world's win and overall 2016 world's dominance, being the deck piloted by 1st and 2nd place. First, this deck is extremely expensive to build. The core of the deck requires you to pull or craft 13+ URs and 15+ SRs. In addition, the deck is far from the most competitive or meta relevant.",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 1, "cardName": "Maiden of White", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "maiden.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 1, "cardName": "Maiden of White", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "maiden.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 1, "cardName": "Maiden of White", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "maiden.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "BEWD.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "BEWD.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "BEWD.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "wishes.png", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "wishes.png", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "wishes.png", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "truelight.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "roar.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "kaibaman.webp", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "lode.webp", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "lode.webp", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "drillbeam.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "drillbeam.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "majesty.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "nibiru.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "beryl.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "beryl.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "mausoleum.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "purge.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "thrust.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "talent.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "max.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "imperm.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "imperm.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "imperm.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "maxxc.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "veiler.png", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "calledby.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "crossout.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "fuwalos.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "fuwalos.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+
+      ]
+    }
+  },
+  {
+    "id": 5,
+    "title": "Kewl Tune",
+    "image": "Cue.jpg",
+    "extraDeckType": "Synchro",
+    "rating": "6.9",
+    "video": "Cue.mp4",
+    "description": "Kewl Tune!",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  },
+  {
+    "id": 6,
+    "title": "Yummy",
+    "image": "Snatchy.jpg",
+    "extraDeckType": "Link",
+    "rating": "8.4",
+    "video": "Snatchy.mp4",
+    "description": "Yummy!",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  },
+  {
+    "id": 7,
+    "title": "Maliss",
+    "image": "hearts crypter.jpg",
+    "extraDeckType": "Link",
+    "rating": "9.8",
+    "video": "Crypter.mp4",
+    "description": "Maliss!",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  },
+  {
+    "id": 8,
+    "title": "Vanquish Soul/K9",
+    "image": "wearwolf.jpg",
+    "extraDeckType": "XYZ",
+    "rating": "7.2",
+    "video": "Wearwolf.mp4",
+    "description": "Vanquish Soul / K9!",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  },
+  {
+    "id": 9,
+    "title": "Branded",
+    "image": "cartesia.jpg",
+    "extraDeckType": "Fusion",
+    "rating": "1.7",
+    "video": "Cartesia.mp4",
+    "description": "Branded!",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  },
+  {
+    "id": 10,
+    "title": "Dragon Link",
+    "image": "Borrelshroud.jpg",
+    "extraDeckType": "Link",
+    "rating": "7.5",
+    "video": "Borrelshroud.mp4",
+    "description": "Dragon Link!",
+    "deckList": {
+      "main": [
+        {"id": 1, "cardName": "Sage with Eyes of Blue", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "SageWithEyesOfBlue.jpg", "cardType": "Spellcaster", "cardSuperType": "Effect", "attributeIcon": "light.webp", "level": 1},
+        {"id": 2, "cardName": "Ash Blossom and Joyous Spring", "set": "The Infinite Forbidden [INFO]", "card": "Monster", "count": 3, "image": "AshBlossom.jpg", "cardType": "Zombie", "cardSuperType": "Effect", "attributeIcon": "Fire", "level": 3}
+      ],
+
+      "extra": [
+        
+      ]
+    }
+  }
+]

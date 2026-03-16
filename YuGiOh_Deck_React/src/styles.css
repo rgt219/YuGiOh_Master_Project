@@ -1,0 +1,603 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Typography */
+body {
+  font-family: 'Roboto', sans-serif;
+  color: #fff;
+  background-color: #121212;
+}
+
+.container-box {
+  max-width: vw-20;
+  width: vw-20;
+  margin: 0 auto;
+}
+
+/* Header Styles */
+.header {
+  margin-top: 50px;
+}
+
+.search-input {
+  padding: 15px;
+  margin: 25px 10px;
+  width: 100%;
+  font-size: 16px;
+  border-radius: 100px;
+  border: 1px solid #ccc;
+}
+
+/* Genre and Filter Bar Styles */
+.filter-bar {
+  display: flex;
+  justify-content: right;
+}
+
+.filter-slot {
+  background-color: #2c2c2c;
+  padding: 0 25px;
+  margin: 10px;
+  border-radius: 50px;
+}
+
+.filter-dropdown {
+  padding: 8px;
+  margin: 10px;
+  border-radius: 5px;
+  background-color: #fff;
+  color: #333;
+}
+
+/* Movies Grid Styles */
+.decks-grid, .watchlist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 250px);
+  gap: 2rem 2rem;  
+  padding: 1rem;
+  justify-content: center;
+}
+
+/* Movie Card Styles */
+.deck-boss {
+  background-color: #272727;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0 10px 10px 0 rgba(0, 0, 0, .5);
+}
+
+.deck-boss:hover {
+  transform: scale(1.03);
+}
+
+.player-wrapper {
+  width: 250px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+}
+
+.deck-boss img {
+  width: 250px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+}
+
+.deck-info {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.deck-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.deck-rating {
+  font-size: 0.9rem;
+  font-weight: bold;
+  background:#141414;
+  padding: 3px 10px;
+  margin: 0 auto;
+  width: 50px;
+  border-radius: 50px;
+}
+
+.deck-genre {
+  font-size: 0.9rem;
+  margin-right: 10px;
+}
+
+/* Watchlist Button Styles */
+.watchlist-btn {
+  border: none;
+  background: #2196F3;
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+
+/* Footer Styles */
+.footer {
+  margin-top: 100px;
+  background-color: #2c2c2c;
+  padding: 1rem;
+  text-align: center;
+}
+
+.footer-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.rating-good {
+  color: rgb(148, 255, 105);
+}
+
+.rating-ok {
+  color: rgb(255, 209, 123);
+}
+
+.rating-bad {
+  color: rgb(255, 123, 123);
+}
+
+.title {
+  text-align: center;
+  margin: 25px 0;
+}
+
+.logo {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  display: block;
+}
+
+.app-subtitle {
+  text-align: center;
+  margin: 25px auto;
+  font-weight: 300;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;  
+  display: flex;
+  justify-content: center;
+}
+
+ul li {
+  padding: 10px;
+}
+
+.switch {
+  margin: 20px auto;
+  position: relative;
+  display: inline-block;
+  width: 150px; /* Width large enough to fit the label text */
+  height: 24px; /* Adjust height as needed */
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #141414;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.slider-label {
+  color: #fff; 
+  font-size: 12px; 
+  width: 100%; 
+  line-height: 24px; 
+  transition: opacity 0.4s ease; 
+}
+
+input:checked + .slider:before {
+  transform: translateX(125px); /* Move the circle to the other side */
+}
+
+input:checked + .slider {
+  background-color: #FFA100;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive columns */
+    gap: 10px; /* Space between images */
+    padding: 10px;
+}
+
+.image-grid img {
+    width: 100%; /* Images fill their grid cells */
+    height: 150px; /* Uniform height for all images */
+    object-fit: cover; /* Ensures images cover the area without stretching */
+    border-radius: 5px;
+}
+
+.three h1 {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.5em;
+  padding-bottom: 15px;
+  position: relative;
+}
+
+.split-container {
+  display: flex; /* Use flexbox for layout */
+  height: 100vh; /* Make the container take the full viewport height */
+  width: 100%;
+}
+
+.pane {
+  flex: 1; /* Distribute available space equally between the two panes */
+  overflow: auto; /* Add scrolling if content exceeds pane height */
+  padding: 20px;
+}
+
+.left-pane {
+  background-color: #f0f0f0;
+}
+
+.right-pane {
+  background-color: #e0e0e0;
+}
+
+/* Optional: For a vertical split (top and bottom halves) */
+@media (max-width: 600px) {
+  .split-container {
+    flex-direction: column;
+  }
+  .pane {
+    height: 50vh; /* Each pane takes half the viewport height on small screens */
+  }
+}
+
+.card {
+  --bg-color: attr(bg-color type(<color>), red);
+  background: var(--bg-color);
+  border-radius: 0.4rem;
+  box-shadow: 0 5px 10px -7px;
+  padding: 0.8rem;
+  margin-bottom: 20px;
+  margin-left: 10px;
+  margin-top: 20px;
+  width: auto;
+  text-wrap: wrap;
+  
+  & .card__image {
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    border-radius: 0.4rem;
+    object-fit: cover;
+    object-position: center;
+  }
+  
+  & .card__text {
+    margin-bottom: 0;
+  }
+}
+
+.card_details {
+  width: 100px;
+  height: auto;
+}
+
+/* The magic on the color */
+.card__text {
+  --r-value: round(up, min(max(calc((r / 255) - 0.4045),0),1));
+  --r-small-calc: calc((r / 255) / 12.92);
+  --r-big-calc:   pow(calc((r / 255 + 0.055) / 1.055), 2.4);
+  --r-calc: calc(
+      var(--r-small-calc) * calc(1 - var(--r-value)) + 
+      var(--r-big-calc) * var(--r-value)
+  );
+
+  --g-value: round(up, min(max(calc((g / 255) - 0.4045),0),1));
+  --g-small-calc: calc((g / 255) / 12.92);
+  --g-big-calc:   pow(calc((g / 255 + 0.055) / 1.055), 2.4);
+  --g-calc: calc(
+      var(--g-small-calc) * calc(1 - var(--g-value)) + 
+      var(--g-big-calc) * var(--g-value)
+  );
+  
+  --b-value: round(up, min(max(calc((b / 255) - 0.4045),0),1));
+  --b-small-calc: calc((b / 255) / 12.92);
+  --b-big-calc:   pow(calc((b / 255 + 0.055) / 1.055), 2.4);
+  --b-calc: calc(
+      var(--b-small-calc) * calc(1 - var(--b-value)) + 
+      var(--b-big-calc) * var(--b-value)
+  );
+  
+  --lum-calc: calc((var(--r-calc) * 0.2126 + var(--g-calc) * 0.7152 + var(--b-calc) * 0.0722));
+  --lum-threshold: round(up, min(max(calc(var(--lum-calc) - 0.178),0),1));
+  --color: calc(255 * (1 - var(--lum-threshold)));
+  --concat-colors: var(--color) var(--color) var(--color);
+
+  padding: 0.4rem;
+  color: rgb(
+    from var(--bg-color)
+    var(--concat-colors)
+  );
+}
+
+.card-name {
+    font-family: 'Didact Gothic', sans-serif; /* A potential alternative */
+    font-size: 45px;
+    font-weight: bold;
+    color: white;
+    /* Additional styling for positioning on the card template */
+    position: absolute;
+    left: 40px;
+    top: 18px;
+}
+
+.gallery {
+    display: grid;
+    /* This tells the grid to fit as many cards as possible at 120px wide */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+    gap: 10px; /* Smaller gap for smaller cards */
+    padding: 10px;
+}
+
+.gallery__small {
+  display: grid;
+  /* Creates 6 columns of equal width */
+  grid-template-columns: repeat(6, 1fr); 
+  /* Adjust the gap between images */
+  /* Ensures the container adapts to screen size */
+  width: 100%; 
+}
+.gallery__item img {
+    width: 100%;    /* Fills the 100px grid cell */
+    height: auto;
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+}
+
+.gallery__item img:hover {
+    transform: scale(1.15); /* Slight pop when hovering */
+    z-index: 10;
+}
+
+.gallery__item__small img {
+  /* Images fill their grid cell */
+  width: 80%; 
+  height: 50%;
+  /* Optional: maintain aspect ratio without distortion */
+  object-fit: cover; 
+  /* Optional: ensure all images have a consistent height within a row */
+  margin-bottom: 20px;
+}
+
+.image-container {
+  position: relative; /* Essential for positioning the popup relative to the image container */
+  display: inline-block; /* Helps wrap the container around the image */
+  cursor: pointer; /* Optional: Changes cursor to a pointer on hover */
+}
+
+.main-image {
+  width: 200%; /* Example size */
+  height: 200%;
+}
+
+.popup-details {
+  position: absolute;
+  /* width: 30vh;
+  height: 11vh; */
+  width: 750px;
+  height: auto;
+  left: 420%;
+  bottom: -50%;
+  transform: translateX(-50%); /* Center the popup horizontally */
+  background-color: #333;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  white-space: nowrap; /* Prevents text from wrapping */
+  z-index: 10; /* Ensures the popup is above other elements */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  overflow-y: hidden;
+}
+
+/* Optional: Add a smooth transition effect */
+.popup-details {
+  transition: opacity 0.3s ease-in-out;
+  opacity: 1;
+  transform: translateX(20px); 
+}
+
+.img-attribute {
+  width: 4px;
+  height: 4px;
+}
+
+.text-container {
+  text-wrap: wrap;
+  text-align: left;
+  width: 85%;
+  padding-left: 2px;
+  padding-top: 2px;
+}
+
+.fade-in-right {
+  transform: translateX(20px); /* Adjust the initial position */
+  opacity: 0;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out; /* Match timeout */
+}
+
+/* Apply a smooth transition by default */
+.hover-card {
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  /* Ensure the card has a consistent height or the scaling might affect layout */
+}
+
+/* Define the animation on hover */
+.hover-card:hover {
+  transform: scale(1.05); /* Scales the card up by 5% */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Adds a stronger shadow */
+}
+
+.card-title {
+  background-color: bg-secondary
+}
+
+.ygoss {
+  width: 100%;
+  height: 500px;
+}
+
+.button-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0.3s ease-in-out;
+}
+
+.card-container {
+
+}
+
+.card-image {
+  width: 100%;
+  display: block;
+}
+
+.card-container:hover .button-overlay {
+  opacity: 1; /* Shown on hover */
+}
+
+.button-overlay button {
+  background: black;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.cascadia-font {
+  font-family: "Cascadia Mono";
+}
+
+.level-flex {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.custom-tooltip {
+  background-color: transparent;
+  background: none;
+}
+
+/* The Outer Container */
+.custom-deck-container {
+    background: rgba(0, 0, 0, 0.6); /* Dark transparency */
+    backdrop-filter: blur(10px);    /* Frosted glass effect */
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 100%;
+}
+
+/* The Scrollable Area */
+.deck-scroll-area {
+    height: 100%; /* Adjust based on your layout */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+}
+
+/* Scrollbar Styling to match the dark theme */
+.deck-scroll-area::-webkit-scrollbar {
+    width: 8px;
+}
+
+.deck-scroll-area::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.deck-scroll-area::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+.deck-scroll-area::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}
+
+/* Add this to your styles.css */
+body {
+    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    min-height: 100vh;
+    color: white;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.glass-container {
+    background: rgba(255, 255, 255, 0.05); /* Slight white tint */
+    backdrop-filter: blur(12px);           /* The frosted glass effect */
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    margin-bottom: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}

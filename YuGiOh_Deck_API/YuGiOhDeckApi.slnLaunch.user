@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "YuGiOhDeckApi.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\YuGiOh_Deck_API.Tests\\YuGiOhDeckAPI.Tests.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\YuGiOhIdentityApi\\YuGiOhIdentityApi.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

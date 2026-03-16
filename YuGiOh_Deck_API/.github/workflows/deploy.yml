@@ -1,0 +1,123 @@
+name: Azure_Uplink_Deployment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the API Code into a specific folder
+      - name: Checkout API Code
+        uses: actions/checkout@v4
+        with:
+          path: YuGiOh_Deck_API
+
+      # 2. Checkout the Test Code into a parallel folder
+      - name: Checkout Test Code
+        uses: actions/checkout@v4
+        with:
+          repository: rgt219/YuGiOh_Deck_API_Tests # Replace with your actual Test repo name
+          path: YuGiOh_Deck_API.Tests
+          token: ${{ secrets.GH_PAT }} # See note below about PATs
+
+      - name: Debug - List Files
+        run: ls -R
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      # Add it here:
+      - name: Clean Solution
+        run: dotnet clean YuGiOh_Deck_API/YuGiOhDeckApi.sln
+
+      # 3. Restore and Test using the folder paths
+      - name: Restore Dependencies
+        run: dotnet restore YuGiOh_Deck_API/YuGiOhDeckApi.sln --force
+
+      - name: Run .NET Unit Tests
+        run: |
+          cd YuGiOh_Deck_API.Tests
+          dotnet test --verbosity normal
+
+      # 4. Azure Deployment Steps (Now only runs if tests pass)
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to Azure Container Registry
+        run: |
+          az acr login --name YuGiOhAPIDocker
+          # This line ensures Docker specifically has the right context
+          az acr update -n YuGiOhAPIDocker --admin-enabled true
+
+      - name: Docker Login
+        uses: azure/docker-login@v1
+        with:
+          login-server: yugiohapidocker.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and Push Backend Image
+        run: |
+          # Note: We 'cd' into the API folder so Docker finds the Dockerfile
+          cd YuGiOh_Deck_API
+          docker build -t yugiohapidocker.azurecr.io/api:${{ github.sha }} .
+          docker push yugiohapidocker.azurecr.io/api:${{ github.sha }}
+
+      # 1. This creates the new version but gives it 0% traffic
+      - name: Update Azure Container App (0% Traffic)
+        id: deploy_step
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: yugiohapidocker.azurecr.io/api:${{ github.sha }}
+          containerAppName: api
+          resourceGroup: ErreGeTe
+          targetPort: 8080
+          revisionMode: Multiple # This is the "Blue-Green" switch
+
+      # 2. This checks the "secret" URL of the new version
+      - name: Run Smoke Test
+        run: |
+          # 1. Ask Azure for the name of the newest revision created
+          REVISION_NAME=$(az containerapp revision list \
+            --name api \
+            --resource-group ErreGeTe \
+            --query "[0].name" -o tsv)
+
+          echo "Newly created revision is: $REVISION_NAME"
+
+          # 2. Get that revision's unique URL
+          REVISION_URL=$(az containerapp revision show \
+            --name api \
+            --resource-group ErreGeTe \
+            --revision $REVISION_NAME \
+            --query properties.fqdn -o tsv)
+
+          echo "Testing new revision at: https://$REVISION_URL"
+
+          # 3. Ping the API
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$REVISION_URL/api/mongodb/DeckListMongoDb/user/447572")
+
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Smoke test failed with status $STATUS!"
+            exit 1
+          fi
+
+          # 4. Export the revision name so the next step can use it
+          echo "FINAL_REVISION=$REVISION_NAME" >> $GITHUB_ENV
+
+      - name: Shift Traffic to 100%
+        if: success()
+        run: |
+          az containerapp ingress traffic set \
+            --name api \
+            --resource-group ErreGeTe \
+            --revision-weight ${{ env.FINAL_REVISION }}=100
