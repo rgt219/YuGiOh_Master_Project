@@ -1,0 +1,14 @@
+# --- Node/React ---
+**/node_modules/
+**/build/
+.env.local
+
+# --- .NET/C# ---
+**/bin/
+**/obj/
+**/.vs/
+**/appsettings.Development.json
+
+# --- OS/Misc ---
+.DS_Store
+*.user

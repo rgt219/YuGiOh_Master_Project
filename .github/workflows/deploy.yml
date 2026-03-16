@@ -11,52 +11,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the API Code into a specific folder
-      - name: Checkout API Code
+      # 1. Checkout the entire Monorepo (includes Deck, Identity, and Tests)
+      - name: Checkout Monorepo
         uses: actions/checkout@v4
-        with:
-          path: YuGiOh_Deck_API
-
-      # 2. Checkout the Test Code into a parallel folder
-      - name: Checkout Test Code
-        uses: actions/checkout@v4
-        with:
-          repository: rgt219/YuGiOh_Deck_API_Tests # Replace with your actual Test repo name
-          path: YuGiOh_Deck_API.Tests
-          token: ${{ secrets.GH_PAT }} # See note below about PATs
-
-      - name: Debug - List Files
-        run: ls -R
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: azure/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
 
-      # Add it here:
-      - name: Clean Solution
-        run: dotnet clean YuGiOh_Deck_API/YuGiOhDeckApi.sln
-
-      # 3. Restore and Test using the folder paths
-      - name: Restore Dependencies
-        run: dotnet restore YuGiOh_Deck_API/YuGiOhDeckApi.sln --force
-
-      - name: Run .NET Unit Tests
+      # 2. Restore and Test Deck API
+      - name: Restore & Test Deck API
         run: |
-          cd YuGiOh_Deck_API.Tests
-          dotnet test --verbosity normal
+          dotnet restore YuGiOh_Deck_API/YuGiOhDeckApi.sln
+          dotnet test YuGiOh_Deck_API.Tests/YuGiOh_Deck_API.Tests.csproj --verbosity normal
 
-      # 4. Azure Deployment Steps (Now only runs if tests pass)
+      # 3. Log in to Azure & ACR
       - name: Log in to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Log in to Azure Container Registry
-        run: |
-          az acr login --name YuGiOhAPIDocker
-          # This line ensures Docker specifically has the right context
-          az acr update -n YuGiOhAPIDocker --admin-enabled true
 
       - name: Docker Login
         uses: azure/docker-login@v1
@@ -65,15 +39,28 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and Push Backend Image
+      # 4. Build and Push BOTH Images
+      - name: Build and Push Backend Images
         run: |
-          # Note: We 'cd' into the API folder so Docker finds the Dockerfile
-          cd YuGiOh_Deck_API
-          docker build -t yugiohapidocker.azurecr.io/api:${{ github.sha }} .
+          # Build Deck API
+          docker build -t yugiohapidocker.azurecr.io/api:${{ github.sha }} ./YuGiOh_Deck_API
           docker push yugiohapidocker.azurecr.io/api:${{ github.sha }}
 
-      # 1. This creates the new version but gives it 0% traffic
-      - name: Update Azure Container App (0% Traffic)
+          # Build Identity API
+          docker build -t yugiohapidocker.azurecr.io/identity:${{ github.sha }} ./YuGiOhIdentityApi
+          docker push yugiohapidocker.azurecr.io/identity:${{ github.sha }}
+
+      # 5. Deploy Identity API (Direct Update)
+      - name: Deploy Identity API
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: yugiohapidocker.azurecr.io/identity:${{ github.sha }}
+          containerAppName: identity-api # Ensure this matches your Azure resource name
+          resourceGroup: ErreGeTe
+          targetPort: 8080
+
+      # 6. Deploy Deck API (Blue-Green Logic)
+      - name: Update Deck API (0% Traffic)
         id: deploy_step
         uses: azure/container-apps-deploy-action@v1
         with:
@@ -81,20 +68,15 @@ jobs:
           containerAppName: api
           resourceGroup: ErreGeTe
           targetPort: 8080
-          revisionMode: Multiple # This is the "Blue-Green" switch
+          revisionMode: Multiple
 
-      # 2. This checks the "secret" URL of the new version
-      - name: Run Smoke Test
+      - name: Run Smoke Test on Deck API
         run: |
-          # 1. Ask Azure for the name of the newest revision created
           REVISION_NAME=$(az containerapp revision list \
             --name api \
             --resource-group ErreGeTe \
             --query "[0].name" -o tsv)
 
-          echo "Newly created revision is: $REVISION_NAME"
-
-          # 2. Get that revision's unique URL
           REVISION_URL=$(az containerapp revision show \
             --name api \
             --resource-group ErreGeTe \
@@ -103,7 +85,7 @@ jobs:
 
           echo "Testing new revision at: https://$REVISION_URL"
 
-          # 3. Ping the API
+          # Ping the API to ensure hydration/user logic is alive
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$REVISION_URL/api/mongodb/DeckListMongoDb/user/447572")
 
           if [ "$STATUS" -ne 200 ]; then
@@ -111,10 +93,9 @@ jobs:
             exit 1
           fi
 
-          # 4. Export the revision name so the next step can use it
           echo "FINAL_REVISION=$REVISION_NAME" >> $GITHUB_ENV
 
-      - name: Shift Traffic to 100%
+      - name: Shift Deck API Traffic to 100%
         if: success()
         run: |
           az containerapp ingress traffic set \
