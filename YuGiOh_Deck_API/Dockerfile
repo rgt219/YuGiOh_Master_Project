@@ -11,7 +11,7 @@ RUN dotnet restore "YuGiOhDeckApi/YuGiOhDeckApi.csproj"
 
 # 4. Copy the actual source code for BOTH projects
 COPY YuGiOhDeckApi/ YuGiOhDeckApi/
-COPY ./YuGiOh_Analytics_Consumer/ YuGiOh_Analytics_Consumer/
+COPY ./YuGiOh_Analytics_Consumer/ ./YuGiOh_Analytics_Consumer/
 
 # 5. Build and Publish the API
 WORKDIR "/src/YuGiOhDeckApi"
