@@ -19,12 +19,15 @@ RUN npm run build
 FROM nginx:stable-alpine
 WORKDIR /usr/share/nginx/html
 
-# 3. Copy the build output from Stage 1
+# 3. Clean out the default Nginx files
+RUN rm -rf ./*
+
+# 4. Copy the build output from Stage 1
 COPY --from=build /app/build .
 
-# 4. Inject the Cache-Control header into the Nginx config
-# This tells the browser: "Always check if index.html has changed"
-RUN sed -i '/index.html;/a \        add_header Cache-Control "no-store, no-cache, must-revalidate";' /etc/nginx/conf.d/default.conf
+# 5. Copy your custom Nginx configuration
+# This replaces the default config with your Cache-Control settings
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
