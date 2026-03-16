@@ -1,24 +1,24 @@
-# Stage 1: Build the application
+# 1. Use the SDK image for building
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# 1. Copy the Solution AND the Project file
-# (Adjust paths if your .csproj is inside a subfolder like 'YuGiOh_Deck_API/YuGiOhDeckApi.csproj')
-COPY ["YuGiOhDeckApi.sln", "./"]
-COPY ["YuGiOhDeckApi.csproj", "./"]
+# 2. Copy BOTH project files so the restore can see the relationship
+COPY ["YuGiOhDeckApi/YuGiOhDeckApi.csproj", "YuGiOhDeckApi/"]
+COPY ["YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj", "YuGiOh_Analytics_Consumer/"]
 
-# 2. Restore specifically for this project
-RUN dotnet restore "YuGiOhDeckApi.csproj"
+# 3. Restore dependencies
+RUN dotnet restore "YuGiOhDeckApi/YuGiOhDeckApi.csproj"
 
-# 3. Copy everything else in the current folder
-COPY . .
+# 4. Copy the actual source code for BOTH projects
+COPY YuGiOhDeckApi/ YuGiOhDeckApi/
+COPY YuGiOh_Analytics_Consumer/ YuGiOh_Analytics_Consumer/
 
-# 4. Publish the specific project, NOT the whole solution
+# 5. Build and Publish the API
+WORKDIR "/src/YuGiOhDeckApi"
 RUN dotnet publish "YuGiOhDeckApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Stage 2: Create the runtime image
+# 6. Final runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-EXPOSE 8080
 ENTRYPOINT ["dotnet", "YuGiOhDeckApi.dll"]
