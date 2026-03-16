@@ -55,7 +55,7 @@ jobs:
         uses: azure/container-apps-deploy-action@v1
         with:
           imageToDeploy: yugiohapidocker.azurecr.io/identity:${{ github.sha }}
-          containerAppName: identity-api # Ensure this matches your Azure resource name
+          containerAppName: identity # Ensure this matches your Azure resource name
           resourceGroup: ErreGeTe
           targetPort: 8080
 
