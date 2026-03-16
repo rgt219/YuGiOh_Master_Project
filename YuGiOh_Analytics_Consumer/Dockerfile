@@ -2,12 +2,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy the project file and restore dependencies
-COPY ["YuGiOh_Analytics_Consumer.csproj", "./"]
-RUN dotnet restore "YuGiOh_Analytics_Consumer.csproj"
+# 1. Copy the project file using the full path from the root
+COPY ["YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj", "YuGiOh_Analytics_Consumer/"]
 
-# Copy everything else and build
-COPY . .
+# 2. Restore dependencies
+RUN dotnet restore "YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj"
+
+# 3. Copy the source code
+COPY YuGiOh_Analytics_Consumer/ YuGiOh_Analytics_Consumer/
+
+# 4. Build and publish
+WORKDIR "/src/YuGiOh_Analytics_Consumer"
 RUN dotnet publish "YuGiOh_Analytics_Consumer.csproj" -c Release -o /app/publish
 
 # Stage 2: Runtime
@@ -15,5 +20,4 @@ FROM mcr.microsoft.com/dotnet/runtime:9.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# The worker service doesn't listen on a port, so no EXPOSE is needed
 ENTRYPOINT ["dotnet", "YuGiOh_Analytics_Consumer.dll"]
