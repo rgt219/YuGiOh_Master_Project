@@ -4,7 +4,7 @@ WORKDIR /src
 
 # 2. Copy BOTH project files so the restore can see the relationship
 COPY ["YuGiOhDeckApi/YuGiOhDeckApi.csproj", "YuGiOhDeckApi/"]
-COPY ["YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj", "YuGiOh_Analytics_Consumer/"]
+COPY ["./YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj", "./YuGiOh_Analytics_Consumer/"]
 
 # 3. Restore dependencies
 RUN dotnet restore "YuGiOhDeckApi/YuGiOhDeckApi.csproj"
