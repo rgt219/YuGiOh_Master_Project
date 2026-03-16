@@ -9,14 +9,20 @@ COPY ["YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj", "YuGiOh_Anal
 # 3. Restore based on the API project path
 RUN dotnet restore "YuGiOh_Deck_API/YuGiOhDeckApi.csproj"
 
-# 4. Copy the full source folders
+# ... (Steps 1-3: SDK Setup, Copying csproj, and Restore)
+
+# 4. Copy the actual source code
 COPY YuGiOh_Deck_API/ YuGiOh_Deck_API/
 COPY YuGiOh_Analytics_Consumer/ YuGiOh_Analytics_Consumer/
 
-# 5. Build and Publish
-# Note: We enter the folder with underscores, but build the file without them
+# --- NEW FIX: Manually delete the conflicting file ---
+RUN rm /src/YuGiOh_Analytics_Consumer/appsettings.json
+
+# 5. Build and Publish the API
 WORKDIR "/src/YuGiOh_Deck_API"
 RUN dotnet publish "YuGiOhDeckApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# ... (Step 6: Final Runtime Image)
 
 # 6. Final runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
