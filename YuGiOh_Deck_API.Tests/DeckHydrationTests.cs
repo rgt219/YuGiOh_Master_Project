@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
+using YuGiOh_Analytics_Consumer.Service;
 using YuGiOhDeckApi.Controllers;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
@@ -26,12 +27,13 @@ public class DeckHydrationTests
         };
 
         var mockService = new Mock<IMongoDbService>();
+        var mockKafka = new Mock<IKafkaProducerService>();
 
         // Setup the mock: "When GetHydratedDeckAsync is called with our testId, return our fake object"
         mockService.Setup(s => s.GetHydratedDeckAsync(testId))
                    .ReturnsAsync(fakeHydratedDeck);
 
-        var controller = new DeckListMongoDbController(mockService.Object);
+        var controller = new DeckListMongoDbController(mockService.Object, mockKafka.Object);
 
         // --- 2. ACT ---
         var result = await controller.GetById(testId);

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
 using YuGiOhDeckApi.Repositories;
+using YuGiOh_Analytics_Consumer.Service;
 
 namespace YuGiOhDeckApi.Controllers
 {
@@ -14,11 +15,13 @@ namespace YuGiOhDeckApi.Controllers
     {
         // This is where that variable lives!
         private readonly IMongoDbService _mongoDbService;
+        private readonly IKafkaProducerService _kafkaProducerService;
 
         // Change 'MongoDbService' to 'IMongoDbService' here
-        public DeckListMongoDbController(IMongoDbService mongoDbService)
+        public DeckListMongoDbController(IMongoDbService mongoDbService, IKafkaProducerService kafkaProducerService)
         {
             _mongoDbService = mongoDbService;
+            _kafkaProducerService = kafkaProducerService;
         }
 
         // 1. Added a generic Get back so nameof(Get) works in the Post method
@@ -43,9 +46,17 @@ namespace YuGiOhDeckApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] DeckList newDeck)
         {
+            // Log the incoming request
             Console.WriteLine($"UPLINK_RECEIVED: {newDeck.Title}");
+
+            // 1. Save to MongoDB via your Service
             await _mongoDbService.CreateAsync(newDeck);
-            // This now points to the Get() method above
+
+            // 2. Send the event to Kafka for Analytics
+            // This ensures your background worker sees the new deck!
+            await _kafkaProducerService.PublishDeckUpdate(newDeck.Title, "CREATED");
+
+            // 3. Return the 201 Created response
             return CreatedAtAction(nameof(Get), new { id = newDeck.Id }, newDeck);
         }
 
