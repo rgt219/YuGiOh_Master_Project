@@ -1,22 +1,30 @@
 # Stage 1: Build the React App
 FROM node:20-alpine AS build
+WORKDIR /app
 
-# 2. Define the ARGs (these receive values from the --build-arg flags)
+# 1. Define ARGs for the URLs
 ARG REACT_APP_IDENTITY_URL
 ARG REACT_APP_DECK_API_URL
 
-# 3. Set the ENVs (this makes them available to the 'npm run build' process)
+# 2. Assign to ENV so the build process sees them
 ENV REACT_APP_IDENTITY_URL=$REACT_APP_IDENTITY_URL
 ENV REACT_APP_DECK_API_URL=$REACT_APP_DECK_API_URL
 
-WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve the static files
-FROM nginx:alpine AS final
-COPY --from=build /app/build /usr/share/nginx/html
+# Stage 2: Serve with Nginx
+FROM nginx:stable-alpine
+WORKDIR /usr/share/nginx/html
+
+# 3. Copy the build output from Stage 1
+COPY --from=build /app/build .
+
+# 4. Inject the Cache-Control header into the Nginx config
+# This tells the browser: "Always check if index.html has changed"
+RUN sed -i '/index.html;/a \        add_header Cache-Control "no-store, no-cache, must-revalidate";' /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
