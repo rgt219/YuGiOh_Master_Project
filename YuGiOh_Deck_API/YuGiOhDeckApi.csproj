@@ -20,4 +20,8 @@
     <Folder Include="Entities\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\YuGiOh_Analytics_Consumer\YuGiOh_Analytics_Consumer.csproj" />
+  </ItemGroup>
+
 </Project>
