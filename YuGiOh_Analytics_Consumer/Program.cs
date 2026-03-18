@@ -11,6 +11,7 @@ namespace YuGiOh_Analytics_Consumer
             builder.Services.AddHostedService<Worker>();
 
             var host = builder.Build();
+            //hoping this works
             host.Run();
         }
     }
