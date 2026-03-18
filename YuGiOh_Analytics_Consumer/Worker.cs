@@ -1,4 +1,8 @@
+using Azure.Storage.Blobs; // Fixes BlobContainerClient
 using Confluent.Kafka;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using System;             // Fixes BinaryData and Guid
 
 namespace YuGiOh_Analytics_Consumer
 {
@@ -6,11 +10,49 @@ namespace YuGiOh_Analytics_Consumer
     {
         private readonly ILogger<Worker> _logger;
         private readonly IConfiguration _configuration;
+        private readonly BlobContainerClient _dlqContainerClient;
+        private readonly IMongoCollection<BsonDocument> _analyticsCollection;
 
         public Worker(ILogger<Worker> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
+
+            // ... Storage setup ...
+            var connectionString = _configuration["AzureStorage:ConnectionString"];
+            var containerName = _configuration["AzureStorage:ContainerName"];
+            _dlqContainerClient = new BlobContainerClient(connectionString, containerName);
+
+            // --- NEW: MongoDB Setup ---
+            var mongoClient = new MongoClient(_configuration["CosmosDb:ConnectionString"]);
+            var database = mongoClient.GetDatabase("YuGiOhAnalytics");
+            _analyticsCollection = database.GetCollection<BsonDocument>("DeckStats");
+        }
+
+        private async Task ProcessDeckUpdate(string deckJson)
+        {
+            // 1. Parse the JSON message from the Event Hub
+            // Assuming the message looks like: { "CardId": "12345", "CardName": "Blue-Eyes White Dragon" }
+            var document = BsonDocument.Parse(deckJson);
+            var cardId = document["id"].AsString;
+
+            _logger.LogInformation($"Updating analytics for Card ID: {cardId}");
+
+            // 2. Define the Filter (Find this specific card)
+            var filter = Builders<BsonDocument>.Filter.Eq("id", cardId);
+
+            // 3. Define the Update (Increment 'TotalUsage' by 1)
+            var update = Builders<BsonDocument>.Update
+                .Inc("TotalUsage", 1)
+                .Set("LastUpdated", DateTime.UtcNow)
+                .SetOnInsert("name", document["name"]); // Only sets name if it's a new entry
+
+            // 4. Execute with Upsert (Update if exists, Create if not)
+            await _analyticsCollection.UpdateOneAsync(
+                filter,
+                update,
+                new UpdateOptions { IsUpsert = true }
+            );
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -42,8 +84,20 @@ namespace YuGiOh_Analytics_Consumer
                     {
                         _logger.LogInformation($"Consumed message: {result.Message.Value}");
 
-                        // TODO: Add your logic here!
-                        // e.g., Update a leaderboard, send an email, or log to Cosmos DB
+                        // --- START OF DLQ LOGIC ---
+                        try
+                        {
+                            // This is where you call your actual processing method
+                            await ProcessDeckUpdate(result.Message.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to process deck. Sending to DLQ.");
+
+                            // This will be implemented once we set up the BlobServiceClient
+                            await SendToDeadLetterQueue(result.Message.Value, ex.Message);
+                        }
+                        // --- END OF DLQ LOGIC ---
                     }
                 }
             }
@@ -54,6 +108,34 @@ namespace YuGiOh_Analytics_Consumer
             finally
             {
                 consumer.Close();
+            }
+        }
+
+        private async Task SendToDeadLetterQueue(string messagePayload, string errorMessage)
+        {
+            try
+            {
+                // Ensure the container exists (useful for the first run)
+                await _dlqContainerClient.CreateIfNotExistsAsync();
+
+                // Create a unique filename based on time and a GUID
+                string fileName = $"failed-deck-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid()}.json";
+                var blobClient = _dlqContainerClient.GetBlobClient(fileName);
+
+                // Optional: Wrap the payload with the error details for easier debugging
+                var deadLetterData = new
+                {
+                    Error = errorMessage,
+                    Timestamp = DateTime.UtcNow,
+                    Payload = messagePayload
+                };
+
+                await blobClient.UploadAsync(BinaryData.FromObjectAsJson(deadLetterData));
+                _logger.LogWarning($"Message diverted to DLQ: {fileName}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, "FATAL: Could not send message to DLQ. Data may be lost.");
             }
         }
     }
