@@ -80,7 +80,7 @@ jobs:
           containerAppName: api
           resourceGroup: ErreGeTe
           targetPort: 8080
-          revisionMode: Multiple
+          revisionMode: Single
 
       - name: Deploy Frontend
         uses: azure/container-apps-deploy-action@v1
@@ -98,6 +98,7 @@ jobs:
           containerAppName: analytics
           resourceGroup: ErreGeTe
           # Background workers don't need ingress
+          disableIngress: true
 
       - name: Run Smoke Test on Deck API
         run: |
@@ -127,7 +128,16 @@ jobs:
       - name: Shift Deck API Traffic to 100%
         if: success()
         run: |
+          # Fetch the name of the latest READY revision
+          LATEST_REVISION=$(az containerapp revision list \
+            --name api \
+            --resource-group ErreGeTe \
+            --query "[?properties.runningState=='Running'].name | [0]" -o tsv)
+
+          echo "Moving 100% traffic to: $LATEST_REVISION"
+
+          # Explicitly set this revision to 100 and all others to 0
           az containerapp ingress traffic set \
             --name api \
             --resource-group ErreGeTe \
-            --revision-weight ${{ env.FINAL_REVISION }}=100
+            --revision-weight $LATEST_REVISION=100
