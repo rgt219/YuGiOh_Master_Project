@@ -54,7 +54,7 @@ namespace YuGiOhDeckApi.Controllers
 
             // 2. Send the event to Kafka for Analytics
             // This ensures your background worker sees the new deck!
-            await _kafkaProducerService.PublishDeckUpdate(newDeck.Title, "CREATED");
+            await _kafkaProducerService.PublishDeckUpdate(newDeck.Title ?? "Unknown Deck", "CREATED");
 
             // 3. Return the 201 Created response
             return CreatedAtAction(nameof(Get), new { id = newDeck.Id }, newDeck);
