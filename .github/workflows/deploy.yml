@@ -133,8 +133,8 @@ jobs:
       - name: Shift Deck API Traffic to 100%
         if: success()
         run: |
-          # This command tells Azure: "Whatever the newest revision is, give it 100%"
           az containerapp ingress traffic set \
             --name api \
             --resource-group ErreGeTe \
-            --label-weight latest=100
+            --latest-revision true \
+            --weight 100

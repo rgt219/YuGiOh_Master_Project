@@ -19,7 +19,7 @@ namespace YuGiOhIdentityApi
             {
                 options.AddPolicy("MyCors", policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000")
+                    policy.WithOrigins("https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io")
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();
