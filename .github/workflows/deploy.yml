@@ -97,8 +97,13 @@ jobs:
           imageToDeploy: yugiohapidocker.azurecr.io/analytics:${{ github.sha }}
           containerAppName: analytics
           resourceGroup: ErreGeTe
-          # Background workers don't need ingress
           disableIngress: true
+
+      - name: Force Disable Analytics Ingress
+        run: |
+          az containerapp ingress disable \
+            --name analytics \
+            --resource-group ErreGeTe
 
       - name: Run Smoke Test on Deck API
         run: |
@@ -128,16 +133,8 @@ jobs:
       - name: Shift Deck API Traffic to 100%
         if: success()
         run: |
-          # Fetch the name of the latest READY revision
-          LATEST_REVISION=$(az containerapp revision list \
-            --name api \
-            --resource-group ErreGeTe \
-            --query "[?properties.runningState=='Running'].name | [0]" -o tsv)
-
-          echo "Moving 100% traffic to: $LATEST_REVISION"
-
-          # Explicitly set this revision to 100 and all others to 0
+          # This command tells Azure: "Whatever the newest revision is, give it 100%"
           az containerapp ingress traffic set \
             --name api \
             --resource-group ErreGeTe \
-            --revision-weight $LATEST_REVISION=100
+            --label-weight latest=100
