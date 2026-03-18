@@ -80,7 +80,7 @@ jobs:
           containerAppName: api
           resourceGroup: ErreGeTe
           targetPort: 8080
-          revisionMode: Single
+          revisionMode: Multiple
 
       - name: Deploy Frontend
         uses: azure/container-apps-deploy-action@v1
