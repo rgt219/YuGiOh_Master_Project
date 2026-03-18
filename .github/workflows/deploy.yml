@@ -133,8 +133,16 @@ jobs:
       - name: Shift Deck API Traffic to 100%
         if: success()
         run: |
+          # 1. Get the name of the newest revision for the 'api' app
+          LATEST_REV=$(az containerapp revision list \
+            --name api \
+            --resource-group ErreGeTe \
+            --query "[0].name" -o tsv)
+
+          echo "Found latest revision: $LATEST_REV"
+
+          # 2. Assign 100% traffic to that specific name
           az containerapp ingress traffic set \
             --name api \
             --resource-group ErreGeTe \
-            --latest-revision true \
-            --weight 100
+            --revision-weight $LATEST_REV=100
