@@ -38,10 +38,9 @@ namespace YuGiOhDeckApi
             {
                 options.AddPolicy("MyCors", policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000", "https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io")
+                    policy.AllowAnyOrigin()
                           .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials();
+                          .AllowAnyHeader();
                 });
             });
 

@@ -7,35 +7,48 @@ export default function TrendingCards()  {
 
     useEffect(() => {
         const fetchStats = async () => {
-            try {
-                // 1. Fetch the Top 10 from YOUR .NET API
-                const response = await fetch('https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Analytics/top-cards?limit=5');
-                if (!response.ok) {
-                    const errorBody = await response.text();
-                    throw new Error(`Server responded with ${response.status}: ${errorBody}`);
-                }
-                const stats = await response.json();
-
-                // 2. Fetch the actual card details/images from the Public API
-                // We join the IDs into a comma-separated string for a single request
-                const ids = stats.map(s => s.cardId).join(',');
-                const cardInfoRes = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ids}`);
-                const cardInfo = await cardInfoRes.json();
-
-                // 3. Merge your usage counts with the external image data
-                const mergedData = stats.map(stat => ({
-                    ...stat,
-                    imageUrl: cardInfo.data.find(info => info.id.toString() === stat.cardId)?.card_images[0].image_url_small,
-                    name: cardInfo.data.find(info => info.id.toString() === stat.cardId)?.name
-                }));
-
-                setTrending(mergedData);
-                setLoading(false);
-            } catch (err) {
-                console.error("Failed to load trending cards:", err);
-                setLoading(false);
+        try {
+            const response = await fetch('https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Analytics/top-cards?limit=5');
+            
+            if (!response.ok) {
+                throw new Error(`API Status: ${response.status}`);
             }
-        };
+
+            const stats = await response.json();
+
+            // 1. FLEXIBLE PROPERTY NAMES: Handle both 'cardId' and 'CardId'
+            // 2. FILTER: Ensure we don't send undefined IDs to the public API
+            const validStats = stats.filter(s => s.cardId || s.CardId);
+            const ids = validStats.map(s => s.cardId || s.CardId).join(',');
+
+            if (!ids) {
+                setTrending([]);
+                setLoading(false);
+                return;
+            }
+
+            const cardInfoRes = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ids}`);
+            const cardInfo = await cardInfoRes.json();
+
+            const mergedData = validStats.map(stat => {
+                const currentId = (stat.cardId || stat.CardId).toString();
+                const apiMatch = cardInfo.data.find(info => info.id.toString() === currentId);
+
+                return {
+                    cardId: currentId,
+                    usageCount: stat.usageCount || stat.TotalUsage, // Match C# property name
+                    imageUrl: apiMatch?.card_images[0].image_url_small,
+                    name: apiMatch?.name || "Unknown Card"
+                };
+            });
+
+            setTrending(mergedData);
+            setLoading(false);
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            setLoading(false);
+        }
+    };
 
         fetchStats();
     }, []);
