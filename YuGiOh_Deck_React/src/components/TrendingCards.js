@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_URLS } from "../config";
 import { Card } from 'react-bootstrap';
 
 export default function TrendingCards()  {
@@ -8,7 +9,7 @@ export default function TrendingCards()  {
     useEffect(() => {
         const fetchStats = async () => {
         try {
-            const response = await fetch('https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Analytics/top-cards?limit=5');
+            const response = await fetch(`${API_URLS.ANALYTICS}/top-cards?limit=5`);
             
             if (!response.ok) {
                 throw new Error(`API Status: ${response.status}`);
