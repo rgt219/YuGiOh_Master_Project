@@ -92,7 +92,7 @@ export default function TrendingCards()  {
                             onClick={() => handleCardClick(card)}
                         >
                             <img 
-                                src={card.imageUrl} 
+                                src={card.card_images[0].image_url_small} 
                                 alt={card.name} 
                                 style={{ width: '45px', borderRadius: '4px' }} 
                                 className="me-3"
@@ -126,7 +126,7 @@ export default function TrendingCards()  {
                         style={{ maxHeight: '400px', borderRadius: '8px' }}
                     />
                     <div className="text-start p-2" style={{ backgroundColor: '#212529', borderRadius: '5px' }}>
-                        <p className="small mb-0">{selectedCard?.description || "No description available."}</p>
+                        <p className="small mb-0">{selectedCard?.desc || "No description available."}</p>
                     </div>
                 </Modal.Body>
                 <Modal.Footer className="border-secondary">
