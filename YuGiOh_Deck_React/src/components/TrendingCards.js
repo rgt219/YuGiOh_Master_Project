@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Card } from 'react-bootstrap';
 
 export default function TrendingCards()  {
     const [trending, setTrending] = useState([]);
@@ -38,18 +39,29 @@ export default function TrendingCards()  {
     if (loading) return <div>Loading Trends...</div>;
 
     return (
-        <div className="trending-sidebar">
-            <h3>Trending Cards</h3>
-            {trending.map(card => (
-                <div key={card.cardId} className="trending-item">
-                    <img src={card.imageUrl} alt={card.name} style={{ width: '50px' }} />
-                    <div className="card-info">
-                        <p className="card-name">{card.name}</p>
-                        <small>{card.usageCount} Decks</small>
+        <Card className="bg-dark text-white border-secondary mt-3">
+            <Card.Header className="border-secondary">
+                <h5 className="mb-0">🔥 Trending Cards</h5>
+            </Card.Header>
+            <Card.Body className="p-2">
+                {trending.map(card => (
+                    <div key={card.cardId} className="d-flex align-items-center mb-3 border-bottom border-secondary pb-2">
+                        <img 
+                            src={card.imageUrl} 
+                            alt={card.name} 
+                            style={{ width: '45px', borderRadius: '4px' }} 
+                            className="me-3"
+                        />
+                        <div style={{ fontSize: '0.85rem' }}>
+                            <div className="fw-bold text-truncate" style={{ maxWidth: '140px' }}>
+                                {card.name}
+                            </div>
+                            <div className="text-muted small">{card.usageCount} Decks</div>
+                        </div>
                     </div>
-                </div>
-            ))}
-        </div>
+                ))}
+            </Card.Body>
+        </Card>
     );
 };
 
