@@ -31,28 +31,38 @@ namespace YuGiOh_Analytics_Consumer
 
         private async Task ProcessDeckUpdate(string deckJson)
         {
-            // 1. Parse the JSON message from the Event Hub
-            // Assuming the message looks like: { "CardId": "12345", "CardName": "Blue-Eyes White Dragon" }
+            // 1. Parse the JSON coming from the Event Hub
+            // Expected Format: { "DeckId": "...", "Cards": [{ "Id": "123", "Name": "Dark Magician" }, ...] }
             var document = BsonDocument.Parse(deckJson);
-            var cardId = document["id"].AsString;
+            var cards = document["Cards"].AsBsonArray;
 
-            _logger.LogInformation($"Updating analytics for Card ID: {cardId}");
+            _logger.LogInformation($"Processing analytics for {cards.Count} cards in deck.");
 
-            // 2. Define the Filter (Find this specific card)
-            var filter = Builders<BsonDocument>.Filter.Eq("id", cardId);
+            foreach (var card in cards)
+            {
+                var cardId = card["Id"].AsString;
+                var cardName = card["Name"].AsString;
 
-            // 3. Define the Update (Increment 'TotalUsage' by 1)
-            var update = Builders<BsonDocument>.Update
-                .Inc("TotalUsage", 1)
-                .Set("LastUpdated", DateTime.UtcNow)
-                .SetOnInsert("name", document["name"]); // Only sets name if it's a new entry
+                // 2. Define the Filter: Find the document for this specific Card ID
+                var filter = Builders<BsonDocument>.Filter.Eq("Id", cardId);
 
-            // 4. Execute with Upsert (Update if exists, Create if not)
-            await _analyticsCollection.UpdateOneAsync(
-                filter,
-                update,
-                new UpdateOptions { IsUpsert = true }
-            );
+                // 3. Define the Update: 
+                // $inc: Increments the usage count by 1
+                // $set: Updates the timestamp
+                // $setOnInsert: Only sets the CardName if this is a brand new entry
+                var update = Builders<BsonDocument>.Update
+                    .Inc("TotalUsage", 1)
+                    .Set("LastSeen", DateTime.UtcNow)
+                    .SetOnInsert("CardName", cardName);
+
+                // 4. Execute with Upsert = true
+                // This ensures if the card isn't in our DB yet, it gets created automatically
+                await _analyticsCollection.UpdateOneAsync(
+                    filter,
+                    update,
+                    new UpdateOptions { IsUpsert = true }
+                );
+            }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
