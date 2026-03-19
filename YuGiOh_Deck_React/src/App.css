@@ -36,3 +36,26 @@
     transform: rotate(360deg);
   }
 }
+
+.trending-sidebar {
+    background: #1a1a1a;
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 250px;
+}
+
+.trending-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.card-name {
+    font-weight: bold;
+    margin: 0;
+    font-size: 0.9rem;
+}

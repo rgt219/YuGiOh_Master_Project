@@ -459,3 +459,14 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6), 0 0 10px rgba(0, 255, 255, 0.1);
     border-color: rgba(0, 255, 255, 0.3) !important;
 }
+
+.md-content-panel {
+    max-width: 1400px; /* Gives you a bit more breathing room for the sidebar */
+}
+
+/* Ensure the sidebar doesn't touch the footer */
+.trending-sidebar {
+    position: sticky;
+    top: 20px;
+    margin-bottom: 2rem;
+}

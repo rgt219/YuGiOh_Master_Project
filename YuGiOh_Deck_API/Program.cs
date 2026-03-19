@@ -1,9 +1,10 @@
+using Microsoft.ApplicationInsights.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
+using YuGiOh_Analytics_Consumer.Service;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
 using YuGiOhDeckApi.Repositories;
-using YuGiOh_Analytics_Consumer.Service;
-using Microsoft.ApplicationInsights.AspNetCore;
 //Comment for pushing
 
 namespace YuGiOhDeckApi
@@ -19,6 +20,14 @@ namespace YuGiOhDeckApi
             builder.Services.AddSingleton<MongoDbService>();
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
+            // Register the Analytics Collection
+            builder.Services.AddSingleton<IMongoCollection<CardStat>>(sp =>
+            {
+                var settings = builder.Configuration.GetSection("CosmosDb");
+                var client = new MongoClient(settings["ConnectionString"]);
+                var database = client.GetDatabase("YuGiOhAnalytics");
+                return database.GetCollection<CardStat>("DeckStats");
+            });
 
             builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDBSettings"));
 
@@ -29,7 +38,7 @@ namespace YuGiOhDeckApi
             {
                 options.AddPolicy("MyCors", policy =>
                 {
-                    policy.WithOrigins("https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io")
+                    policy.WithOrigins("http://localhost:3000")
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();

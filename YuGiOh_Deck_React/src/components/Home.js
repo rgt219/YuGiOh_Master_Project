@@ -7,6 +7,8 @@ import DeckList from "./DeckList";
 import DeckDetails from "./DeckDetails";
 import Login from "./Login";
 import DeckBuilder from "./DeckBuilder";
+import { Container, Row, Col } from "react-bootstrap";
+import TrendingCards from "./TrendingCards";
 import Footer from "./Footer";
 //import DecksGrid from "./components/DecksGrid";
 
@@ -92,8 +94,18 @@ export default function Home({user}) {
 
                 <hr className="border-info opacity-25 mb-5" />
 
-                {/* Decks Grid Section */}
-                <DecksGrid decks={decks} decklist={decklist} toggleDeckList={toggleDeckList}/>
+                {/* Main Layout Row */}
+                <Row>
+                    {/* Left Side: Your main Decks Grid (80% width) */}
+                    <Col lg={9} md={8}>
+                        <DecksGrid decks={decks} decklist={decklist} toggleDeckList={toggleDeckList}/>
+                    </Col>
+
+                    {/* Right Side: Trending Cards (20% width) */}
+                    <Col lg={3} md={4}>
+                        <TrendingCards />
+                    </Col>
+                </Row>
             </div>
             
             <Footer />

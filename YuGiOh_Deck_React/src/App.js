@@ -22,6 +22,7 @@ import Home from './components/Home'
 import Register from './components/Register';
 import UserProfile from './components/UserProfile';
 import DeckProfileDetails from './components/DeckProfileDetails';
+import TrendingCards from './components/TrendingCards';
 
 function App() {
   const [user, setUser] = useState(() => {
