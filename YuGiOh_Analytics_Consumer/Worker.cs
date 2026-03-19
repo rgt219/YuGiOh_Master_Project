@@ -31,32 +31,35 @@ namespace YuGiOh_Analytics_Consumer
 
         private async Task ProcessDeckUpdate(string deckJson)
         {
-            // 1. Parse the JSON coming from the Event Hub
-            // Expected Format: { "DeckId": "...", "Cards": [{ "Id": "123", "Name": "Dark Magician" }, ...] }
+            // 1. Parse the JSON as a BsonDocument
             var document = BsonDocument.Parse(deckJson);
-            var cards = document["Cards"].AsBsonArray;
 
-            _logger.LogInformation($"Processing analytics for {cards.Count} cards in deck.");
+            // 2. Extract all card IDs from the three lists
+            // We use .AsBsonArray and then convert to strings
+            var main = document.GetValue("mainDeck", new BsonArray()).AsBsonArray;
+            var extra = document.GetValue("extraDeck", new BsonArray()).AsBsonArray;
+            var side = document.GetValue("sideDeck", new BsonArray()).AsBsonArray;
 
-            foreach (var card in cards)
+            // Combine them into one list of IDs
+            var allCardIds = main.Concat(extra).Concat(side)
+                                .Select(x => x.AsString)
+                                .ToList();
+
+            _logger.LogInformation($"Processing analytics for {allCardIds.Count} total cards.");
+
+            // 3. Group by ID so we only call the DB once per unique card in this deck
+            var cardCounts = allCardIds.GroupBy(id => id)
+                                    .Select(group => new { Id = group.Key, Count = group.Count() });
+
+            foreach (var card in cardCounts)
             {
-                var cardId = card["Id"].AsString;
-                var cardName = card["Name"].AsString;
+                var filter = Builders<BsonDocument>.Filter.Eq("_id", card.Id);
 
-                // 2. Define the Filter: Find the document for this specific Card ID
-                var filter = Builders<BsonDocument>.Filter.Eq("Id", cardId);
-
-                // 3. Define the Update: 
-                // $inc: Increments the usage count by 1
-                // $set: Updates the timestamp
-                // $setOnInsert: Only sets the CardName if this is a brand new entry
+                // $inc by the amount of times the card appeared in this specific deck
                 var update = Builders<BsonDocument>.Update
-                    .Inc("TotalUsage", 1)
-                    .Set("LastSeen", DateTime.UtcNow)
-                    .SetOnInsert("CardName", cardName);
+                    .Inc("TotalUsage", card.Count)
+                    .Set("LastSeen", DateTime.UtcNow);
 
-                // 4. Execute with Upsert = true
-                // This ensures if the card isn't in our DB yet, it gets created automatically
                 await _analyticsCollection.UpdateOneAsync(
                     filter,
                     update,
