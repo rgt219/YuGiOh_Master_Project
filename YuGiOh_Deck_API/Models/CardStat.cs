@@ -13,5 +13,8 @@ namespace YuGiOhDeckApi.Models
 
         [BsonElement("LastSeen")]
         public DateTime LastSeen { get; set; }
+
+        [BsonElement("CardName")]
+        public string? CardName { get; set; }
     }
 }
