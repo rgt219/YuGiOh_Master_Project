@@ -23,9 +23,21 @@ namespace YuGiOhDeckApi
             // Register the Analytics Collection
             builder.Services.AddSingleton<IMongoCollection<CardStat>>(sp =>
             {
-                var settings = builder.Configuration.GetSection("CosmosDb");
-                var client = new MongoClient(settings["ConnectionString"]);
+                var config = sp.GetRequiredService<IConfiguration>();
+                var connectionString = config["CosmosDb:ConnectionString"];
+
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    throw new Exception("CRITICAL: CosmosDb:ConnectionString is missing from configuration!");
+                }
+
+                var client = new MongoClient(connectionString);
+
+                // 1. DOUBLE CHECK THIS NAME: Does your database in Azure 
+                // actually named "YuGiOhAnalytics"? 
+                // If your decks are in "YuGiOhDeckDb", use that instead!
                 var database = client.GetDatabase("YuGiOhAnalytics");
+
                 return database.GetCollection<CardStat>("DeckStats");
             });
 
