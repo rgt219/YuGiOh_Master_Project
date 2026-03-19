@@ -9,7 +9,7 @@ export default function TrendingCards()  {
         const fetchStats = async () => {
             try {
                 // 1. Fetch the Top 10 from YOUR .NET API
-                const response = await fetch('https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Analytics/top-cards');
+                const response = await fetch('https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Analytics/top-cards?limit=5');
                 if (!response.ok) {
                     const errorBody = await response.text();
                     throw new Error(`Server responded with ${response.status}: ${errorBody}`);
