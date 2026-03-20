@@ -470,3 +470,89 @@
     top: 20px;
     margin-bottom: 2rem;
 }
+
+/* --- Master Duel Component Theme --- */
+.master-duel-card {
+    background: #0d0f11 !important; /* Deep Dark Master Duel Base */
+    border: 1px solid #1a2228 !important; /* Subtle border */
+    color: white !important;
+}
+
+.master-duel-card-header {
+    background-color: #0c1218 !important; /* Different dark for header */
+    border-bottom: 1px solid #323b44 !important; /* Clear line */
+    padding: 0.75rem !important;
+}
+
+/* Deep Black Gradient used in MD UI */
+.bg-black-gradient {
+    background: linear-gradient(180deg, #0c1218 0%, #080a0c 100%) !important;
+}
+
+/* Master Duel Border color for lists and separators */
+.border-master-duel {
+    border-color: #323b44 !important;
+}
+
+/* Cyan color for counts/stats in MD */
+.text-master-duel-cyan {
+    color: #00ffff !important;
+}
+
+/* Add a slight hover effect to the list items */
+.master-duel-list-item:hover {
+    background-color: #1a2228;
+    transition: background-color 0.2s ease;
+}
+
+/* ========================================================== */
+/* --- MASTER DUEL MODAL THEME --- */
+/* ========================================================== */
+.master-duel-modal {
+    background-color: #0d0f11 !important;
+    border: 2px solid #3c444c !important; /* MD Modal Border */
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    border-radius: 10px;
+}
+
+/* The distinct MD border-bottom color on headers/footers */
+.border-master-duel-blue {
+    border-color: #00d2ff !important;
+    color: white;
+}
+
+/* The card image border/shadow in the details screen */
+.master-duel-detail-image {
+    max-height: 400px;
+    border-radius: 8px;
+    border: 2px solid #282e34;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+}
+
+/* Labels used in Master Duel (SPELL, TRAP, Level) */
+.master-duel-label-badge {
+    background-color: #1a1d20 !important;
+    border: 1px solid #3c444c !important;
+    color: white !important;
+    border-radius: 4px;
+    padding: 4px 10px !important;
+}
+
+/* The bordered box that holds the card description */
+.master-duel-text-box {
+    background-color: rgba(0, 0, 0, 0.4) !important; /* Slightly darker for contrast */
+    border: 1px solid #3c444c !important;
+    border-radius: 4px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); /* Adds depth like the game */
+}
+
+/* Ensure the Level/Rank stars look "Golden" like the game */
+.text-master-duel-cyan {
+    color: #00ffff !important;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+}
+
+/* Specific styling for the card description text */
+.text-white-50 {
+    color: rgba(255, 255, 255, 0.9) !important; /* Making it 90% white instead of 50% for readability */
+}
