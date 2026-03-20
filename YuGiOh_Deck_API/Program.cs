@@ -21,8 +21,8 @@ namespace YuGiOhDeckApi
             builder.Services.AddSingleton<MongoDbService>();
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
-            builder.Services.AddSignalR();
-            builder.Services.AddHostedService<KafkaToSignalRBridge>();
+            // builder.Services.AddSignalR();
+            // builder.Services.AddHostedService<KafkaToSignalRBridge>();
 
             // Register the Analytics Collection
             builder.Services.AddSingleton<IMongoCollection<CardStat>>(sp =>
@@ -108,7 +108,7 @@ namespace YuGiOhDeckApi
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapHub<ActivityHub>("/activityHub");
+            // app.MapHub<ActivityHub>("/activityHub");
 
             app.MapGet("/", () => "Hello World!");
             app.MapControllers();
