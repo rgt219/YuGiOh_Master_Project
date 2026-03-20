@@ -19,5 +19,8 @@ namespace YuGiOhDeckApi.Models
 
         [BsonElement("LastUpdated")]
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+
+        [BsonElement("DailyUsage")]
+        public Dictionary<string, int> DailyUsage { get; set; } = new Dictionary<string, int>();
     }
 }

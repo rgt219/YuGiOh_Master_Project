@@ -32,18 +32,23 @@ namespace YuGiOh_Deck_API.Controllers
         [HttpGet("rising-tech")]
         public async Task<IActionResult> GetRisingTech()
         {
-            // 1. Define "Recent" (e.g., last 24 hours)
-            var twentyFourHoursAgo = DateTime.UtcNow.AddDays(-1);
+            var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
-            // 2. Query for cards updated recently, sorted by usage
-            // We filter by LastUpdated to see what people are playing RIGHT NOW
-            var risingCards = await _statsCollection
-                .Find(c => c.LastUpdated >= twentyFourHoursAgo)
-                .SortByDescending(c => c.TotalUsage)
+            // We look for cards used at least once today, 
+            // then sort by today's volume specifically.
+            var rising = await _statsCollection.Aggregate()
+                .Match(c => c.DailyUsage.ContainsKey(today))
+                .Project(c => new
+                {
+                    CardId = c.CardId,
+                    TodayUsage = c.DailyUsage[today],
+                    TotalUsage = c.TotalUsage
+                })
+                .SortByDescending(x => x.TodayUsage)
                 .Limit(5)
                 .ToListAsync();
 
-            return Ok(risingCards);
+            return Ok(rising);
         }
     }
 }

@@ -31,33 +31,31 @@ namespace YuGiOh_Analytics_Consumer
 
         private async Task ProcessDeckUpdate(string deckJson)
         {
-            // 1. Parse the JSON as a BsonDocument
             var document = BsonDocument.Parse(deckJson);
-
-            // 2. Extract all card IDs from the three lists
-            // We use .AsBsonArray and then convert to strings
             var main = document.GetValue("mainDeck", new BsonArray()).AsBsonArray;
             var extra = document.GetValue("extraDeck", new BsonArray()).AsBsonArray;
             var side = document.GetValue("sideDeck", new BsonArray()).AsBsonArray;
 
-            // Combine them into one list of IDs
             var allCardIds = main.Concat(extra).Concat(side)
                                 .Select(x => x.AsString)
                                 .ToList();
 
             _logger.LogInformation($"Processing analytics for {allCardIds.Count} total cards.");
 
-            // 3. Group by ID so we only call the DB once per unique card in this deck
             var cardCounts = allCardIds.GroupBy(id => id)
-                                    .Select(group => new { Id = group.Key, Count = group.Count() });
+                                        .Select(group => new { Id = group.Key, Count = group.Count() });
+
+            // --- ADD THIS LINE FOR THE BUCKET KEY ---
+            var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
 
             foreach (var card in cardCounts)
             {
                 var filter = Builders<BsonDocument>.Filter.Eq("_id", card.Id);
 
-                // $inc by the amount of times the card appeared in this specific deck
+                // --- UPDATED LOGIC HERE ---
                 var update = Builders<BsonDocument>.Update
                     .Inc("TotalUsage", card.Count)
+                    .Inc($"DailyUsage.{today}", card.Count) // Tracking specific daily growth
                     .Set("LastSeen", DateTime.UtcNow);
 
                 await _analyticsCollection.UpdateOneAsync(
