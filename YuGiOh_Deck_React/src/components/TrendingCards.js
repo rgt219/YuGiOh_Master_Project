@@ -284,16 +284,23 @@ function MetaHealthGauge({ data }) {
                         <div className="position-absolute w-100 border border-secondary border-5 rounded-circle" 
                              style={{ height: '120px', opacity: 0.1, top: 0 }}></div>
                         
-                        <div className="position-absolute w-100 border border-5 rounded-circle" 
-                             style={{ 
+                        <div 
+                            className="position-absolute w-100 rounded-circle" // Removed 'border' and 'border-5' classes
+                            style={{ 
                                 height: '120px', 
                                 top: 0,
+                                borderStyle: 'solid',      // Added this
+                                borderWidth: '6px',        // Increased slightly for "pop"
                                 borderColor: getGaugeColor(score),
                                 transform: `rotate(${180 + (score * 1.8)}deg)`,
                                 transition: 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
                                 borderLeftColor: 'transparent',
-                                borderBottomColor: 'transparent'
-                             }}></div>
+                                borderBottomColor: 'transparent',
+                                // Optional: Add a subtle glow to match Master Duel's neon style
+                                boxShadow: `0 0 8px ${getGaugeColor(score)}44`, 
+                                zIndex: 2
+                            }}
+                        ></div>
                     </div>
 
                     <div className="mt-2">

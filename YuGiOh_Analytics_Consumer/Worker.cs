@@ -12,6 +12,7 @@ namespace YuGiOh_Analytics_Consumer
         private readonly IConfiguration _configuration;
         private readonly BlobContainerClient _dlqContainerClient;
         private readonly IMongoCollection<BsonDocument> _analyticsCollection;
+        private readonly IProducer<string, string> _uiProducer; // ADD THIS
 
         public Worker(ILogger<Worker> logger, IConfiguration configuration)
         {
@@ -27,6 +28,16 @@ namespace YuGiOh_Analytics_Consumer
             var mongoClient = new MongoClient(_configuration["CosmosDb:ConnectionString"]);
             var database = mongoClient.GetDatabase("YuGiOhAnalytics");
             _analyticsCollection = database.GetCollection<BsonDocument>("DeckStats");
+
+            var producerConfig = new ProducerConfig
+            {
+                BootstrapServers = _configuration["Kafka:BootstrapServers"],
+                SecurityProtocol = SecurityProtocol.SaslSsl,
+                SaslMechanism = SaslMechanism.Plain,
+                SaslUsername = "$ConnectionString",
+                SaslPassword = _configuration["Kafka:ConnectionString"]
+            };
+            _uiProducer = new ProducerBuilder<string, string>(producerConfig).Build();
         }
 
         private async Task ProcessDeckUpdate(string deckJson)
@@ -95,20 +106,31 @@ namespace YuGiOh_Analytics_Consumer
                     {
                         _logger.LogInformation($"Consumed message: {result.Message.Value}");
 
-                        // --- START OF DLQ LOGIC ---
                         try
                         {
-                            // This is where you call your actual processing method
+                            // 1. Process the actual DB Analytics
                             await ProcessDeckUpdate(result.Message.Value);
+
+                            // 2. NEW: Trigger UI Notification for the Ticker
+                            // We parse the incoming JSON to get the Deck Name or User
+                            var deckData = BsonDocument.Parse(result.Message.Value);
+                            var activity = new
+                            {
+                                Username = deckData.GetValue("username", "A Duelist").AsString,
+                                Action = "published a new deck",
+                                Timestamp = DateTime.UtcNow
+                            };
+
+                            await _uiProducer.ProduceAsync("ui-activity-log", new Message<string, string>
+                            {
+                                Value = System.Text.Json.JsonSerializer.Serialize(activity)
+                            });
                         }
                         catch (Exception ex)
                         {
                             _logger.LogError(ex, "Failed to process deck. Sending to DLQ.");
-
-                            // This will be implemented once we set up the BlobServiceClient
                             await SendToDeadLetterQueue(result.Message.Value, ex.Message);
                         }
-                        // --- END OF DLQ LOGIC ---
                     }
                 }
             }
@@ -119,6 +141,8 @@ namespace YuGiOh_Analytics_Consumer
             finally
             {
                 consumer.Close();
+                _uiProducer.Flush(TimeSpan.FromSeconds(10)); // Ensure messages are sent
+                _uiProducer.Dispose();
             }
         }
 
