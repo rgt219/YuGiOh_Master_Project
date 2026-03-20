@@ -10,66 +10,70 @@ export default function TrendingCards() {
     const [loading, setLoading] = useState(true);
     const [selectedCard, setSelectedCard] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [hotTech, setHotTech] = useState([]); // Add this line
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchAllSidebarData = async () => {
             try {
-                // 1. Fetch your Top 5 (Numeric IDs Only)
-                const response = await fetch('https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Analytics/top-cards?limit=5');
-                if (!response.ok) throw new Error(`API Status: ${response.status}`);
-                const stats = await response.json();
+                const baseUrl = 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Analytics';
 
-                // 2. Filter & Clean IDs (Only keep numeric)
-                const validStats = stats.filter(s => {
-                    const id = (s.cardId || s.CardId)?.toString();
-                    return id && /^\d+$/.test(id); 
-                });
-                const ids = validStats.map(s => s.cardId || s.CardId).join(',');
+                // 1. Fire off both API calls at the same time
+                const [trendingRes, hotTechRes] = await Promise.all([
+                    fetch(`${baseUrl}/top-cards?limit=5`),
+                    fetch(`${baseUrl}/rising-tech`) // Your new .NET endpoint
+                ]);
 
-                if (!ids) {
-                    console.warn("No valid numeric card IDs found.");
-                    setTrending([]);
-                    setLoading(false);
-                    return;
-                }
+                const trendingData = await trendingRes.json();
+                const hotTechData = await hotTechRes.json();
 
-                // 3. Fetch from YGOPRODeck (Numeric IDs are guaranteed to work)
-                const cardInfoRes = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ids}`);
-                if (!cardInfoRes.ok) {
-                    const errorText = await cardInfoRes.text();
-                    throw new Error(`Public API Error: ${errorText}`);
-                }
-                const cardInfo = await cardInfoRes.json();
+                // 2. Helper function to get card info from YGOPRODeck
+                const getEnhancedData = async (stats) => {
+                    const validStats = stats.filter(s => {
+                        const id = (s.cardId || s.CardId)?.toString();
+                        return id && /^\d+$/.test(id);
+                    });
+                    const ids = validStats.map(s => s.cardId || s.CardId).join(',');
+                    
+                    if (!ids) return [];
 
-                // 4. Merge (IMPORTANT: Get ALL properties for the modal)
-                const mergedData = validStats.map(stat => {
-                    const currentId = (stat.cardId || stat.CardId).toString();
-                    const apiMatch = cardInfo.data.find(info => info.id.toString() === currentId);
+                    const infoRes = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ids}`);
+                    const infoJson = await infoRes.json();
 
-                    return {
-                        cardId: currentId,
-                        usageCount: stat.usageCount || stat.TotalUsage || 0,
-                        imageUrl: apiMatch?.card_images?.[0]?.image_url || "/path/to/placeholder.png",
-                        name: apiMatch?.name || "Unknown Card",
-                        description: apiMatch?.desc || "No card text available.",
-                        type: apiMatch?.type || "Unknown",
-                        attribute: apiMatch?.attribute || null,
-                        race: apiMatch?.race || null,
-                        level: apiMatch?.level || null,
-                        atk: apiMatch?.atk, 
-                        def: apiMatch?.def
-                    };
-                });
+                    return validStats.map(stat => {
+                        const currentId = (stat.cardId || stat.CardId).toString();
+                        const apiMatch = infoJson.data.find(info => info.id.toString() === currentId);
+                        return {
+                            cardId: currentId,
+                            usageCount: stat.TotalUsage || stat.usageCount || 0,
+                            name: apiMatch?.name || "Unknown Card",
+                            imageUrl: apiMatch?.card_images?.[0]?.image_url,
+                            description: apiMatch?.desc,
+                            type: apiMatch?.type,
+                            race: apiMatch?.race,
+                            attribute: apiMatch?.attribute,
+                            level: apiMatch?.level,
+                            atk: apiMatch?.atk,
+                            def: apiMatch?.def
+                        };
+                    });
+                };
 
-                setTrending(mergedData);
+                // 3. Process both lists
+                const [finalTrending, finalHotTech] = await Promise.all([
+                    getEnhancedData(trendingData),
+                    getEnhancedData(hotTechData)
+                ]);
+
+                setTrending(finalTrending);
+                setHotTech(finalHotTech);
                 setLoading(false);
             } catch (err) {
-                console.error("Fetch Error:", err);
+                console.error("Sidebar Load Error:", err);
                 setLoading(false);
             }
         };
 
-        fetchStats();
+        fetchAllSidebarData();
     }, []);
 
     const handleCardClick = (card) => {
@@ -81,37 +85,66 @@ export default function TrendingCards() {
 
     return (
         <>
-            {/* --- SIDEBAR CARD (MASTER DUEL THEME) --- */}
-            <Card className="master-duel-card mt-3">
-                <Card.Header className="master-duel-card-header">
-                    <h6 className="mb-0 text-white fw-bold">🔥 Trending (Top Decks)</h6>
-                </Card.Header>
-                <Card.Body className="p-2 bg-black-gradient">
-                    {trending.map(card => (
-                        <div 
-                            key={card.cardId} 
-                            className="d-flex align-items-center mb-3 border-bottom border-master-duel pb-2 master-duel-list-item"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => handleCardClick(card)}
-                        >
-                            <img 
-                                src={card.imageUrl} 
-                                alt={card.name} 
-                                style={{ width: '45px', borderRadius: '4px', border: '1px solid #3c444c' }} 
-                                className="me-3"
-                            />
-                            <div style={{ fontSize: '0.85rem' }}>
-                                <div className="fw-bold text-white text-truncate" style={{ maxWidth: '140px' }}>
-                                    {card.name}
+            {/* Main Sidebar Container */}
+            <div className="d-flex flex-column gap-4">
+                
+                {/* --- SECTION 1: TRENDING (Existing) --- */}
+                <Card className="master-duel-card">
+                    <Card.Header className="master-duel-card-header">
+                        <h6 className="mb-0 text-white fw-bold">🔥 Trending (Top Decks)</h6>
+                    </Card.Header>
+                    <Card.Body className="p-2 bg-black-gradient">
+                        {trending.map(card => (
+                            <div 
+                                key={card.cardId} 
+                                className="d-flex align-items-center mb-3 border-bottom border-master-duel pb-2 master-duel-list-item"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleCardClick(card)}
+                            >
+                                <img 
+                                    src={card.imageUrl} 
+                                    alt={card.name} 
+                                    style={{ width: '45px', borderRadius: '4px', border: '1px solid #3c444c' }} 
+                                    className="me-3"
+                                />
+                                <div style={{ fontSize: '0.85rem' }}>
+                                    <div className="fw-bold text-white text-truncate" style={{ maxWidth: '140px' }}>
+                                        {card.name}
+                                    </div>
+                                    <div className="text-master-duel-cyan small">{card.usageCount} Decks</div>
                                 </div>
-                                <div className="text-master-duel-cyan small">{card.usageCount} Decks</div>
                             </div>
-                        </div>
-                    ))}
-                </Card.Body>
-            </Card>
+                        ))}
+                    </Card.Body>
+                </Card>
 
-            {/* --- MASTER DUEL DETAIL MODAL --- */}
+                {/* --- SECTION 2: HOT TECH (The New Feature) --- */}
+                <Card className="master-duel-card border-hot">
+                    <Card.Header className="master-duel-card-header d-flex justify-content-between align-items-center">
+                        <h6 className="mb-0 text-white fw-bold">🚀 Rising Tech</h6>
+                        <Badge bg="danger" style={{ fontSize: '0.65rem' }}>HOT</Badge>
+                    </Card.Header>
+                    <Card.Body className="p-2 bg-black-gradient">
+                        {/* Assuming you created a 'hotTech' state variable similarly to 'trending' */}
+                        {hotTech && hotTech.length > 0 ? hotTech.map(card => (
+                            <div 
+                                key={`hot-${card.cardId}`} 
+                                className="d-flex align-items-center mb-2 p-2 master-duel-list-item rounded"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleCardClick(card)}
+                            >
+                                <span className="text-hot-orange fw-bold me-3" style={{ fontSize: '1.1rem' }}>▲</span>
+                                <div className="text-white small fw-bold text-truncate">{card.name}</div>
+                            </div>
+                        )) : (
+                            <div className="text-muted small p-2">Monitoring Meta shifts...</div>
+                        )}
+                    </Card.Body>
+                </Card>
+
+            </div>
+
+            {/* --- MASTER DUEL DETAIL MODAL (Shared by both sections) --- */}
             <MasterDuelDetailModal 
                 show={showModal} 
                 onHide={() => setShowModal(false)} 

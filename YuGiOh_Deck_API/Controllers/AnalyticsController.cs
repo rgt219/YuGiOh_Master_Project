@@ -28,5 +28,22 @@ namespace YuGiOh_Deck_API.Controllers
 
             return Ok(topCards);
         }
+
+        [HttpGet("rising-tech")]
+        public async Task<IActionResult> GetRisingTech()
+        {
+            // 1. Define "Recent" (e.g., last 24 hours)
+            var twentyFourHoursAgo = DateTime.UtcNow.AddDays(-1);
+
+            // 2. Query for cards updated recently, sorted by usage
+            // We filter by LastUpdated to see what people are playing RIGHT NOW
+            var risingCards = await _statsCollection
+                .Find(c => c.LastUpdated >= twentyFourHoursAgo)
+                .SortByDescending(c => c.TotalUsage)
+                .Limit(5)
+                .ToListAsync();
+
+            return Ok(risingCards);
+        }
     }
 }

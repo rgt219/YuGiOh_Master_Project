@@ -556,3 +556,25 @@
 .text-white-50 {
     color: rgba(255, 255, 255, 0.9) !important; /* Making it 90% white instead of 50% for readability */
 }
+
+/* Orange accent for rising cards */
+.text-hot-orange {
+    color: #ff6a00 !important;
+    text-shadow: 0 0 10px rgba(255, 106, 0, 0.5);
+}
+
+/* A subtle orange left-border to distinguish the section */
+.border-hot {
+    border-left: 3px solid #ff6a00 !important;
+}
+
+/* Pulse animation for the 'HOT' badge */
+.animate-pulse {
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(220, 53, 69, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}

@@ -16,5 +16,8 @@ namespace YuGiOhDeckApi.Models
 
         [BsonElement("CardName")]
         public string? CardName { get; set; }
+
+        [BsonElement("LastUpdated")]
+        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     }
 }
