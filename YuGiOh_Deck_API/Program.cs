@@ -5,6 +5,7 @@ using YuGiOh_Analytics_Consumer.Service;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
 using YuGiOhDeckApi.Repositories;
+using YuGiOhDeckApi.Hubs;
 //Comment for pushing
 
 namespace YuGiOhDeckApi
@@ -16,26 +17,31 @@ namespace YuGiOhDeckApi
             var builder = WebApplication.CreateBuilder(args);
 
             // 1. SERVICES CONFIGURATION
-            builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
+            //builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
             builder.Services.AddSingleton<MongoDbService>();
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
+            builder.Services.AddSignalR();
+
             // Register the Analytics Collection
             builder.Services.AddSingleton<IMongoCollection<CardStat>>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();
-                var connectionString = config["CosmosDb:ConnectionString"];
+
+                // 1. Check ALL possible naming conventions Azure uses
+                var connectionString = config["CosmosDb:ConnectionString"]
+                                    ?? config["CosmosDb__ConnectionString"]
+                                    ?? config["CONNECTIONSTRING"]; // Some Azure environments use this
 
                 if (string.IsNullOrEmpty(connectionString))
                 {
-                    throw new Exception("CRITICAL: CosmosDb:ConnectionString is missing from configuration!");
+                    // This will force the REAL error into the Azure Log Stream
+                    throw new InvalidOperationException("CRITICAL ERROR: Connection string for Analytics is NULL. Check Azure Environment Variables.");
                 }
 
                 var client = new MongoClient(connectionString);
 
-                // 1. DOUBLE CHECK THIS NAME: Does your database in Azure 
-                // actually named "YuGiOhAnalytics"? 
-                // If your decks are in "YuGiOhDeckDb", use that instead!
+                // 2. Database name MUST match your appsettings.json exactly
                 var database = client.GetDatabase("YuGiOhAnalytics");
 
                 return database.GetCollection<CardStat>("DeckStats");
@@ -95,10 +101,13 @@ namespace YuGiOhDeckApi
                 });
             }
 
+
             app.UseRouting();
             app.UseCors("MyCors");
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapHub<ActivityHub>("/activityHub");
 
             app.MapGet("/", () => "Hello World!");
             app.MapControllers();
