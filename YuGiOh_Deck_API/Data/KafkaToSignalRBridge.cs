@@ -48,6 +48,8 @@ public class KafkaToSignalRBridge : BackgroundService
                 BrokerAddressFamily = BrokerAddressFamily.Any
             };
 
+
+            Console.WriteLine("=============CREATING CONSUMER=============");
             using var consumer = new ConsumerBuilder<string, string>(config)
                 .SetErrorHandler((_, e) => Console.WriteLine($"Kafka Connection Error Detail: {e.Reason}"))
                 .SetLogHandler((_, l) => Console.WriteLine($"Kafka Log: {l.Message}"))
@@ -69,7 +71,7 @@ public class KafkaToSignalRBridge : BackgroundService
                 try
                 {
                     // 1. Poll Kafka for 1 second
-
+                    Console.WriteLine("=============MADE IT=============");
 
                     if (result != null && !string.IsNullOrEmpty(result.Message.Value))
                     {
