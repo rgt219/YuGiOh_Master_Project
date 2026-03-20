@@ -11,6 +11,7 @@ export default function TrendingCards() {
     const [selectedCard, setSelectedCard] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [hotTech, setHotTech] = useState([]); // Add this line
+    const [metaHealth, setMetaHealth] = useState();
 
     useEffect(() => {
         const fetchAllSidebarData = async () => {
@@ -25,6 +26,10 @@ export default function TrendingCards() {
 
                 const trendingData = await trendingRes.json();
                 const hotTechData = await hotTechRes.json();
+
+                const healthRes = await fetch(`${baseUrl}/meta-health`);
+                const healthData = await healthRes.json();
+                setMetaHealth(healthData);
 
                 // 2. Helper function to get card info from YGOPRODeck
                 const getEnhancedData = async (stats) => {
@@ -44,7 +49,7 @@ export default function TrendingCards() {
                         const apiMatch = infoJson.data.find(info => info.id.toString() === currentId);
                         return {
                             cardId: currentId,
-                            usageCount: stat.TotalUsage || stat.usageCount || 0,
+                            usageCount: stat.totalUsage ?? stat.TotalUsage ?? stat.usageCount ?? 0,
                             name: apiMatch?.name || "Unknown Card",
                             imageUrl: apiMatch?.card_images?.[0]?.image_url,
                             description: apiMatch?.desc,
@@ -87,7 +92,7 @@ export default function TrendingCards() {
         <>
             {/* Main Sidebar Container */}
             <div className="d-flex flex-column gap-4">
-                
+                {metaHealth && <MetaHealthGauge data={metaHealth} />}
                 {/* --- SECTION 1: TRENDING (Existing) --- */}
                 <Card className="master-duel-card">
                     <Card.Header className="master-duel-card-header">
@@ -244,5 +249,53 @@ function MasterDuelDetailModal({ show, onHide, card }) {
                 </Button>
             </Modal.Footer>
         </Modal>
+    );
+}
+
+// Add this at the bottom of TrendingCards.js
+function MetaHealthGauge({ data }) {
+    if (!data) return null;
+
+    const { score, status } = data;
+
+    const getGaugeColor = (s) => {
+        if (s > 75) return '#00f2ff'; // Master Duel Cyan
+        if (s > 40) return '#ffcc00'; // Warning Yellow
+        return '#ff0055';            // Danger Pink
+    };
+
+    return (
+        <Card className="master-duel-card mb-0">
+            <Card.Body className="p-3 bg-black-gradient text-center">
+                <h6 className="text-white-50 small fw-bold text-uppercase mb-3" style={{ letterSpacing: '1px' }}>
+                    Format Health
+                </h6>
+                
+                <div className="position-relative mx-auto" style={{ width: '120px', height: '65px', overflow: 'hidden' }}>
+                    {/* Background Track */}
+                    <div className="position-absolute w-100 border border-secondary border-5 rounded-circle" 
+                         style={{ height: '120px', opacity: 0.1, top: 0 }}></div>
+                    
+                    {/* Active Gauge */}
+                    <div className="position-absolute w-100 border border-5 rounded-circle" 
+                         style={{ 
+                            height: '120px', 
+                            top: 0,
+                            borderColor: getGaugeColor(score),
+                            transform: `rotate(${180 + (score * 1.8)}deg)`,
+                            transition: 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                            borderLeftColor: 'transparent',
+                            borderBottomColor: 'transparent'
+                         }}></div>
+                </div>
+
+                <div className="mt-2">
+                    <span className="fs-4 fw-bold text-white">{score}%</span>
+                    <div className="small fw-bold" style={{ color: getGaugeColor(score), fontSize: '0.7rem' }}>
+                        {status?.toUpperCase()}
+                    </div>
+                </div>
+            </Card.Body>
+        </Card>
     );
 }
