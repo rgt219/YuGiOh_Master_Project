@@ -46,28 +46,21 @@ namespace YuGiOhDeckApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] DeckList newDeck)
         {
-            // 1. Trace the entry
             Console.WriteLine($"[API_TRACE] Received request for deck: {newDeck.Title}");
 
             try
             {
-                // 2. Save to Mongo
                 await _mongoDbService.CreateAsync(newDeck);
-                Console.WriteLine($"[API_TRACE] Saved {newDeck.Title} to Cosmos DB.");
 
-                // 3. Attempt Kafka Publish
-                Console.WriteLine($"[API_TRACE] Attempting to publish to Kafka topic: {newDeck.Title}");
-                await _kafkaProducerService.PublishDeckUpdate(newDeck.Title, "CREATED");
+                // --- CHANGE THIS LINE ---
+                // Instead of just passing the title, we pass the whole object
+                await _kafkaProducerService.PublishDeckUpdate(newDeck);
 
-                // 4. Success Marker
-                Console.WriteLine($"[API_TRACE] SUCCESS: Message for {newDeck.Title} acknowledged by Event Hubs.");
+                Console.WriteLine($"[API_TRACE] SUCCESS: Full deck data sent to Kafka.");
             }
             catch (Exception ex)
             {
-                // 5. Error Marker
                 Console.WriteLine($"[API_TRACE] CRITICAL_ERROR: {ex.Message}");
-                if (ex.InnerException != null)
-                    Console.WriteLine($"[API_TRACE] INNER_ERROR: {ex.InnerException.Message}");
             }
 
             return CreatedAtAction(nameof(Get), new { id = newDeck.Id }, newDeck);

@@ -57,6 +57,6 @@ public class DeckControllerTests
         await controller.Post(newDeck);
 
         // ASSERT - Verify that PublishDeckUpdate was called exactly once with the correct title
-        mockKafka.Verify(k => k.PublishDeckUpdate("Exodia Deck", "CREATED"), Times.Once);
+        mockKafka.Verify(k => k.PublishDeckUpdate(It.Is<DeckList>(d => d.Title == "Exodia Deck")), Times.Once);
     }
 }

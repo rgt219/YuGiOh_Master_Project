@@ -9,7 +9,8 @@ namespace YuGiOh_Analytics_Consumer.Service
 {
     public interface IKafkaProducerService
     {
-        Task PublishDeckUpdate(string deckName, string action);
+        // Use the full explicit namespace to stop the redlines
+        Task PublishDeckUpdate(object deck);
     }
 
     public class KafkaProducerService : IKafkaProducerService
@@ -36,30 +37,31 @@ namespace YuGiOh_Analytics_Consumer.Service
             };
         }
 
-        public async Task PublishDeckUpdate(string deckName, string action)
+        public async Task PublishDeckUpdate(object deck)
         {
-            // It's often better to build the producer once, but for low-traffic 
-            // this 'using' block works fine.
             using var producer = new ProducerBuilder<string, string>(_producerConfig).Build();
 
-            var message = new Message<string, string>
+            // Cast to dynamic so we can read Title, MainDeck, etc., 
+            // even if this project doesn't 'know' what a DeckList is.
+            dynamic d = deck;
+
+            var payload = new
             {
-                Key = deckName,
-                Value = $"{action}: {deckName} at {DateTime.UtcNow}"
+                username = d.UserId ?? "erregete",
+                title = d.Title,
+                mainDeck = d.MainDeck ?? new List<string>(),
+                extraDeck = d.ExtraDeck ?? new List<string>(),
+                sideDeck = d.SideDeck ?? new List<string>(),
+                timestamp = DateTime.UtcNow
             };
 
-            try
+            var jsonValue = System.Text.Json.JsonSerializer.Serialize(payload);
+
+            await producer.ProduceAsync("deck-updates", new Message<string, string>
             {
-                // Ensure this matches "deck-updates" set in your Azure Env Variables
-                var topic = _config["Kafka:Topic"] ?? "deck-updates";
-                await producer.ProduceAsync(topic, message);
-            }
-            catch (ProduceException<string, string> e)
-            {
-                // If this fails, check your API logs for SASL authentication errors
-                Console.WriteLine($"Kafka Error: {e.Error.Reason}");
-                throw;
-            }
+                Key = d.Id?.ToString() ?? Guid.NewGuid().ToString(),
+                Value = jsonValue
+            });
         }
     }
 }
