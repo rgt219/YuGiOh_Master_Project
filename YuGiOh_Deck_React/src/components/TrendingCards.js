@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Modal, Button, Badge } from 'react-bootstrap';
+import { Card, Modal, Button, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 // --- (Optionally Import your Master Duel CSS if you have one central file) ---
 // import './MasterDuelTheme.css'; 
@@ -256,46 +256,54 @@ function MasterDuelDetailModal({ show, onHide, card }) {
 function MetaHealthGauge({ data }) {
     if (!data) return null;
 
-    const { score, status } = data;
+    const { score, status, topCard } = data;
 
     const getGaugeColor = (s) => {
-        if (s > 75) return '#00f2ff'; // Master Duel Cyan
-        if (s > 40) return '#ffcc00'; // Warning Yellow
-        return '#ff0055';            // Danger Pink
+        if (s > 75) return '#00f2ff'; 
+        if (s > 40) return '#ffcc00'; 
+        return '#ff0055';            
     };
 
-    return (
-        <Card className="master-duel-card mb-0">
-            <Card.Body className="p-3 bg-black-gradient text-center">
-                <h6 className="text-white-50 small fw-bold text-uppercase mb-3" style={{ letterSpacing: '1px' }}>
-                    Format Health
-                </h6>
-                
-                <div className="position-relative mx-auto" style={{ width: '120px', height: '65px', overflow: 'hidden' }}>
-                    {/* Background Track */}
-                    <div className="position-absolute w-100 border border-secondary border-5 rounded-circle" 
-                         style={{ height: '120px', opacity: 0.1, top: 0 }}></div>
-                    
-                    {/* Active Gauge */}
-                    <div className="position-absolute w-100 border border-5 rounded-circle" 
-                         style={{ 
-                            height: '120px', 
-                            top: 0,
-                            borderColor: getGaugeColor(score),
-                            transform: `rotate(${180 + (score * 1.8)}deg)`,
-                            transition: 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                            borderLeftColor: 'transparent',
-                            borderBottomColor: 'transparent'
-                         }}></div>
-                </div>
+    const renderTooltip = (props) => (
+        <Tooltip id="meta-tooltip" {...props} className="master-duel-tooltip">
+            {score < 50 
+                ? `High concentration of "${topCard}" detected.` 
+                : `Healthy variety! "${topCard}" is the current lead.`}
+        </Tooltip>
+    );
 
-                <div className="mt-2">
-                    <span className="fs-4 fw-bold text-white">{score}%</span>
-                    <div className="small fw-bold" style={{ color: getGaugeColor(score), fontSize: '0.7rem' }}>
-                        {status?.toUpperCase()}
+    return (
+        <OverlayTrigger placement="top" delay={{ show: 250, hide: 400 }} overlay={renderTooltip}>
+            <Card className="master-duel-card mb-0" style={{ cursor: 'help' }}>
+                <Card.Body className="p-3 bg-black-gradient text-center">
+                    <h6 className="text-white-50 small fw-bold text-uppercase mb-3" style={{ letterSpacing: '1px' }}>
+                        Format Health
+                    </h6>
+                    
+                    <div className="position-relative mx-auto" style={{ width: '120px', height: '65px', overflow: 'hidden' }}>
+                        <div className="position-absolute w-100 border border-secondary border-5 rounded-circle" 
+                             style={{ height: '120px', opacity: 0.1, top: 0 }}></div>
+                        
+                        <div className="position-absolute w-100 border border-5 rounded-circle" 
+                             style={{ 
+                                height: '120px', 
+                                top: 0,
+                                borderColor: getGaugeColor(score),
+                                transform: `rotate(${180 + (score * 1.8)}deg)`,
+                                transition: 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                                borderLeftColor: 'transparent',
+                                borderBottomColor: 'transparent'
+                             }}></div>
                     </div>
-                </div>
-            </Card.Body>
-        </Card>
+
+                    <div className="mt-2">
+                        <span className="fs-4 fw-bold text-white">{score}%</span>
+                        <div className="small fw-bold" style={{ color: getGaugeColor(score), fontSize: '0.7rem' }}>
+                            {status?.toUpperCase()}
+                        </div>
+                    </div>
+                </Card.Body>
+            </Card>
+        </OverlayTrigger>
     );
 }

@@ -578,3 +578,16 @@
     70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(220, 53, 69, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
 }
+
+.master-duel-tooltip .tooltip-inner {
+    background-color: #1a1e23;
+    color: #00f2ff;
+    border: 1px solid #00f2ff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+}
+
+.master-duel-tooltip .tooltip-arrow::before {
+    border-top-color: #00f2ff;
+}
