@@ -16,45 +16,50 @@ public class KafkaToSignalRBridge : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // 1. Give the API a chance to finish starting up first
+        Console.WriteLine("=============CALLING EXECUTE ASYNC=============");
+        await Task.Yield();
+
         var connString = _config["Kafka:ConnectionString"];
+        Console.WriteLine("=============KAFKA CONNECTION STRING=============");
+        Console.WriteLine(connString);
         if (string.IsNullOrEmpty(connString))
         {
-            // This prevents the 500 crash and lets the API keep running
-            Console.WriteLine("CRITICAL: Kafka ConnectionString is missing. Bridge will not start.");
+            Console.WriteLine("CRITICAL: Kafka ConnectionString is missing. Bridge skipping...");
             return;
         }
-        var config = new ConsumerConfig
+
+        // 2. Wrap the consumer in a try/catch so a connection failure doesn't kill the API
+        Console.WriteLine("=============TRY BLOCK=============");
+        try
         {
-            BootstrapServers = _config["Kafka:BootstrapServers"],
-            GroupId = "api-signalr-bridge",
-            AutoOffsetReset = AutoOffsetReset.Earliest,
-            SecurityProtocol = SecurityProtocol.SaslSsl,
-            SaslMechanism = SaslMechanism.Plain,
-            SaslUsername = "$ConnectionString",
-            SaslPassword = _config["Kafka:ConnectionString"]
-        };
+            var config = new ConsumerConfig { /* ... your existing config ... */ };
+            using var consumer = new ConsumerBuilder<string, string>(config).Build();
+            consumer.Subscribe("ui-activity-log");
 
-        using var consumer = new ConsumerBuilder<string, string>(config).Build();
-        consumer.Subscribe("ui-activity-log"); // Ensure this matches your worker's output topic
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                Console.WriteLine("=============SECOND TRY BLOCK=============");
+                try
+                {
+                    // 3. Use a timeout so we don't block the thread forever
+                    var result = consumer.Consume(TimeSpan.FromSeconds(1));
 
-        while (!stoppingToken.IsCancellationRequested)
+                    if (result == null) continue; // No message? Just loop.
+
+                    var activity = JsonSerializer.Deserialize<object>(result.Message.Value);
+                    await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
+                }
+                catch (ConsumeException ex)
+                {
+                    Console.WriteLine($"Kafka Consume Error: {ex.Error.Reason}");
+                    await Task.Delay(2000, stoppingToken);
+                }
+            }
+        }
+        catch (Exception ex)
         {
-            try
-            {
-                var result = consumer.Consume(stoppingToken);
-                // The message from the worker usually looks like: { "username": "...", "title": "...", "action": "..." }
-                var activity = JsonSerializer.Deserialize<object>(result.Message.Value);
-
-                // This is the magic line that hits your React connection.on("ReceiveActivity")
-                await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
-
-                Console.WriteLine($"[SIGNALR] Broadcasted activity for {result.Message.Key}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Bridge Error: {ex.Message}");
-                await Task.Delay(5000, stoppingToken);
-            }
+            Console.WriteLine($"FATAL Bridge Error: {ex.Message}");
         }
     }
 }
