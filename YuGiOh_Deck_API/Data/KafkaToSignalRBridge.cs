@@ -45,6 +45,7 @@ public class KafkaToSignalRBridge : BackgroundService
 
                 // Add this to help with connection stability in Azure
                 SessionTimeoutMs = 45000,
+                SslEndpointIdentificationAlgorithm = SslEndpointIdentificationAlgorithm.Https,
                 BrokerAddressFamily = BrokerAddressFamily.Any
             };
 
