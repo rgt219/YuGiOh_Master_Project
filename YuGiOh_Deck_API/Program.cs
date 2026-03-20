@@ -22,6 +22,7 @@ namespace YuGiOhDeckApi
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
             builder.Services.AddSignalR();
+            builder.Services.AddHostedService<KafkaToSignalRBridge>();
 
             // Register the Analytics Collection
             builder.Services.AddSingleton<IMongoCollection<CardStat>>(sp =>

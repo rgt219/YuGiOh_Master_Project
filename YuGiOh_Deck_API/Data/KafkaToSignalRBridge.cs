@@ -16,6 +16,13 @@ public class KafkaToSignalRBridge : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var connString = _config["Kafka:ConnectionString"];
+        if (string.IsNullOrEmpty(connString))
+        {
+            // This prevents the 500 crash and lets the API keep running
+            Console.WriteLine("CRITICAL: Kafka ConnectionString is missing. Bridge will not start.");
+            return;
+        }
         var config = new ConsumerConfig
         {
             BootstrapServers = _config["Kafka:BootstrapServers"],
