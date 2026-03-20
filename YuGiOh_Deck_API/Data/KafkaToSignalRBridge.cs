@@ -33,7 +33,19 @@ public class KafkaToSignalRBridge : BackgroundService
         Console.WriteLine("=============TRY BLOCK=============");
         try
         {
-            var config = new ConsumerConfig { /* ... your existing config ... */ };
+            var config = new ConsumerConfig
+            {
+                GroupId = "api-signalr-bridge",
+                BootstrapServers = _config["Kafka:BootstrapServers"],
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+
+                // Security settings for Azure Event Hubs
+                SecurityProtocol = SecurityProtocol.SaslSsl,
+                SaslMechanism = SaslMechanism.Plain,
+                SaslUsername = "$ConnectionString",
+                SaslPassword = _config["Kafka:ConnectionString"]
+            };
+
             using var consumer = new ConsumerBuilder<string, string>(config).Build();
             consumer.Subscribe("ui-activity-log");
 
