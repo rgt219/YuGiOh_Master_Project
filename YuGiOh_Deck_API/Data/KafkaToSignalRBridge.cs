@@ -36,17 +36,22 @@ public class KafkaToSignalRBridge : BackgroundService
             var config = new ConsumerConfig
             {
                 GroupId = "api-signalr-bridge",
-                BootstrapServers = _config["Kafka:BootstrapServers"],
-                AutoOffsetReset = AutoOffsetReset.Earliest,
+                BootstrapServers = _config["Kafka:BootstrapServers"], // Should be ygoevents.servicebus.windows.net:9093
 
-                // Security settings for Azure Event Hubs
                 SecurityProtocol = SecurityProtocol.SaslSsl,
                 SaslMechanism = SaslMechanism.Plain,
-                SaslUsername = "$ConnectionString",
-                SaslPassword = _config["Kafka:ConnectionString"]
+                SaslUsername = "$ConnectionString", // Literal string
+                SaslPassword = _config["Kafka:ConnectionString"], // The long Endpoint=sb://... string
+
+                // Add this to help with connection stability in Azure
+                SessionTimeoutMs = 45000,
+                BrokerAddressFamily = BrokerAddressFamily.Any
             };
 
-            using var consumer = new ConsumerBuilder<string, string>(config).Build();
+            using var consumer = new ConsumerBuilder<string, string>(config)
+                .SetErrorHandler((_, e) => Console.WriteLine($"Kafka Connection Error Detail: {e.Reason}"))
+                .SetLogHandler((_, l) => Console.WriteLine($"Kafka Log: {l.Message}"))
+                .Build();
             consumer.Subscribe("ui-activity-log");
 
             // MOCK MESSAGE FOR TESTING
@@ -79,6 +84,10 @@ public class KafkaToSignalRBridge : BackgroundService
                             await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
 
                             Console.WriteLine($"[SIGNALR] Success: {activity.Username} {activity.Action} {activity.Title}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Sorry Bruh");
                         }
                     }
                 }
