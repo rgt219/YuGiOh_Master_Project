@@ -94,8 +94,8 @@ export default function TrendingCards() {
             {/* Main Sidebar Container */}
             <div className="d-flex flex-column gap-4">
                 {metaHealth && <MetaHealthGauge data={metaHealth} />}
-                {/* REAL-TIME: What just happened? */}
-                <LiveTicker />
+                {/* REAL-TIME: What just happened?*/}
+                 <LiveTicker /> 
                 {/* --- SECTION 1: TRENDING (Existing) --- */}
                 <Card className="master-duel-card">
                     <Card.Header className="master-duel-card-header">

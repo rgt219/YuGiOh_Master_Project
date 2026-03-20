@@ -22,6 +22,7 @@ namespace YuGiOhDeckApi
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
             builder.Services.AddSignalR();
+            builder.Services.AddHostedService<KafkaToSignalRBridge>();
 
             // Register the Analytics Collection
             builder.Services.AddSingleton<IMongoCollection<CardStat>>(sp =>
@@ -100,12 +101,14 @@ namespace YuGiOhDeckApi
                     c.RoutePrefix = string.Empty;
                 });
             }
-            app.MapHub<ActivityHub>("/activityHub");
+
 
             app.UseRouting();
             app.UseCors("MyCors");
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapHub<ActivityHub>("/activityHub");
 
             app.MapGet("/", () => "Hello World!");
             app.MapControllers();
