@@ -3,6 +3,8 @@ using Confluent.Kafka;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;             // Fixes BinaryData and Guid
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace YuGiOh_Analytics_Consumer
 {
@@ -13,6 +15,7 @@ namespace YuGiOh_Analytics_Consumer
         private readonly BlobContainerClient _dlqContainerClient;
         private readonly IMongoCollection<BsonDocument> _analyticsCollection;
         private readonly IProducer<string, string> _uiProducer; // ADD THIS
+        private IConsumer<Ignore, string>? _consumer; // ADD THIS LINE
 
         public Worker(ILogger<Worker> logger, IConfiguration configuration)
         {
@@ -99,34 +102,28 @@ namespace YuGiOh_Analytics_Consumer
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    ConsumeResult<string, string>? result = null; // Declare OUTSIDE the try block
+                    // FIX: Match the type to your Worker's specific Kafka Consumer
+                    ConsumeResult<Ignore, string>? result = null;
 
                     try
                     {
-                        // 1. Poll Kafka
-                        result = consumer.Consume(TimeSpan.FromSeconds(1));
+                        result = _consumer.Consume(stoppingToken);
 
-                        if (result != null && !string.IsNullOrEmpty(result.Message.Value))
+                        if (result?.Message?.Value != null)
                         {
+                            // We still deserialize to verify the data
                             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                             var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
 
-                            if (activity != null)
-                            {
-                                await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
-                                Console.WriteLine($"[SIGNALR] Success: {activity.Username} {activity.Action} {activity.Title}");
-                            }
+                            // LOG IT instead of trying to send to SignalR
+                            _logger.LogInformation($"Worker processed deck: {activity?.Title}");
+
+                            // ... Your Database Saving Logic Goes Here ...
                         }
                     }
-                    catch (ConsumeException ex)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine($"Kafka Consume Error: {ex.Error.Reason}");
-                        await Task.Delay(2000, stoppingToken);
-                    }
-                    catch (JsonException ex)
-                    {
-                        // Now 'result' is in scope!
-                        Console.WriteLine($"JSON Parsing Error: {ex.Message} - Raw Data: {result?.Message?.Value}");
+                        _logger.LogError($"Worker Error: {ex.Message}");
                     }
                 }
             }
@@ -170,4 +167,12 @@ namespace YuGiOh_Analytics_Consumer
             }
         }
     }
+}
+
+
+public class UserActivityDto
+{
+    public string Username { get; set; } = "Unknown";
+    public string Title { get; set; } = "New Deck";
+    public string Action { get; set; } = "published";
 }
