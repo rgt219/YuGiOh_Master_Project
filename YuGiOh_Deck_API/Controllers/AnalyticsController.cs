@@ -52,7 +52,6 @@ namespace YuGiOh_Deck_API.Controllers
         }
 
         [HttpGet("meta-health")]
-        [HttpGet("meta-health")]
         public async Task<IActionResult> GetMetaHealth()
         {
             var topCards = await _statsCollection.Find(_ => true)
