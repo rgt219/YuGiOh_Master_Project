@@ -49,23 +49,47 @@ public class KafkaToSignalRBridge : BackgroundService
             using var consumer = new ConsumerBuilder<string, string>(config).Build();
             consumer.Subscribe("ui-activity-log");
 
+            // MOCK MESSAGE FOR TESTING
+            var testActivity = new UserActivityDto
+            {
+                Username = "System",
+                Action = "initialized",
+                Title = "Live Ticker Online"
+            };
+            await _hubContext.Clients.All.SendAsync("ReceiveActivity", testActivity, stoppingToken);
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                Console.WriteLine("=============SECOND TRY BLOCK=============");
+                var result = consumer.Consume(TimeSpan.FromSeconds(1));
                 try
                 {
-                    // 3. Use a timeout so we don't block the thread forever
-                    var result = consumer.Consume(TimeSpan.FromSeconds(1));
+                    // 1. Poll Kafka for 1 second
 
-                    if (result == null) continue; // No message? Just loop.
 
-                    var activity = JsonSerializer.Deserialize<object>(result.Message.Value);
-                    await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
+                    if (result != null && !string.IsNullOrEmpty(result.Message.Value))
+                    {
+                        // 2. Map the JSON string to your DTO
+                        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
+
+                        if (activity != null)
+                        {
+                            // 3. Broadcast to SignalR
+                            // SignalR will automatically camelCase the properties for React
+                            await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
+
+                            Console.WriteLine($"[SIGNALR] Success: {activity.Username} {activity.Action} {activity.Title}");
+                        }
+                    }
                 }
                 catch (ConsumeException ex)
                 {
                     Console.WriteLine($"Kafka Consume Error: {ex.Error.Reason}");
                     await Task.Delay(2000, stoppingToken);
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"JSON Parsing Error: {ex.Message} - Raw Data: {result?.Message?.Value}");
                 }
             }
         }
@@ -74,4 +98,11 @@ public class KafkaToSignalRBridge : BackgroundService
             Console.WriteLine($"FATAL Bridge Error: {ex.Message}");
         }
     }
+}
+
+public class UserActivityDto
+{
+    public string Username { get; set; } = "Unknown";
+    public string Title { get; set; } = "New Deck";
+    public string Action { get; set; } = "published";
 }

@@ -99,38 +99,34 @@ namespace YuGiOh_Analytics_Consumer
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    // Poll for new messages every 100ms
-                    var result = consumer.Consume(stoppingToken);
+                    ConsumeResult<string, string>? result = null; // Declare OUTSIDE the try block
 
-                    if (result != null)
+                    try
                     {
-                        _logger.LogInformation($"Consumed message: {result.Message.Value}");
+                        // 1. Poll Kafka
+                        result = consumer.Consume(TimeSpan.FromSeconds(1));
 
-                        try
+                        if (result != null && !string.IsNullOrEmpty(result.Message.Value))
                         {
-                            // 1. Process the actual DB Analytics
-                            await ProcessDeckUpdate(result.Message.Value);
+                            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                            var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
 
-                            // 2. NEW: Trigger UI Notification for the Ticker
-                            // We parse the incoming JSON to get the Deck Name or User
-                            var deckData = BsonDocument.Parse(result.Message.Value);
-                            var activity = new
+                            if (activity != null)
                             {
-                                Username = deckData.GetValue("username", "A Duelist").AsString,
-                                Action = "published a new deck",
-                                Timestamp = DateTime.UtcNow
-                            };
-
-                            await _uiProducer.ProduceAsync("ui-activity-log", new Message<string, string>
-                            {
-                                Value = System.Text.Json.JsonSerializer.Serialize(activity)
-                            });
+                                await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
+                                Console.WriteLine($"[SIGNALR] Success: {activity.Username} {activity.Action} {activity.Title}");
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed to process deck. Sending to DLQ.");
-                            await SendToDeadLetterQueue(result.Message.Value, ex.Message);
-                        }
+                    }
+                    catch (ConsumeException ex)
+                    {
+                        Console.WriteLine($"Kafka Consume Error: {ex.Error.Reason}");
+                        await Task.Delay(2000, stoppingToken);
+                    }
+                    catch (JsonException ex)
+                    {
+                        // Now 'result' is in scope!
+                        Console.WriteLine($"JSON Parsing Error: {ex.Message} - Raw Data: {result?.Message?.Value}");
                     }
                 }
             }

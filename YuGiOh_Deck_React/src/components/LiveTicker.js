@@ -32,9 +32,10 @@ const LiveTicker = () => {
                     {activities.length > 0 ? (
                         activities.map((a, i) => (
                             <li key={i} className="master-duel-ticker-item">
-                                <span style={{ color: '#00f2ff', fontWeight: 'bold' }}>{a.username}</span> 
-                                <span className="text-white-50"> {a.action || "published"} </span> 
-                                <span className="text-white" style={{ fontStyle: 'italic' }}>{a.title}</span>
+                                {/* Check for both casing styles just to be safe */}
+                                <span style={{ color: '#00f2ff', fontWeight: 'bold' }}>{a.username || a.Username}</span> 
+                                <span className="text-white-50"> {a.action || a.Action || "published"} </span> 
+                                <span className="text-white" style={{ fontStyle: 'italic' }}>{a.title || a.Title}</span>
                             </li>
                         ))
                     ) : (
