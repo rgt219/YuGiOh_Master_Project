@@ -48,7 +48,6 @@ namespace YuGiOhDeckApi
                 return database.GetCollection<CardStat>("DeckStats");
             });
 
-            builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDBSettings"));
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseInMemoryDatabase("DeckListDb"));
@@ -76,6 +75,10 @@ namespace YuGiOhDeckApi
 
             // 2. BUILD THE APP
             var app = builder.Build();
+
+            // DIAGNOSTIC: This will show up in your Azure Log Stream
+            var kafkaCheck = app.Configuration["Kafka:ConnectionString"];
+            Console.WriteLine($"DEBUG: Kafka Connection String is {(string.IsNullOrEmpty(kafkaCheck) ? "MISSING" : "FOUND")}");
 
             using (var scope = app.Services.CreateScope())
             {
