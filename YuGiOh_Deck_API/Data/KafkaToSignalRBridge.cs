@@ -36,21 +36,16 @@ public class KafkaToSignalRBridge : BackgroundService
         {
             var config = new ConsumerConfig
             {
-                GroupId = "api-signalr-bridge", // Change this to "bridge-v2" to force a fresh start
-                BootstrapServers = _config["Kafka:BootstrapServers"],
+                GroupId = "api-signalr-bridge",
+                BootstrapServers = _config["Kafka:BootstrapServers"], // Should be ygoevents.servicebus.windows.net:9093
 
                 SecurityProtocol = SecurityProtocol.SaslSsl,
                 SaslMechanism = SaslMechanism.Plain,
-                SaslUsername = "$ConnectionString",
-                SaslPassword = _config["Kafka:ConnectionString"],
+                SaslUsername = "$ConnectionString", // Literal string
+                SaslPassword = _config["Kafka:ConnectionString"], // The long Endpoint=sb://... string
 
-                // --- ADD THESE FOR STABILITY ---
-                SessionTimeoutMs = 60000,       // Give Azure 60s to realize you're still there
-                HeartbeatIntervalMs = 20000,    // Tell Azure "I'm alive" every 20s
-                AutoOffsetReset = AutoOffsetReset.Earliest, // If you disconnect, grab missed messages
-                EnableAutoCommit = true,
-                // -------------------------------
-
+                // Add this to help with connection stability in Azure
+                SessionTimeoutMs = 45000,
                 SslEndpointIdentificationAlgorithm = SslEndpointIdentificationAlgorithm.Https,
                 BrokerAddressFamily = BrokerAddressFamily.Any
             };
@@ -80,16 +75,6 @@ public class KafkaToSignalRBridge : BackgroundService
                 if (result?.Message?.Value != null)
                 {
                     Console.WriteLine("!!! DATA RECEIVED FROM KAFKA !!!");
-
-                    Console.WriteLine("--- SENDING TEST PULSE TO REACT ---");
-                    await _hubContext.Clients.All.SendAsync("ReceiveActivity", new
-                    {
-                        Username = "DebugBot",
-                        Action = "testing",
-                        Title = "SignalR Connection"
-                    }, stoppingToken);
-
-                    await Task.Delay(10000, stoppingToken);
 
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                     var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
