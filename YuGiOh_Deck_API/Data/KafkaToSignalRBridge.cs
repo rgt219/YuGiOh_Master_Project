@@ -92,6 +92,9 @@ public class KafkaToSignalRBridge : BackgroundService
                         {
                             Console.WriteLine("Sorry Bruh");
                         }
+                    } else
+                    {
+                        Console.WriteLine("RESULT NULL OR RESULT MESSAGE VALUE EMPTY");
                     }
                 }
                 catch (ConsumeException ex)
