@@ -18,9 +18,18 @@ export const SignalRProvider = ({ children }) => {
                 console.log("Global SignalR Connected!");
                 
                 newConnection.on("ReceiveActivity", (activity) => {
+                    if (!activity) return; // Don't process empty messages
+                    
                     console.log("Global Data Received:", activity);
-                    // Add to the top of the list, keep last 10
-                    setActivities(prev => [activity, ...prev].slice(0, 10));
+                    
+                    // Normalize the data so the UI doesn't break if fields are missing
+                    const newActivity = {
+                        username: activity.username || activity.Username || "Duelist",
+                        action: activity.action || activity.Action || "published",
+                        title: activity.title || activity.Title || "New Deck"
+                    };
+
+                    setActivities(prev => [newActivity, ...prev].slice(0, 10));
                 });
             })
             .catch(err => console.error("SignalR Connection Error: ", err));
