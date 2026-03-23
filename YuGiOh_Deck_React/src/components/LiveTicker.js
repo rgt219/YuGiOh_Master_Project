@@ -11,12 +11,15 @@ const LiveTicker = () => {
             .withAutomaticReconnect()
             .build();
 
+        console.log("CONNECTION: " + connection);
+
         connection.start()
             .then(() => console.log("Connected to Live Ticker!"))
             .catch(err => console.error("SignalR Connection Error: ", err));
 
         connection.on("ReceiveActivity", (activity) => {
             console.log("RAW DATA RECEIVED:", activity); 
+            alert("YAY");
             setActivities(prev => [activity, ...prev].slice(0, 5));
         });
 

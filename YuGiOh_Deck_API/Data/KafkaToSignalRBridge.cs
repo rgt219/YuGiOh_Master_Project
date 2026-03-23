@@ -81,8 +81,8 @@ public class KafkaToSignalRBridge : BackgroundService
 
                         if (activity != null)
                         {
-                            Console.WriteLine("PERFECT");
-                            // FORCE THE ACTION IF MISSING
+                            var debugJson = JsonSerializer.Serialize(activity);
+                            Console.WriteLine($"[SIGNALR_DEBUG] Sending to Hub: {debugJson}");
                             if (string.IsNullOrEmpty(activity.Action)) activity.Action = "published";
 
                             await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
