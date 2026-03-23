@@ -36,7 +36,7 @@ public class KafkaToSignalRBridge : BackgroundService
         {
             var config = new ConsumerConfig
             {
-                GroupId = "api-signalr-bridge",
+                GroupId = "bridge-v" + Guid.NewGuid().ToString().Substring(0, 4),
                 BootstrapServers = _config["Kafka:BootstrapServers"], // Should be ygoevents.servicebus.windows.net:9093
 
                 SecurityProtocol = SecurityProtocol.SaslSsl,
@@ -69,28 +69,37 @@ public class KafkaToSignalRBridge : BackgroundService
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var result = consumer.Consume(TimeSpan.FromSeconds(1));
-
-                // ONLY enter this block if Kafka actually has a message for us
-                if (result?.Message?.Value != null)
+                try
                 {
-                    Console.WriteLine("!!! DATA RECEIVED FROM KAFKA !!!");
+                    var result = consumer.Consume(TimeSpan.FromSeconds(1));
 
-                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
-
-                    if (activity != null)
+                    if (result?.Message?.Value != null)
                     {
-                        await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
-                        Console.WriteLine($"[SIGNALR] Success: {activity.Username} {activity.Action} {activity.Title}");
+                        Console.WriteLine("YES");
+                        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                        var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
+
+                        if (activity != null)
+                        {
+                            Console.WriteLine("PERFECT");
+                            // FORCE THE ACTION IF MISSING
+                            if (string.IsNullOrEmpty(activity.Action)) activity.Action = "published";
+
+                            await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
+                            Console.WriteLine($"[SIGNALR] Broadcasted: {activity.Username}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("NO");
+                        }
                     }
                 }
-                else
+                catch (ConsumeException ex)
                 {
-                    Console.WriteLine("NO NO NO");
+                    // This stops the "1/1 brokers down" from crashing your loop
+                    Console.WriteLine($"Kafka temporarily unavailable: {ex.Error.Reason}");
+                    await Task.Delay(5000, stoppingToken); // Wait 5s before trying again
                 }
-                // DELETE THE "ELSE" LOGS. 
-                // If nothing is in Kafka, the loop just restarts silently.
             }
         }
         catch (Exception ex)

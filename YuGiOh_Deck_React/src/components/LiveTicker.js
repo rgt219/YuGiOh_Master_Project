@@ -16,6 +16,7 @@ const LiveTicker = () => {
             .catch(err => console.error("SignalR Connection Error: ", err));
 
         connection.on("ReceiveActivity", (activity) => {
+            console.log("RAW DATA RECEIVED:", activity); 
             setActivities(prev => [activity, ...prev].slice(0, 5));
         });
 
