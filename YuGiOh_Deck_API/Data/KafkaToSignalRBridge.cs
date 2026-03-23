@@ -69,43 +69,27 @@ public class KafkaToSignalRBridge : BackgroundService
             while (!stoppingToken.IsCancellationRequested)
             {
                 var result = consumer.Consume(TimeSpan.FromSeconds(1));
-                try
+
+                // ONLY enter this block if Kafka actually has a message for us
+                if (result?.Message?.Value != null)
                 {
-                    // 1. Poll Kafka for 1 second
-                    Console.WriteLine("=============MADE IT=============");
+                    Console.WriteLine("!!! DATA RECEIVED FROM KAFKA !!!");
 
-                    if (result != null && !string.IsNullOrEmpty(result.Message.Value))
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
+
+                    if (activity != null)
                     {
-                        // 2. Map the JSON string to your DTO
-                        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                        var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
-
-                        if (activity != null)
-                        {
-                            // 3. Broadcast to SignalR
-                            // SignalR will automatically camelCase the properties for React
-                            await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
-
-                            Console.WriteLine($"[SIGNALR] Success: {activity.Username} {activity.Action} {activity.Title}");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Sorry Bruh");
-                        }
-                    } else
-                    {
-                        Console.WriteLine("RESULT NULL OR RESULT MESSAGE VALUE EMPTY");
+                        await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
+                        Console.WriteLine($"[SIGNALR] Success: {activity.Username} {activity.Action} {activity.Title}");
                     }
                 }
-                catch (ConsumeException ex)
+                else
                 {
-                    Console.WriteLine($"Kafka Consume Error: {ex.Error.Reason}");
-                    await Task.Delay(2000, stoppingToken);
+                    Console.WriteLine("NO NO NO");
                 }
-                catch (JsonException ex)
-                {
-                    Console.WriteLine($"JSON Parsing Error: {ex.Message} - Raw Data: {result?.Message?.Value}");
-                }
+                // DELETE THE "ELSE" LOGS. 
+                // If nothing is in Kafka, the loop just restarts silently.
             }
         }
         catch (Exception ex)
