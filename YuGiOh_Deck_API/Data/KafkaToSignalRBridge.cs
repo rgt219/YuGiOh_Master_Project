@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using Microsoft.AspNetCore.SignalR;
 using YuGiOhDeckApi.Hubs;
 using System.Text.Json;
+// using YuGiOh_Analytics_Consumer;
 
 public class KafkaToSignalRBridge : BackgroundService
 {
@@ -55,7 +56,7 @@ public class KafkaToSignalRBridge : BackgroundService
                 .SetErrorHandler((_, e) => Console.WriteLine($"Kafka Connection Error Detail: {e.Reason}"))
                 .SetLogHandler((_, l) => Console.WriteLine($"Kafka Log: {l.Message}"))
                 .Build();
-            consumer.Subscribe("ui-activity-log");
+            consumer.Subscribe("deck-updates");
 
             // MOCK MESSAGE FOR TESTING
             var testActivity = new UserActivityDto
@@ -99,9 +100,9 @@ public class KafkaToSignalRBridge : BackgroundService
     }
 }
 
-public class UserActivityDto
-{
-    public string Username { get; set; } = "Unknown";
-    public string Title { get; set; } = "New Deck";
-    public string Action { get; set; } = "published";
-}
+// public class UserActivityDto
+// {
+//     public string Username { get; set; } = "Unknown";
+//     public string Title { get; set; } = "New Deck";
+//     public string Action { get; set; } = "published";
+// }
