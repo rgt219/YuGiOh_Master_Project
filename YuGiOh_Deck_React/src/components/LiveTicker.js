@@ -1,35 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import * as signalR from '@microsoft/signalr';
-import { Card } from 'react-bootstrap'; // Import Card to match TrendingCards
+import React from 'react';
+import { Card } from 'react-bootstrap';
+import { useSignalR } from './components/SignalRContext'; // Path to your context
 
 const LiveTicker = () => {
-    const [activities, setActivities] = useState([]);
-
-    useEffect(() => {
-        const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/activityHub") 
-            .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.Information) // This will show us more logs!
-            .build();
-
-        newConnection.start()
-            .then(() => {
-                console.log("Connected to Live Ticker!");
-                
-                // IMPORTANT: Define the listener INSIDE the .then or ensure it's attached before start
-                newConnection.on("ReceiveActivity", (activity) => {
-                    console.log("!!! DATA RECEIVED !!!", activity);
-                    alert("YAY");
-                    setActivities(prev => [activity, ...prev].slice(0, 5));
-                });
-            })
-            .catch(err => console.error("SignalR Connection Error: ", err));
-
-        return () => {
-            newConnection.off("ReceiveActivity"); // Clean up listener
-            newConnection.stop();
-        };
-    }, []);
+    const { activities } = useSignalR(); // Just grab the data from global state
 
     return (
         <Card className="master-duel-card">
@@ -41,7 +15,6 @@ const LiveTicker = () => {
                     {activities.length > 0 ? (
                         activities.map((a, i) => (
                             <li key={i} className="master-duel-ticker-item">
-                                {/* Check for both casing styles just to be safe */}
                                 <span style={{ color: '#00f2ff', fontWeight: 'bold' }}>{a.username || a.Username}</span> 
                                 <span className="text-white-50"> {a.action || a.Action || "published"} </span> 
                                 <span className="text-white" style={{ fontStyle: 'italic' }}>{a.title || a.Title}</span>
