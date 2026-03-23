@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
-import { useSignalR } from './components/SignalRContext'; // Path to your context
+import { useSignalR } from './SignalRContext.js';// Path to your context
 
 const LiveTicker = () => {
     const { activities } = useSignalR(); // Just grab the data from global state

@@ -42,7 +42,7 @@ export const SignalRProvider = ({ children }) => {
     }, []);
 
     return (
-        <SignalRContext.Provider value={{ activities }}>
+        <SignalRContext.Provider value={{ activities, connection }}>
             {children}
         </SignalRContext.Provider>
     );
