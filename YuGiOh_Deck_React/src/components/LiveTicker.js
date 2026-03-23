@@ -6,24 +6,29 @@ const LiveTicker = () => {
     const [activities, setActivities] = useState([]);
 
     useEffect(() => {
-        const connection = new signalR.HubConnectionBuilder()
+        const newConnection = new signalR.HubConnectionBuilder()
             .withUrl("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/activityHub") 
             .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Information) // This will show us more logs!
             .build();
 
-        console.log("CONNECTION: " + connection);
-
-        connection.start()
-            .then(() => console.log("Connected to Live Ticker!"))
+        newConnection.start()
+            .then(() => {
+                console.log("Connected to Live Ticker!");
+                
+                // IMPORTANT: Define the listener INSIDE the .then or ensure it's attached before start
+                newConnection.on("ReceiveActivity", (activity) => {
+                    console.log("!!! DATA RECEIVED !!!", activity);
+                    alert("YAY");
+                    setActivities(prev => [activity, ...prev].slice(0, 5));
+                });
+            })
             .catch(err => console.error("SignalR Connection Error: ", err));
 
-        connection.on("ReceiveActivity", (activity) => {
-            console.log("RAW DATA RECEIVED:", activity); 
-            alert("YAY");
-            setActivities(prev => [activity, ...prev].slice(0, 5));
-        });
-
-        return () => { if (connection) connection.stop(); };
+        return () => {
+            newConnection.off("ReceiveActivity"); // Clean up listener
+            newConnection.stop();
+        };
     }, []);
 
     return (
