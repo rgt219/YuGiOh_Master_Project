@@ -11,7 +11,7 @@ ENV REACT_APP_IDENTITY_URL=$REACT_APP_IDENTITY_URL
 ENV REACT_APP_DECK_API_URL=$REACT_APP_DECK_API_URL
 
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 
