@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button, OverlayTrigger, Container, Row, Col, Form, Card, Spinner } from 'react-bootstrap';
 // FIX: Corrected the typo from 'tansack' to 'tanstack'
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 
 export const deckList = {
     mainDeck: [], 

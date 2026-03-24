@@ -14,7 +14,7 @@ import Register from './components/Register';
 import UserProfile from './components/UserProfile';
 import DeckProfileDetails from './components/DeckProfileDetails';
 import { SignalRProvider } from './components/SignalRContext.js';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import GlobalToast from './components/GlobalToast';
 
 function App() {
