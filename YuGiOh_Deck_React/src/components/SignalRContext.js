@@ -6,6 +6,8 @@ const SignalRContext = createContext();
 export const SignalRProvider = ({ children }) => {
     const [activities, setActivities] = useState([]);
     const [connection, setConnection] = useState(null);
+    const [showToast, setShowToast] = useState(false);
+    const [latestActivity, setLatestActivity] = useState(null);
 
     useEffect(() => {
         const newConnection = new signalR.HubConnectionBuilder()
@@ -18,18 +20,22 @@ export const SignalRProvider = ({ children }) => {
                 console.log("Global SignalR Connected!");
                 
                 newConnection.on("ReceiveActivity", (activity) => {
-                    if (!activity) return; // Don't process empty messages
+                    if (!activity) return; 
                     
                     console.log("Global Data Received:", activity);
                     
-                    // Normalize the data so the UI doesn't break if fields are missing
                     const newActivity = {
                         username: activity.username || activity.Username || "Duelist",
                         action: activity.action || activity.Action || "published",
                         title: activity.title || activity.Title || "New Deck"
                     };
 
+                    // Keep the activity list updated
                     setActivities(prev => [newActivity, ...prev].slice(0, 10));
+
+                    // --- ADD THESE TWO LINES ---
+                    setLatestActivity(newActivity); // Set the specific data for the Toast
+                    setShowToast(true);             // Pop the Toast up
                 });
             })
             .catch(err => console.error("SignalR Connection Error: ", err));
@@ -42,7 +48,13 @@ export const SignalRProvider = ({ children }) => {
     }, []);
 
     return (
-        <SignalRContext.Provider value={{ activities, connection }}>
+        <SignalRContext.Provider value={{ 
+            activities, 
+            connection, 
+            showToast, 
+            setShowToast, 
+            latestActivity 
+        }}>
             {children}
         </SignalRContext.Provider>
     );
