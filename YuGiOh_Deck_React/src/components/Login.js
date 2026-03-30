@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Form, Button } from 'react-bootstrap';
 import { API_URLS } from "../config";
@@ -9,6 +9,13 @@ export default function Login({ setUser }) {
     const [password, setPassword] = useState("");
     const [validated, setValidated] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            navigate("/"); // Already have a passport, go to base
+        }
+    }, [navigate]);
 
     const handleSubmit = async (e) => {
 
@@ -34,14 +41,26 @@ export default function Login({ setUser }) {
             });
             const data = await response.json();
             if(response.ok) {
+                console.log("UPLINK_ESTABLISHED:", data.userName);
                 
-                console.log(data.userName);
-                localStorage.setItem(data, JSON.stringify(data))
+                // 1. Store the token as a string (for API headers)
+                localStorage.setItem("token", data.token);
+                
+                // 2. Store the user profile as a stringified object (for UI display)
+                // We use the key "user" so we can find it easily later
+                localStorage.setItem("user", JSON.stringify({
+                    userName: data.userName,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    email: data.email,
+                    id: data.id
+                }));
+
+                // 3. Update the global state
                 setUser(data);
+                
+                // 4. Redirect to home
                 navigate("/");
-            } else {
-                console.error("ACCESS_DENIED: SORRY, PEGASUS!");
-                console.log(data);
             }
 
         } catch (error) {
