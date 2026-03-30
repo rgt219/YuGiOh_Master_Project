@@ -8,7 +8,7 @@ using YuGiOhIdentityApi.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
-//using Org.BouncyCastle.Crypto.Generators;
+using BCrypt.Net;
 
 namespace YuGiOhIdentityApi.Services
 {
@@ -33,6 +33,13 @@ namespace YuGiOhIdentityApi.Services
             {
                 throw new Exception("User already exists.");
             }
+
+            // --- BCRYPT HASHING ---
+            if (!string.IsNullOrEmpty(newUser.Password))
+            {
+                newUser.Password = BCrypt.Net.BCrypt.HashPassword(newUser.Password);
+            }
+
             await _users.InsertOneAsync(newUser);
         }
     }

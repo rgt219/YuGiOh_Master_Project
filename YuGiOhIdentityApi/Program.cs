@@ -1,6 +1,9 @@
 using YuGiOhIdentityApi.Services;
 using YuGiOhIdentityApi.Models;
 using Microsoft.ApplicationInsights.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 //Comment for pushing
 
 namespace YuGiOhIdentityApi
