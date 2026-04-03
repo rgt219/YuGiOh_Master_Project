@@ -59,7 +59,7 @@ export default function Home({user}) {
                     <div className="d-flex justify-content-center gap-4 flex-wrap">
                         {[
                             { path: "/", label: "Home", img: "./images/lenatus_art.jpg" },
-                            { path: "/decklist", label: "About (Coming Soon)", img: "./images/droplet_art.jpg" },
+                            { path: "/about", label: "About (Coming Soon)", img: "./images/droplet_art.jpg" },
                             { path: "/deckbuilder", label: "Deck Builder", img: "./images/exodia.png" }
                         ].map((link) => {
                             // Check if this is the deckbuilder and if user is logged out

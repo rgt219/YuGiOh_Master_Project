@@ -11,6 +11,7 @@ import Login from './components/Login';
 import NavbarYGO from './components/NavbarYGO';
 import Home from './components/Home'
 import Register from './components/Register';
+import About from './components/About';
 import UserProfile from './components/UserProfile';
 import DeckProfileDetails from './components/DeckProfileDetails';
 import { SignalRProvider } from './components/SignalRContext.js';
@@ -20,7 +21,7 @@ import ProtectedRoute from './components/ProtectedRoute.js';
 
 function App() {
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("erregete");
+    const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
@@ -44,7 +45,7 @@ function App() {
               
               {/* Login is now standalone! No Carousel here. */}
               <Route path="/login" element={<Login setUser={setUser}/>} />
-              
+              <Route path="/about" element={<About></About>} />
               
               
               <Route path="/decklist" element={<DeckList/>} />
