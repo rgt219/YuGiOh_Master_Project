@@ -666,3 +666,36 @@
     font-family: 'Courier New', Courier, monospace;
     color: #b3b3b3;
 }
+
+.md-field-grid {
+    background: #0a0a0a;
+    border: 1px solid #333;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.sim-card-active {
+    width: 100px;
+    height: 145px;
+    border: 2px solid #00f2ff;
+    box-shadow: 0 0 15px #00f2ff;
+    animation: summonGlow 0.5s ease-out;
+}
+
+@keyframes summonGlow {
+    0% { transform: scale(1.5); opacity: 0; filter: brightness(3); }
+    100% { transform: scale(1); opacity: 1; filter: brightness(1); }
+}
+
+.ai-narrative-box {
+    background: rgba(127, 0, 255, 0.05);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.md-progress-bar {
+    height: 4px;
+    background-color: #1a1a1a;
+}
