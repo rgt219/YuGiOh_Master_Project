@@ -7,7 +7,7 @@ import ImageGrid from './ImageGrid';
 import ImagePopup from './ImagePopup';
 import CardApi from './CardApi';
 import ComboPlayer from './ComboPlayer';
-import exampleCombo from './WhiteForestCenturIonCombo';
+import { exampleCombo } from './WhiteForestCenturIonCombo';
 
 export default function DeckDetails({archetype}) {
     const { deckId } = useParams();
