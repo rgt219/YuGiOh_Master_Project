@@ -82,7 +82,7 @@ export const whiteForestCenturIonMain = {
             extraSummons: [
                 { cardId: "40155014", zone: "BANISH" } // Aphes (using Elzette's ID as placeholder for Aphes)
             ],
-            removesZones: ["EMZ_R", "GY"], 
+            removesZones: ["EMZ_L", "GY"], 
             aiCommentary: "Auxila moves from EMZ to MZ3. Phalanx is banished." 
         },
         
