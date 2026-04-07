@@ -667,14 +667,6 @@
     color: #b3b3b3;
 }
 
-.md-field-grid {
-    background: #0a0a0a;
-    border: 1px solid #333;
-    min-height: 400px;
-    position: relative;
-    overflow: hidden;
-}
-
 .sim-card-active {
     width: 100px;
     height: 145px;
@@ -700,43 +692,12 @@
     background-color: #1a1a1a;
 }
 
-.md-field-grid {
-    position: relative;
-    width: 100%;
-    height: 500px;
-    background: #050505;
-    overflow: hidden;
-    border-radius: 8px;
-    perspective: 1200px; /* Crucial for 3D depth */
-}
-
 .field-base-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     opacity: 0.4;
 }
-
-/* Individual Slot Positioning */
-.field-slot {
-    position: absolute;
-    width: 80px;
-    height: 115px;
-    border: 1px solid rgba(0, 242, 255, 0.1); /* Faint grid lines */
-    pointer-events: none;
-}
-
-/* Coordinates (Adjust these to match your background image) */
-.EMZ_1 { left: 45%; top: 15%; }
-.MMZ_1 { left: 15%; top: 40%; }
-.MMZ_2 { left: 30%; top: 40%; }
-.MMZ_3 { left: 45%; top: 40%; }
-.MMZ_4 { left: 60%; top: 40%; }
-.MMZ_5 { left: 75%; top: 40%; }
-.STZ_1 { left: 30%; top: 70%; }
-.STZ_2 { left: 45%; top: 70%; }
-.STZ_3 { left: 60%; top: 70%; }
-.FSZ   { left: 5%;  top: 65%; } /* Field Spell Zone */
 
 /* Master Duel Summon Animation */
 .card-animation-wrapper {
@@ -776,3 +737,56 @@
     from { opacity: 1; }
     to { opacity: 0; }
 }
+
+/* Container for the 3D Field */
+.md-field-viewport {
+    width: 100%;
+    height: 600px; /* Increased height for full-width impact */
+    background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.md-field-grid {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotateX(20deg); /* Tilt the whole board */
+    width: 90%;
+    height: 80%;
+    perspective: 1500px;
+}
+
+/* Adjust the Slot coordinates to fill the wider space */
+.field-slot {
+    position: absolute;
+    width: 100px; /* Slightly larger cards for full width */
+    height: 145px;
+    border: 1px solid rgba(0, 242, 255, 0.05);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.EMZ_1 { left: 45%; top: 5%; }
+.MMZ_1 { left: 5%;  top: 35%; }
+.MMZ_2 { left: 25%; top: 35%; }
+.MMZ_3 { left: 45%; top: 35%; }
+.MMZ_4 { left: 65%; top: 35%; }
+.MMZ_5 { left: 85%; top: 35%; }
+.STZ_1 { left: 25%; top: 70%; }
+.STZ_2 { left: 45%; top: 70%; }
+.STZ_3 { left: 65%; top: 70%; }
+.FSZ   { left: 2%;  top: 75%; width: 80px; height: 110px; }
+
+/* The AI Footer Styling */
+.ai-footer-agent {
+    min-height: 180px;
+    box-shadow: inset 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.md-text-terminal {
+    font-family: 'Cascadia Mono', monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.x-small { font-size: 0.65rem; }
