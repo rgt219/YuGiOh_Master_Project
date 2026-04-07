@@ -16,7 +16,7 @@ export const whiteForestCenturIonMain = {
             cardId: "25592142", // Astellar
             zone: "MMZ_1", 
             extraSummons: [
-                { cardId: "	39491690", zone: "STZ_3" } // Aphes (using Elzette's ID as placeholder for Aphes)
+                { cardId: "39491690", zone: "STZ_3" } // Aphes (using Elzette's ID as placeholder for Aphes)
             ],
             removesZones: ["STZ_1"], // Clears whatever was in STZ_1 before placing Aphes
             aiCommentary: "By chain-linking their graveyard effects, we resolve both simultaneously." 
@@ -29,7 +29,7 @@ export const whiteForestCenturIonMain = {
         
         { id: 10, instruction: "Elzette Eff: Send Tales to SS itself. Search Astellar.", cardId: "61980241", zone: "MMZ_1", aiCommentary: "Elzette occupies MZ1. We grab Astellar for Centur-Ion discard fodder." },
         
-        { id: 11, instruction: "SS Rucia from hand.", cardId: "24779554", zone: "MMZ_3", aiCommentary: "Rucia joins the field at MZ3." },
+        { id: 11, instruction: "SS Rucia from hand.", cardId: "24779554", zone: "MMZ_2", aiCommentary: "Rucia joins the field at MZ2." },
         
         { id: 12, instruction: "Synchro Summon Auxila using Diabell and Rucia.", cardId: "71858682", zone: "EMZ_R", removesZones: ["MMZ_3", "MMZ_1"], aiCommentary: "Auxila lands in the Right EMZ. Diabell and Rucia move to GY." },
         
@@ -41,7 +41,17 @@ export const whiteForestCenturIonMain = {
         
         { id: 16, instruction: "Trudea Eff: SS itself from S/T.", cardId: "42493140", zone: "MMZ_2", removesZones: ["STZ_5"], aiCommentary: "Trudea jumps to MZ2." },
         
-        { id: 17, instruction: "Trudea Eff: Set itself and Primera.", cardId: "15005145", zone: "STZ_4", removesZones: ["MMZ_2"], aiCommentary: "Trudea returns to S/T (Zone 5 implicit), Primera sets in S/T Zone 4." },
+        { 
+            id: 17, 
+            instruction: "Trudea Eff: Set itself and Primera.", 
+            cardId: "15005145", 
+            zone: "STZ_4", 
+            extraSummons: [
+                { cardId: "42493140", zone: "STZ_5" } // Aphes (using Elzette's ID as placeholder for Aphes)
+            ],
+            removesZones: ["MMZ_2"], 
+            aiCommentary: "Trudea returns to S/T (Zone 5 implicit), Primera sets in S/T Zone 4." 
+        },
         
         { id: 18, instruction: "Primera Eff: SS itself from S/T.", cardId: "15005145", zone: "MMZ_4", removesZones: ["STZ_4"], aiCommentary: "Primera arrives at MZ4." },
         
