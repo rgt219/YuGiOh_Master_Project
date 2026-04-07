@@ -7,28 +7,34 @@ export default function ComboPlayer({ comboData }) {
     const [currentStep, setCurrentStep] = useState(0);
     const totalSteps = comboData.steps.length;
 
+    // --- MASTER DUEL ZONE DEFINITIONS ---
+    const ALL_ZONES = [
+        'EMZ_L', 'EMZ_R', 
+        'MMZ_1', 'MMZ_2', 'MMZ_3', 'MMZ_4', 'MMZ_5', 
+        'STZ_1', 'STZ_2', 'STZ_3', 'STZ_4', 'STZ_5', 
+        'FSZ', 'GY', 'BANISH'
+    ];
+
     // --- BOARD STATE CALCULATOR ---
-    // This function looks at all steps UP TO the current index 
-    // and determines which cards are currently on the field.
     const getBoardState = () => {
-        const board = {}; // Format: { MMZ_1: { cardId: 'astellar', isNew: false }, ... }
+        const board = {};
 
         for (let i = 0; i <= currentStep; i++) {
             const s = comboData.steps[i];
             
-            // Logic: If a card is summoned to a zone
+            // 1. Handle Removals
+            if (s.removesZones) {
+                s.removesZones.forEach(zone => {
+                    delete board[zone];
+                });
+            }
+
+            // 2. Handle Additions/Movements
             if (s.zone && s.zone !== "NONE") {
                 board[s.zone] = { 
                     cardId: s.cardId, 
-                    isNew: i === currentStep // Only the MOST RECENT step gets the animation
+                    isNew: i === currentStep 
                 };
-            }
-
-            // Logic: If a step mentions removing cards (like Synchro or Cost)
-            // You can add a 'removesZones' array to your JSON steps later 
-            // e.g., removesZones: ["MMZ_1", "MMZ_2"]
-            if (s.removesZones) {
-                s.removesZones.forEach(zone => delete board[zone]);
             }
         }
         return board;
@@ -45,61 +51,94 @@ export default function ComboPlayer({ comboData }) {
                 <div className="p-4 border-bottom border-secondary bg-black">
                     <Row className="align-items-center">
                         <Col>
-                            <h2 className="text-info md-text-glitch mb-0">{comboData.title}</h2>
+                            <h2 className="text-info md-text-glitch mb-0 text-uppercase">{comboData.title}</h2>
                             <ProgressBar 
                                 now={((currentStep + 1) / totalSteps) * 100} 
                                 variant="info" 
                                 className="mt-2" 
-                                style={{height: '6px'}}
+                                style={{height: '6px', borderRadius: '0'}}
                             />
                         </Col>
-                        <Col xs="auto" className="text-info fw-bold">
-                            STEP_{currentStep + 1}/{totalSteps}
+                        <Col xs="auto" className="text-info fw-bold" style={{fontFamily: 'Cascadia Mono'}}>
+                            STEP_{String(currentStep + 1).padStart(2, '0')}/{totalSteps}
                         </Col>
                     </Row>
                 </div>
 
-                {/* --- THE VIRTUAL FIELD (PERSISTENT) --- */}
+                {/* --- FULL VIRTUAL FIELD --- */}
                 <div className="md-field-viewport position-relative">
                     <div className="md-field-grid">
-                        {['EMZ_1', 'MMZ_1', 'MMZ_2', 'MMZ_3', 'MMZ_4', 'MMZ_5', 'STZ_1', 'STZ_2', 'STZ_3', 'FSZ'].map((zoneId) => (
-                            <div key={zoneId} className={`field-slot ${zoneId}`}>
-                                {boardState[zoneId] && (
-                                    <div 
-                                        className={boardState[zoneId].isNew ? "card-animation-wrapper" : ""} 
-                                        key={`${zoneId}-${boardState[zoneId].cardId}-${boardState[zoneId].isNew}`}
-                                    >
-                                        <img 
-                                            src={`https://images.ygoprodeck.com/images/cards/${encodeURIComponent(boardState[zoneId].cardId)}.jpg`} 
-                                            className="sim-card-active" 
-                                            alt="Card"
-                                        />
-                                        {boardState[zoneId].isNew && <div className="summon-glow"></div>}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                        {ALL_ZONES.map((zoneId) => {
+                            const activeCard = boardState[zoneId];
+                            return (
+                                <div key={zoneId} className={`field-slot ${zoneId}`}>
+                                    {activeCard ? (
+                                        <div 
+                                            className={activeCard.isNew ? "card-animation-wrapper" : "card-static"} 
+                                            key={`${zoneId}-${activeCard.cardId}-${activeCard.isNew}`}
+                                        >
+                                            <img 
+                                                src={`https://images.ygoprodeck.com/images/cards/${encodeURIComponent(activeCard.cardId)}.jpg`} 
+                                                className="sim-card-active" 
+                                                alt="Card"
+                                                onError={(e) => { e.target.src = "https://images.ygoprodeck.com/images/cards/46986414.jpg" }}
+                                            />
+                                            {activeCard.isNew && <div className="summon-glow"></div>}
+                                            
+                                            {/* Labels for special zones */}
+                                            {(zoneId === 'GY' || zoneId === 'BANISH') && (
+                                                <div className="zone-label-overlay">{zoneId}</div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="empty-zone-indicator">
+                                            <span className="zone-id-tag">{zoneId}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        
+                        {/* Field Background Overlay */}
+                        <div className="field-grid-lines"></div>
                         <img src="/images/field_bg.png" className="field-base-img" alt="Field" />
                     </div>
                 </div>
 
                 {/* --- AI AGENT FOOTER --- */}
                 <div className="ai-footer-agent p-4 bg-black border-top border-info">
-                    <Row>
-                        <Col md={3} className="text-center border-end border-secondary">
+                    <Row className="align-items-center">
+                        <Col md={2} className="text-center border-end border-secondary py-2">
                             <FaRobot className="text-purple mb-2" style={{fontSize: '2.5rem'}} />
-                            <div className="text-purple small fw-bold">STRATEGIST_v1.0</div>
+                            <div className="text-purple small fw-bold tracking-widest">DUEL_AI</div>
+                            <div className="text-success x-small mt-1 animate-pulse">● ANALYZING</div>
                         </Col>
-                        <Col md={6} className="px-4">
-                            <h6 className="text-info mb-2"><FaInfoCircle className="me-2"/>ACTION:</h6>
-                            <p className="fw-bold text-white mb-2">{step.instruction}</p>
-                            <p className="text-muted italic small">"{step.aiCommentary}"</p>
+                        
+                        <Col md={7} className="px-4">
+                            <div className="md-text-terminal">
+                                <h6 className="text-info mb-1" style={{fontSize: '0.8rem'}}><FaInfoCircle className="me-2"/>CURRENT_INPUT:</h6>
+                                <p className="fw-bold text-white mb-2" style={{fontSize: '1.1rem'}}>{step.instruction}</p>
+                                <div className="text-muted italic" style={{borderLeft: '2px solid #6f42c1', paddingLeft: '10px'}}>
+                                    "{step.aiCommentary}"
+                                </div>
+                            </div>
                         </Col>
-                        <Col md={3} className="d-flex align-items-center justify-content-center gap-2">
-                            <Button variant="outline-info" onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}>
+
+                        <Col md={3} className="d-flex align-items-center justify-content-center gap-3">
+                            <Button 
+                                variant="outline-info" 
+                                className="md-btn-hex"
+                                onClick={() => setCurrentStep(Math.max(0, currentStep - 1))} 
+                                disabled={currentStep === 0}
+                            >
                                 <FaStepBackward />
                             </Button>
-                            <Button variant="info" onClick={() => setCurrentStep(Math.min(totalSteps - 1, currentStep + 1))}>
+                            <Button 
+                                variant="info" 
+                                className="md-btn-hex active-btn"
+                                onClick={() => setCurrentStep(Math.min(totalSteps - 1, currentStep + 1))} 
+                                disabled={currentStep === totalSteps - 1}
+                            >
                                 <FaStepForward />
                             </Button>
                         </Col>
