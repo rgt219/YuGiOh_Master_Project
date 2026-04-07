@@ -23,7 +23,7 @@ export const whiteForestCenturIonMain = {
         },
         { id: 7, instruction: "Activate Tales: Add Rucia.", cardId: "24779554", zone: "HAND", removesZones: ["STZ_1"], aiCommentary: "Tales moves to GY to search our Level 4 extender." },
         
-        { id: 8, instruction: "Synchro Summon Diabell using Rciela and Astellar.", cardId: "14307929", zone: "MMZ_3", removesZones: ["EMZ_L", "MMZ_1"], aiCommentary: "The Queen arrives. We clear the EMZ to make room for future plays." },
+        { id: 8, instruction: "Synchro Summon Diabell using Rciela and Astellar.", cardId: "14307929", zone: "EMZ_R", removesZones: ["EMZ_L", "MMZ_1"], aiCommentary: "The Queen arrives. We clear the EMZ to make room for future plays." },
         
         { id: 9, instruction: "Diabell Eff: Add Tales back to hand.", cardId: "99289828", zone: "HAND", aiCommentary: "Recycling resources for the Elzette cost." },
         
@@ -61,11 +61,30 @@ export const whiteForestCenturIonMain = {
         
         { id: 21, instruction: "Wake Up: Summon Level 8 Token.", cardId: "92907248", zone: "MMZ_5", aiCommentary: "Token takes up MZ5." },
         
-        { id: 22, instruction: "Banish Wake Up: Send Phalanx to GY.", cardId: "40155014", zone: "GY", aiCommentary: "Wake Up moves to Banish, Phalanx hits the GY stack." },
+        { 
+            id: 22, 
+            instruction: "Banish Wake Up: Send Phalanx to GY.", 
+            cardId: "40155014", 
+            zone: "GY", 
+            extraSummons: [
+                { cardId: "92907248", zone: "BANISH" } // Aphes (using Elzette's ID as placeholder for Aphes)
+            ],
+            aiCommentary: "Wake Up moves to Banish, Phalanx hits the GY stack." 
+        },
         
         { id: 23, instruction: "Muddy Mudragon Eff: Fusion Summon Dragoon.", cardId: "37818794", zone: "EMZ_R", removesZones: ["MMZ_4"], aiCommentary: "Using Mudragon to cheat out Dragoon in the Left EMZ." },
         
-        { id: 24, instruction: "Banish Phalanx: SS Auxila from GY.", cardId: "71858682", zone: "MMZ_3", removesZones: ["EMZ_R", "GY"], aiCommentary: "Auxila moves from EMZ to MZ3. Phalanx is banished." },
+        { 
+            id: 24, 
+            instruction: "Banish Phalanx: SS Auxila from GY.", 
+            cardId: "71858682", 
+            zone: "MMZ_3", 
+            extraSummons: [
+                { cardId: "40155014", zone: "BANISH" } // Aphes (using Elzette's ID as placeholder for Aphes)
+            ],
+            removesZones: ["EMZ_R", "GY"], 
+            aiCommentary: "Auxila moves from EMZ to MZ3. Phalanx is banished." 
+        },
         
         { id: 25, instruction: "Rucia Eff: Return Rciela to Extra Deck, SS Rucia.", cardId: "24779554", zone: "MMZ_2", aiCommentary: "Rucia recurs itself from GY to MZ2." },
         
@@ -75,6 +94,6 @@ export const whiteForestCenturIonMain = {
         
         { id: 28, instruction: "Crimson Dragon Eff: Cheating out Cosmic Blazar.", cardId: "21123811", zone: "MMZ_2", removesZones: ["MMZ_2"], aiCommentary: "Crimson tags out for our ultimate Level 12 boss at MZ2." },
         
-        { id: 29, instruction: "Auxila End Phase Eff: Set Primera in S/T.", cardId: "15005145", zone: "STZ_1", aiCommentary: "Final setup: Primera returns to backrow for next turn's recursion." }
+        { id: 29, instruction: "Auxila End Phase Eff: Set Primera in S/T.", cardId: "15005145", zone: "STZ_1", aiCommentary: "Final setup: Primera returns to backrow for next turn's follow-up." }
     ]
 };
