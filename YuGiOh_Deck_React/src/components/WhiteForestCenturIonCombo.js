@@ -31,7 +31,7 @@ export const whiteForestCenturIonMain = {
         
         { id: 11, instruction: "SS Rucia from hand.", cardId: "24779554", zone: "MMZ_2", aiCommentary: "Rucia joins the field at MZ2." },
         
-        { id: 12, instruction: "Synchro Summon Auxila using Diabell and Rucia.", cardId: "71858682", zone: "EMZ_R", removesZones: ["MMZ_3", "MMZ_1"], aiCommentary: "Auxila lands in the Right EMZ. Diabell and Rucia move to GY." },
+        { id: 12, instruction: "Synchro Summon Auxila using Diabell and Rucia.", cardId: "71858682", zone: "EMZ_R", removesZones: ["MMZ_3", "MMZ_2"], aiCommentary: "Auxila lands in the Right EMZ. Diabell and Rucia move to GY." },
         
         { id: 13, instruction: "Auxila Eff: Add Stand Up Centur-Ion!", cardId: "41371602", zone: "HAND", aiCommentary: "Searching the Field Spell bridge." },
         
@@ -63,7 +63,7 @@ export const whiteForestCenturIonMain = {
         
         { id: 22, instruction: "Banish Wake Up: Send Phalanx to GY.", cardId: "40155014", zone: "GY", aiCommentary: "Wake Up moves to Banish, Phalanx hits the GY stack." },
         
-        { id: 23, instruction: "Muddy Mudragon Eff: Fusion Summon Dragoon.", cardId: "37818794", zone: "EMZ_L", removesZones: ["MMZ_4"], aiCommentary: "Using Mudragon to cheat out Dragoon in the Left EMZ." },
+        { id: 23, instruction: "Muddy Mudragon Eff: Fusion Summon Dragoon.", cardId: "37818794", zone: "EMZ_R", removesZones: ["MMZ_4"], aiCommentary: "Using Mudragon to cheat out Dragoon in the Left EMZ." },
         
         { id: 24, instruction: "Banish Phalanx: SS Auxila from GY.", cardId: "71858682", zone: "MMZ_3", removesZones: ["EMZ_R", "GY"], aiCommentary: "Auxila moves from EMZ to MZ3. Phalanx is banished." },
         
