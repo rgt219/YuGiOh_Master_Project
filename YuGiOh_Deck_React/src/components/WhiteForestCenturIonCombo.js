@@ -1,73 +1,35 @@
-export const exampleCombo = {
-    title: "White Forest/Centur-Ion Starter: Astellar 1-Card Combo",
-    handRequired: ["Astellar of the White Forest", "Any Spell/Trap"],
+export const whiteForestCenturIonMain = {
+    title: "White Forest / Centur-Ion: The Blazar-Dragoon Line",
+    handRequired: ["Astellar of the White Forest", "Tales of the White Forest"],
     steps: [
-        {
-            id: 1,
-            instruction: "Normal Summon Astellar of the White Forest.",
-            actionType: "NORMAL_SUMMON",
-            cardId: "25592142",
-            zone: "MMZ_2", // Main Monster Zone 2
-            aiCommentary: "We start with Astellar to bait out early hand traps before committing to our Synchro plays."
-        },
-        {
-            id: 2,
-            instruction: "Activate Astellar effect: Send 1 Spell/Trap to GY to Special Summon Silvy of the White Forest.",
-            actionType: "EFFECT_ACTIVATE",
-            cost: "Spell/Trap Card",
-            target: "Silvy of the White Forest",
-            zone: "MMZ_3",
-            aiCommentary: "Silvy is our primary tuner fetch. Sending a Spell/Trap here sets up our recursion for the End Phase."
-        },
-        {
-            id: 3,
-            instruction: "Activate Effect of Silvy of the White Forest to search 'Tales of the White Forest' if not already in hand.",
-            actionType: "EFFECT_ACTIVATE",
-            cardId: "98385955",
-            zone: "", // Main Monster Zone 2
-            aiCommentary: "We use Silvy's effect to search Tales because Tales is our primary White Forest Monster searcher. It also sets itself from the graveyard when sent to the graveyard by a monster effect."
-        },
-        {
-            id: 4,
-            instruction: "Synchro Summon Rciela, Sinister Soul of the White Forest",
-            actionType: "SPECIAL_SUMMON",
-            cardId: "77313225",
-            zone: "EMZ_1", // Main Monster Zone 2
-            aiCommentary: "Rciela furthers our Synchro Summon climb."
-        },
-        {
-            id: 5,
-            instruction: "Activate Rciela effect: Send Tales of the White Forest from your hand to the graveyard to search Elzette of the White Forest.",
-            actionType: "NORMAL_SUMMON",
-            cardId: "astellar-id",
-            cost: "Spell/Trap Card",
-            target: "Elzette of the White Forest", 
-            zone: "MMZ_2", // Main Monster Zone 2
-            aiCommentary: "Rciela sends Tales for cost to search for Elzette, our next extender."
-        },
-        {
-            id: 6,
-            instruction: "Activate Astellar effect and Tales effect in graveyard",
-            actionType: "SPECIAL_SUMMON",
-            cardId: "25592142",
-            zone: "MMZ_4", // Main Monster Zone 2
-            aiCommentary: "Activate these at the same time so that Astellar special summons and Tales sets itself face down on the field."
-        },
-        {
-            id: 7,
-            instruction: "Activate Elzette effect: Send one spell/trap from the hand or field to the graveyard to special summon itself.",
-            actionType: "SPECIAL_SUMMON",
-            cardId: "61980241",
-            zone: "MMZ_5", // Main Monster Zone 2
-            aiCommentary: "We can extend further by using Elzette's effect in hand to special summon itself, and search for Rucia of the White Forest for further extension."
-        },
-        {
-            id: 8,
-            instruction: "Synchro Summon Diabell, Queen of the White Forest.",
-            actionType: "SPECIAL_SUMMON",
-            cardId: "14307929",
-            zone: "EMZ_1", // Main Monster Zone 2
-            aiCommentary: "Diabell is a very strong card, getting a spell/trap back to our hand from the graveyard on summon (Tales of the White Forest in this case)."
-        },
+        { id: 1, instruction: "Normal Summon Astellar.", cardId: "astellar", zone: "MMZ_2", aiCommentary: "The heart of the engine. We start here to test for infinite impermanence." },
+        { id: 2, instruction: "Astellar Eff: Send 'Tales' to GY. SS Silvy from Deck.", cardId: "silvy", zone: "MMZ_3", aiCommentary: "By sending a themed Spell/Trap, we trigger the recursion loop immediately." },
+        { id: 3, instruction: "CL1 Silvy (Add Aphes), CL2 Tales (Set itself).", cardId: "tales", zone: "STZ_1", aiCommentary: "This is crucial. Chain-blocking with Tales protects your search from Ash Blossom." },
+        { id: 4, instruction: "Synchro Summon Rciela, Sinister Soul.", cardId: "rciela", zone: "EMZ_1", aiCommentary: "Rciela is our primary searcher and a Level 6 Tuner." },
+        { id: 5, instruction: "Rciela Eff: Send Aphes to GY. Add Elzette to hand.", cardId: "elzette", zone: "HAND", aiCommentary: "Trading the Azamina spell for the Elzette extender." },
+        { id: 6, instruction: "CL1 Aphes (Set itself), CL2 Astellar (SS from GY).", cardId: "astellar", zone: "MMZ_2", aiCommentary: "The White Forest monsters never stay in the graveyard for long." },
+        { id: 7, instruction: "Activate Tales: Add Rucia to hand.", cardId: "rucia", zone: "HAND", aiCommentary: "Tales provides the final piece for our Synchro climb." },
+        { id: 8, instruction: "Synchro Summon Diabell, Queen of the White Forest.", cardId: "diabell", zone: "MMZ_3", aiCommentary: "Diabell is the boss of the engine, enabling massive recursion." },
+        { id: 9, instruction: "Diabell Eff: Add Tales back to hand.", cardId: "tales", zone: "HAND", aiCommentary: "Refilling the hand for Elzette's cost." },
+        { id: 10, instruction: "Elzette Eff: Send Tales to SS itself. Search Astellar.", cardId: "elzette", zone: "MMZ_4", aiCommentary: "We search the second Astellar solely for Centur-Ion discard fodder." },
+        { id: 11, instruction: "SS Rucia from hand.", cardId: "rucia", zone: "MMZ_1", aiCommentary: "Since we control a White Forest monster, she's a free Level 4." },
+        { id: 12, instruction: "Synchro Summon Centur-Ion Auxila.", cardId: "auxila", zone: "EMZ_1", aiCommentary: "The bridge into the Centur-Ion engine begins here." },
+        { id: 13, instruction: "Auxila Eff: Add Stand Up Centur-Ion!", cardId: "standup", zone: "HAND", aiCommentary: "Searching the Field Spell that makes the deck run." },
+        { id: 14, instruction: "Activate Stand Up Centur-Ion!", cardId: "standup", zone: "FSZ", aiCommentary: "The field is set." },
+        { id: 15, instruction: "Stand Up Eff: Discard Astellar, place Trudea in S/T.", cardId: "trudea", zone: "STZ_2", aiCommentary: "Trading the useless Astellar in hand for the Trudea starter." },
+        { id: 16, instruction: "Trudea Eff: SS itself from S/T zone.", cardId: "trudea", zone: "MMZ_5", aiCommentary: "Transitioning from backrow to monster." },
+        { id: 17, instruction: "Trudea Eff: Set itself and Primera from Deck.", cardId: "primera", zone: "STZ_3", aiCommentary: "The signature Centur-Ion setup move." },
+        { id: 18, instruction: "Primera Eff: SS itself from S/T zone.", cardId: "primera", zone: "MMZ_2", aiCommentary: "Primera is our tuner for the high-level plays." },
+        { id: 19, instruction: "Primera Eff: Search Wake Up Centur-Ion!", cardId: "wakeup", zone: "HAND", aiCommentary: "Getting the token generator for the Synchro 12 play." },
+        { id: 20, instruction: "Synchro Summon Muddy Mudragon.", cardId: "muddymudragon", zone: "MMZ_3", aiCommentary: "Using Primera and Elzette. Mudragon is our Fusion substitute." },
+        { id: 21, instruction: "Wake Up Eff: Summon Level 8 Token.", cardId: "token", zone: "MMZ_4", aiCommentary: "Providing the non-tuner Level 8 body." },
+        { id: 22, instruction: "Banish Wake Up: Send Phalanx to GY.", cardId: "phalanx", zone: "GY", aiCommentary: "Setting up the revival for Auxila." },
+        { id: 23, instruction: "Muddy Mudragon Eff: Fusion Summon Red-Eyes Dark Dragoon.", cardId: "dragoon", zone: "MMZ_3", aiCommentary: "Using itself as a substitute. Now we have an omni-negate." },
+        { id: 24, instruction: "Banish Phalanx: SS Auxila from GY.", cardId: "auxila", zone: "MMZ_5", aiCommentary: "Bringing back the Level 12 Synchro for the Crimson Dragon target." },
+        { id: 25, instruction: "Synchro Summon Crimson Dragon.", cardId: "crimsondragon", zone: "MMZ_1", aiCommentary: "The ultimate facilitator for Level 12 Synchros." },
+        { id: 26, instruction: "Crimson Dragon Eff: Add Synchro Rumble.", cardId: "rumble", zone: "HAND", aiCommentary: "Follow-up for next turn if things go south." },
+        { id: 27, instruction: "Crimson Dragon Eff: Target Auxila, SS Cosmic Blazar Dragon.", cardId: "blazar", zone: "MMZ_1", aiCommentary: "The end of the line. Cosmic Blazar can negate anything." },
+        { id: 28, instruction: "Go to End Phase.", cardId: "endphase", zone: "NONE", aiCommentary: "Cleaning up the board for turn zero plays." },
+        { id: 29, instruction: "Auxila End Phase Eff: Set Trudea in S/T.", cardId: "trudea", zone: "STZ_2", aiCommentary: "Ensuring we have a follow-up SS during the opponent's turn." }
     ]
 };

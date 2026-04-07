@@ -7,7 +7,7 @@ import ImageGrid from './ImageGrid';
 import ImagePopup from './ImagePopup';
 import CardApi from './CardApi';
 import ComboPlayer from './ComboPlayer';
-import { exampleCombo } from './WhiteForestCenturIonCombo';
+import { whiteForestCenturIonMain } from './WhiteForestCenturIonCombo';
 
 export default function DeckDetails({archetype}) {
     const { deckId } = useParams();
@@ -58,7 +58,7 @@ export default function DeckDetails({archetype}) {
                     </div>
                     <div className="ps-3"> {/* Padding left for separation */}
                         <div className="glass-container h-100 bg-black bg-opacity-50 overflow-auto">
-                            <ComboPlayer comboData={exampleCombo}/>
+                            <ComboPlayer comboData={whiteForestCenturIonMain}/>
                         </div>
                     </div>
                 </SplitPane>

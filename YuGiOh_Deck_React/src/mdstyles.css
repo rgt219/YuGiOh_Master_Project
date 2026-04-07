@@ -699,3 +699,80 @@
     height: 4px;
     background-color: #1a1a1a;
 }
+
+.md-field-grid {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    background: #050505;
+    overflow: hidden;
+    border-radius: 8px;
+    perspective: 1200px; /* Crucial for 3D depth */
+}
+
+.field-base-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.4;
+}
+
+/* Individual Slot Positioning */
+.field-slot {
+    position: absolute;
+    width: 80px;
+    height: 115px;
+    border: 1px solid rgba(0, 242, 255, 0.1); /* Faint grid lines */
+    pointer-events: none;
+}
+
+/* Coordinates (Adjust these to match your background image) */
+.EMZ_1 { left: 45%; top: 15%; }
+.MMZ_1 { left: 15%; top: 40%; }
+.MMZ_2 { left: 30%; top: 40%; }
+.MMZ_3 { left: 45%; top: 40%; }
+.MMZ_4 { left: 60%; top: 40%; }
+.MMZ_5 { left: 75%; top: 40%; }
+.STZ_1 { left: 30%; top: 70%; }
+.STZ_2 { left: 45%; top: 70%; }
+.STZ_3 { left: 60%; top: 70%; }
+.FSZ   { left: 5%;  top: 65%; } /* Field Spell Zone */
+
+/* Master Duel Summon Animation */
+.card-animation-wrapper {
+    animation: masterDuelSummon 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    position: relative;
+    z-index: 10;
+}
+
+.sim-card-active {
+    width: 100%;
+    height: 100%;
+    border: 2px solid #00f2ff;
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+}
+
+@keyframes masterDuelSummon {
+    0% { 
+        transform: scale(2) translateY(-100px) rotateX(45deg); 
+        opacity: 0; 
+        filter: brightness(5) blur(5px);
+    }
+    100% { 
+        transform: scale(1) translateY(0) rotateX(0); 
+        opacity: 1; 
+        filter: brightness(1) blur(0);
+    }
+}
+
+.summon-glow {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    box-shadow: 0 0 30px #00f2ff;
+    animation: fadeGlow 0.8s ease-out forwards;
+}
+
+@keyframes fadeGlow {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}

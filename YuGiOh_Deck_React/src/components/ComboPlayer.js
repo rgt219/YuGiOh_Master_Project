@@ -39,17 +39,27 @@ export default function ComboPlayer({ comboData }) {
                     {/* --- THE VIRTUAL FIELD (Visual Simulation) --- */}
                     <Col lg={8} className="position-relative">
                         <div className="md-field-grid">
-                            {/* Placeholder for your Master Duel Grid Layout */}
-                            <div className="field-zone-overlay">
-                                <div className={`highlight-zone ${step.zone}`}>
-                                    <img 
-                                        src={`/images/cards/${step.cardId}.jpg`} 
-                                        className="sim-card-active" 
-                                        alt="Active Card"
-                                    />
+                            {/* We map through a fixed set of zones to create the grid */}
+                            {['EMZ_1', 'MMZ_1', 'MMZ_2', 'MMZ_3', 'MMZ_4', 'MMZ_5', 'STZ_1', 'STZ_2', 'STZ_3', 'FSZ'].map((zoneId) => (
+                                <div key={zoneId} className={`field-slot ${zoneId}`}>
+                                    {/* Only render the card if the current step matches this zone */}
+                                    {step.zone === zoneId && (
+                                        <div className="card-animation-wrapper" key={currentStep}>
+                                            <img 
+                                                src={`https://images.ygoprodeck.com/images/cards/${encodeURIComponent(step.cardId)}.jpg`} 
+                                                className="sim-card-active" 
+                                                alt={step.cardId}
+                                                // Fallback for names that might not be exact IDs
+                                                onError={(e) => { e.target.src = "https://images.ygoprodeck.com/images/cards/46986414.jpg" }} 
+                                            />
+                                            <div className="summon-glow"></div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                            <img src="/images/field_bg.png" className="w-100 opacity-50" alt="Field" />
+                            ))}
+                            
+                            {/* The Field Background Layer */}
+                            <img src="/images/field_bg.png" className="field-base-img" alt="Field" />
                         </div>
                     </Col>
 
