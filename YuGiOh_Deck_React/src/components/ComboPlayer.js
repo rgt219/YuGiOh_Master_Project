@@ -16,25 +16,36 @@ export default function ComboPlayer({ comboData }) {
     ];
 
     // --- BOARD STATE CALCULATOR ---
+    // --- BOARD STATE CALCULATOR ---
     const getBoardState = () => {
         const board = {};
 
         for (let i = 0; i <= currentStep; i++) {
             const s = comboData.steps[i];
             
-            // 1. Handle Removals
+            // 1. FIRST: Handle Removals
             if (s.removesZones) {
                 s.removesZones.forEach(zone => {
                     delete board[zone];
                 });
             }
 
-            // 2. Handle Additions/Movements
+            // 2. SECOND: Primary Addition
             if (s.zone && s.zone !== "NONE") {
                 board[s.zone] = { 
                     cardId: s.cardId, 
                     isNew: i === currentStep 
                 };
+            }
+
+            // 3. THIRD: Handle Extra Summons (New Logic)
+            if (s.extraSummons) {
+                s.extraSummons.forEach(extra => {
+                    board[extra.zone] = {
+                        cardId: extra.cardId,
+                        isNew: i === currentStep
+                    };
+                });
             }
         }
         return board;
