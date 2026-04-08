@@ -12,8 +12,11 @@ export default function Login({ setUser }) {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-        if (token) {
-            navigate("/"); // Already have a passport, go to base
+        const savedUser = localStorage.getItem("user");
+
+        // Only redirect if BOTH token and user object exist
+        if (token && savedUser) {
+            navigate("/"); 
         }
     }, [navigate]);
 

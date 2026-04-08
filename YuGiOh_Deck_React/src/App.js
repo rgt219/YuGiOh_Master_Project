@@ -26,8 +26,15 @@ function App() {
   });
 
   const handleLogout = () => {
-    localStorage.removeItem(user.userName);
+    // Clear the specific keys used during login
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    
+    // Reset state to null
     setUser(null);
+    
+    // Optional: If you want to force a redirect to login after logout
+    window.location.href = "/login"; 
   }
 
   const queryClient = new QueryClient();

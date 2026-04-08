@@ -6,7 +6,7 @@ export default function About() {
     // 1. Data Structure (Keep your actual text out of the JSX)
     const profileData = {
         userName: "ErreGeTe", // Your title
-        profileIcon: "/icons/avatar_slifer.png", // <--- PLACEHOLDER: Use a YGO avatar
+        profileIcon: "/images/YCS_Orlando.JPG", // <--- PLACEHOLDER: Use a YGO avatar
         aboutText: "A developer specializing in Full Stack architecture (.NET 9 / React / Azure) and microservice orchestration. I approach code with the same strategic mindset as a Tier 0 Duelist.",
         
         accomplishments: [
@@ -61,9 +61,9 @@ export default function About() {
                                 <span className="terminal-dot red me-2"></span>
                                 <span className="terminal-dot yellow me-2"></span>
                                 <span className="terminal-dot green me-2"></span>
-                                <span className="terminal-title text-white">CHRONICLE_OF_ACCOMPLISHMENTS</span>
+                                <span className="terminal-title text-hot-orange">CHRONICLE_OF_ACCOMPLISHMENTS</span>
                             </Card.Header>
-                            <Card.Body className="md-input-field text-white">
+                            <Card.Body className="md-input-field text-hot-orange">
                                 {profileData.accomplishments.map((acc, index) => (
                                     <div key={index} className="p-3 border-bottom border-dark d-flex align-items-center">
                                         <span className="fs-3 me-3">{acc.icon}</span>
@@ -76,7 +76,7 @@ export default function About() {
                         {/* Hobbies Panel */}
                         <Card className="login-terminal-panel">
                             <Card.Header className="terminal-header">
-                                <span className="terminal-title text-white">RECREATIONAL_PROTOCOL</span>
+                                <span className="terminal-title text-hot-orange">RECREATIONAL_PROTOCOL</span>
                             </Card.Header>
                             <Card.Body className="md-input-field text-white">
                                 <div className="d-flex flex-wrap gap-2">

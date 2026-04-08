@@ -30,7 +30,7 @@ export const dracotailMainCombo = {
         { 
             id: 4, 
             instruction: "CL1 Arthalion target Faimena (GY), CL2 Lukias (GY).", 
-            cardId: "101204031", 
+            cardId: "75003700", 
             aiCommentary: "Chain blocking to ensure our recursion resolves." 
         },
         { 
@@ -64,7 +64,7 @@ export const dracotailMainCombo = {
         { 
             id: 8, 
             instruction: "Set Dracotail Horn and Dracotail Flame from Deck.", 
-            cardId: "05431722", // Horn
+            cardId: "5431722", // Horn
             zone: "STZ_1", 
             extraSummons: [
                 { cardId: "69932023", zone: "STZ_2" } // Flame
