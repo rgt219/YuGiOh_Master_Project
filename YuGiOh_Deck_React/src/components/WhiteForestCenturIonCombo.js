@@ -3,9 +3,18 @@ export const whiteForestCenturIonMain = {
     steps: [
         { id: 1, instruction: "Normal Summon Astellar.", cardId: "25592142", zone: "MMZ_1", aiCommentary: "Standard opener. Testing the waters for hand traps." },
         
-        { id: 2, instruction: "Astellar Eff: Send Tales to GY. SS Silvy from Deck.", cardId: "98385955", zone: "MMZ_2", removesZones: ["GY"], aiCommentary: "Tales hits the GY as cost to bring out our second tuner." },
+        { 
+            id: 2, 
+            instruction: "Astellar Eff: Send Tales to GY. SS Silvy from Deck.", 
+            cardId: "98385955", 
+            zone: "MMZ_2", 
+            extraSummons: [
+                { cardId: "99289828", zone: "GY" } // Aphes (using Elzette's ID as placeholder for Aphes)
+            ],
+            aiCommentary: "Tales hits the GY as cost to bring out our second tuner." 
+        },
         
-        { id: 3, instruction: "CL1 Silvy add Aphes, CL2 Tales sets itself.", cardId: "99289828", zone: "STZ_1", aiCommentary: "Chain blocking ensures the search for Aphes resolves." },
+        { id: 3, instruction: "CL1 Silvy add Aphes, CL2 Tales sets itself.", cardId: "99289828", zone: "STZ_1", removesZones: ["GY"], aiCommentary: "Chain blocking ensures the search for Aphes resolves." },
         
         { id: 4, instruction: "Synchro Summon Rciela.", cardId: "77313225", zone: "EMZ_L", removesZones: ["MMZ_1", "MMZ_2"], aiCommentary: "Astellar and Silvy move to GY as Synchro Material." },
         

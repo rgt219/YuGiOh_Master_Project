@@ -1,24 +1,38 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext} from 'react';
 import {useParams} from 'react-router-dom';
 import {DecksContext} from './DecksContext';
-import HoverVideoPlayer from 'react-hover-video-player';
 import { SplitPane } from 'react-split-pane';
 import ImageGrid from './ImageGrid';
 import ImagePopup from './ImagePopup';
-import CardApi from './CardApi';
 import ComboPlayer from './ComboPlayer';
-import { whiteForestCenturIonMain } from './WhiteForestCenturIonCombo';
 
-export default function DeckDetails({archetype}) {
+// 1. Import your combo data files here
+import { whiteForestCenturIonMain } from './WhiteForestCenturIonCombo';
+import { dracotailMainCombo } from './DracotailMainCombo';
+
+export default function DeckDetails() {
     const { deckId } = useParams();
     const decks = useContext(DecksContext);
-    const deck = decks.find(d => d.id === parseInt(deckId));
+    
+    // Convert deckId to integer since useParams returns a string
+    const id = parseInt(deckId);
+    const deck = decks.find(d => d.id === id);
 
-    if(!deck) return <div className="text-center mt-5">Deck not found.</div>
+    // 2. COMBO REGISTRY
+    // Map your Deck IDs to the imported combo objects
+    const comboRegistry = {
+        1: dracotailMainCombo,       // Assuming 2 is Dracotail
+        3: whiteForestCenturIonMain, // Assuming 1 is White Forest
+        // Add more mappings as you create files
+    };
+
+    // Get the specific combo for this deck, or null if none exists
+    const selectedCombo = comboRegistry[id];
+
+    if(!deck) return <div className="text-center mt-5 text-white">Deck not found.</div>
 
     return (
-        <div className="container-fluid py-4 mt-5"> {/* Main wrapper for padding */}
-            
+        <div className="container-fluid py-4 mt-5">
             {/* Title Section */}
             <div className="text-center mb-4">
                 <h1 className="display-4 text-uppercase fw-bold" style={{fontFamily: "Cascadia Mono", color: "#00d4ff"}}>
@@ -26,7 +40,7 @@ export default function DeckDetails({archetype}) {
                 </h1>
             </div>
 
-            {/* Key Cards Section using Glassmorphism */}
+            {/* Key Cards Section */}
             <div className="glass-container mb-4">
                 <h2 className="h4 mb-3" style={{fontFamily: "Cascadia Mono"}}>Key Cards</h2>
                 <div className="d-flex justify-content-around align-items-center flex-wrap gap-3">
@@ -51,14 +65,24 @@ export default function DeckDetails({archetype}) {
             {/* Content Area */}
             <div style={{ height: "70vh" }}>
                 <SplitPane split="vertical" defaultSize="55%">
-                    <div className="pe-3"> {/* Padding right for separation */}
+                    <div className="pe-3">
                         <div className="glass-container h-100 overflow-auto">
                             <ImageGrid archetype={deck} />
                         </div>
                     </div>
-                    <div className="ps-3"> {/* Padding left for separation */}
+                    <div className="ps-3">
                         <div className="glass-container h-100 bg-black bg-opacity-50 overflow-auto">
-                            <ComboPlayer comboData={whiteForestCenturIonMain}/>
+                            {/* 3. Render ComboPlayer only if combo data exists */}
+                            {selectedCombo ? (
+                                <ComboPlayer comboData={selectedCombo}/>
+                            ) : (
+                                <div className="d-flex align-items-center justify-content-center h-100 text-muted">
+                                    <div className="text-center">
+                                        <h3 style={{fontFamily: "Cascadia Mono"}}>NO_COMBO_DATA</h3>
+                                        <p>Simulation parameters for this archetype are not yet defined.</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </SplitPane>
