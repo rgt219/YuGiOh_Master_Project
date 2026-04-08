@@ -8,7 +8,7 @@ import ComboPlayer from './ComboPlayer';
 
 // 1. Import your combo data files here
 import { whiteForestCenturIonMain } from './WhiteForestCenturIonCombo';
-import { dracotailMainCombo } from './DracotailMainCombo';
+import { dracotailMainCombo } from './DracotailCombo';
 
 export default function DeckDetails() {
     const { deckId } = useParams();
