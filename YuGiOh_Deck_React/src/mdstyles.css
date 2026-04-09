@@ -830,3 +830,63 @@
     padding: 2px 4px;
     z-index: 10;
 }
+
+/* Master Duel Glass Panels */
+.md-glass-panel {
+    background: rgba(15, 25, 35, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+}
+
+.md-sub-panel {
+    background: rgba(10, 15, 20, 0.9);
+    border: 1px solid rgba(0, 212, 255, 0.1);
+    position: relative;
+}
+
+/* Panel Labels like the MD UI */
+.panel-label {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    font-size: 10px;
+    font-family: 'Cascadia Mono', monospace;
+    color: rgba(0, 212, 255, 0.5);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Card Visuals */
+.card-frame {
+    position: relative;
+    width: 16%;
+    max-width: 140px;
+    transition: transform 0.2s ease;
+}
+
+.card-frame:hover {
+    transform: scale(1.05) translateY(-5px);
+}
+
+.md-card-img {
+    width: 100%;
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.card-glow {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    box-shadow: inset 0 0 10px rgba(0, 212, 255, 0);
+    transition: box-shadow 0.3s ease;
+    pointer-events: none;
+}
+
+.card-frame:hover .card-glow {
+    box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.5), 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.terminal-font {
+    font-family: 'Cascadia Mono', monospace;
+}

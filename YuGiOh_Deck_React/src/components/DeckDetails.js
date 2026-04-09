@@ -6,80 +6,80 @@ import ImageGrid from './ImageGrid';
 import ImagePopup from './ImagePopup';
 import ComboPlayer from './ComboPlayer';
 
-// 1. Import your combo data files here
+// Import combo data
 import { whiteForestCenturIonMain } from './WhiteForestCenturIonCombo';
 import { dracotailMainCombo } from './DracotailCombo';
 
 export default function DeckDetails() {
     const { deckId } = useParams();
     const decks = useContext(DecksContext);
-    
-    // Convert deckId to integer since useParams returns a string
     const id = parseInt(deckId);
     const deck = decks.find(d => d.id === id);
 
-    // 2. COMBO REGISTRY
-    // Map your Deck IDs to the imported combo objects
     const comboRegistry = {
-        1: dracotailMainCombo,       // Assuming 2 is Dracotail
-        3: whiteForestCenturIonMain, // Assuming 1 is White Forest
-        // Add more mappings as you create files
+        1: dracotailMainCombo,
+        3: whiteForestCenturIonMain,
     };
 
-    // Get the specific combo for this deck, or null if none exists
     const selectedCombo = comboRegistry[id];
 
-    if(!deck) return <div className="text-center mt-5 text-white">Deck not found.</div>
+    if(!deck) return <div className="text-center mt-5 text-danger terminal-font">! ERROR: ARCHETYPE_NOT_FOUND</div>
 
     return (
-        <div className="container-fluid py-4 mt-5">
-            {/* Title Section */}
-            <div className="text-center mb-4">
-                <h1 className="display-4 text-uppercase fw-bold" style={{fontFamily: "Cascadia Mono", color: "#00d4ff"}}>
-                    {deck.title}
-                </h1>
+        <div className="md-theme-bg container-fluid py-4 mt-5">
+            {/* HUD HEADER */}
+            <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-info border-opacity-50 pb-2">
+                <div>
+                    <span className="text-info small terminal-font d-block">// ARCHETYPE_DATABASE</span>
+                    <h1 className="display-5 text-uppercase fw-bold m-0" style={{fontFamily: "Cascadia Mono", color: "#fff", textShadow: "0 0 10px #00d4ff"}}>
+                        {deck.title}
+                    </h1>
+                </div>
+                <div className="text-end">
+                    <span className="text-muted small terminal-font">SYSTEM_STATUS: <span className="text-success">ONLINE</span></span>
+                </div>
             </div>
 
-            {/* Key Cards Section */}
-            <div className="glass-container mb-4">
-                <h2 className="h4 mb-3" style={{fontFamily: "Cascadia Mono"}}>Key Cards</h2>
-                <div className="d-flex justify-content-around align-items-center flex-wrap gap-3">
+            {/* KEY CARDS - Master Duel "Gallery" Style */}
+            <div className="md-glass-panel mb-4 p-3" style={{ borderLeft: "4px solid #00d4ff" }}>
+                <h2 className="h6 text-info mb-3 terminal-font">CORE_RESOURCES</h2>
+                <div className="d-flex justify-content-start align-items-center flex-wrap gap-4">
                     {[deck.keyCard1, deck.keyCard2, deck.keyCard3, deck.keyCard4].map((card, i) => (
-                        <img 
-                            key={i}
-                            src={`/images/${card}`} 
-                            alt="Key Card" 
-                            className="img-fluid rounded shadow-lg" 
-                            style={{ 
-                                width: "18%", 
-                                transition: "transform 0.3s ease",
-                                cursor: "pointer" 
-                            }}
-                            onMouseOver={e => e.currentTarget.style.transform = "scale(1.1)"}
-                            onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
-                        />
+                        <div key={i} className="card-frame">
+                            <img 
+                                src={`/images/${card}`} 
+                                alt="Key Card" 
+                                className="md-card-img"
+                            />
+                            <div className="card-glow"></div>
+                        </div>
                     ))}
                 </div>
             </div>
 
-            {/* Content Area */}
-            <div style={{ height: "70vh" }}>
-                <SplitPane split="vertical" defaultSize="55%">
-                    <div className="pe-3">
-                        <div className="glass-container h-100 overflow-auto">
+            {/* MAIN INTERFACE */}
+            <div style={{ height: "70vh", border: "1px solid rgba(0, 212, 255, 0.2)" }}>
+                <SplitPane split="vertical" defaultSize="55%" minSize={300}>
+                    {/* LEFT PANEL: DATA GRID */}
+                    <div className="pe-2 h-100">
+                        <div className="md-sub-panel h-100 overflow-auto">
+                            <div className="panel-label">DATABASE_GRID</div>
                             <ImageGrid archetype={deck} />
                         </div>
                     </div>
-                    <div className="ps-3">
-                        <div className="glass-container h-100 bg-black bg-opacity-50 overflow-auto">
-                            {/* 3. Render ComboPlayer only if combo data exists */}
+                    
+                    {/* RIGHT PANEL: COMBO SIMULATOR */}
+                    <div className="ps-2 h-100">
+                        <div className="md-sub-panel h-100 bg-black bg-opacity-70 overflow-auto">
+                            <div className="panel-label">COMBINATION_PLAYER_V2</div>
                             {selectedCombo ? (
                                 <ComboPlayer comboData={selectedCombo}/>
                             ) : (
-                                <div className="d-flex align-items-center justify-content-center h-100 text-muted">
-                                    <div className="text-center">
-                                        <h3 style={{fontFamily: "Cascadia Mono"}}>NO_COMBO_DATA</h3>
-                                        <p>Simulation parameters for this archetype are not yet defined.</p>
+                                <div className="d-flex align-items-center justify-content-center h-100">
+                                    <div className="text-center terminal-font">
+                                        <div className="spinner-border text-info mb-3" role="status"></div>
+                                        <h3 className="text-muted">NO_DATA_STREAM</h3>
+                                        <p className="small text-secondary">Awaiting combo sequence input...</p>
                                     </div>
                                 </div>
                             )}
