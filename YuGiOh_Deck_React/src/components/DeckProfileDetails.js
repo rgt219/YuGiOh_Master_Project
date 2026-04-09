@@ -12,28 +12,55 @@ export default function DeckProfileDetails() {
     useEffect(() => {
         const loadDeckData = async () => {
             try {
-                // 1. Fetch the HYDRATED deck directly from your .NET API
-                // Your backend now returns the full card objects, not just IDs!
                 const res = await fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb/${deckId}`);
-                
                 if (!res.ok) throw new Error("DECK_NOT_FOUND");
-                
                 const hydratedData = await res.json();
-
-                console.log("AZURE_UPLINK_DATA:", hydratedData); // Add this line
-
-                // 2. Simply set the state. No manual hydration or loops needed here.
                 setDeck(hydratedData);
-
             } catch (error) {
                 console.error("ARCHIVE_ACCESS_ERROR:", error);
             } finally {
                 setLoading(false);
             }
         };
-
         loadDeckData();
     }, [deckId]);
+
+    // --- YDK EXPORT ENGINE ---
+    const handleExportYDK = () => {
+        if (!deck) return;
+
+        // Build the YDK string structure
+        let ydkContent = "#created by ErreGeTe YGO\n#main\n";
+        
+        // Add Main Deck IDs (using id or passcode depending on your card object structure)
+        deck.mainDeck?.forEach(card => {
+            ydkContent += `${card.id}\n`;
+        });
+
+        ydkContent += "#extra\n";
+        deck.extraDeck?.forEach(card => {
+            ydkContent += `${card.id}\n`;
+        });
+
+        ydkContent += "!side\n";
+        deck.sideDeck?.forEach(card => {
+            ydkContent += `${card.id}\n`;
+        });
+
+        // Create the file download
+        const blob = new Blob([ydkContent], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        
+        link.href = url;
+        link.download = `${deck.title.replace(/\s+/g, '_') || 'deck'}.ydk`;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
 
     if (loading) return (
         <div className="md-theme-bg min-vh-100 d-flex flex-column justify-content-center align-items-center">
@@ -55,7 +82,12 @@ export default function DeckProfileDetails() {
                             </h2>
                             <p className="text-muted m-0 small">FILE_PATH: ROOT/DECKS/{deck.id}</p>
                         </Col>
-                        <Col xs="auto">
+                        <Col xs="auto" className="d-flex gap-2">
+                            {/* THE EXPORT BUTTON */}
+                            <Button onClick={handleExportYDK} className="md-btn-primary">
+                                EXPORT_YDK
+                            </Button>
+                            
                             <Button as={Link} to="/profile" className="md-btn-outline">
                                 BACK TO PROFILE
                             </Button>
@@ -65,11 +97,13 @@ export default function DeckProfileDetails() {
 
                 <Row>
                     <Col md={12} className="md-panel p-4">
-                        <h5 className="text-white mb-4" style={{letterSpacing: '1px'}}>
-                            MAIN DECK ({deck.mainDeck?.length || 0}/60)
-                        </h5>
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <h5 className="text-white m-0" style={{letterSpacing: '1px'}}>
+                                MAIN DECK ({deck.mainDeck?.length || 0}/60)
+                            </h5>
+                            <span className="text-info small terminal-font">STATUS: VERIFIED</span>
+                        </div>
                         <div className="deck-scroll-container">
-                            {/* CustomDeck receives the full card objects directly */}
                             <CustomDeck 
                                 mainDeck={deck.mainDeck} 
                                 extraDeck={deck.extraDeck} 
