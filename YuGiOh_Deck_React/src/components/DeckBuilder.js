@@ -1,21 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button, Container, Row, Col, Modal, Form, Spinner } from 'react-bootstrap';
+import { useSelector, useDispatch } from 'react-redux';
+import { 
+    addCardToDeck, 
+    removeCardFromDeck, 
+    updateDeckName, 
+    importYdkDeck 
+} from "../store/deckSlice";
+
 import CardApi from "../components/CardApi";
 import CustomDeck from "./CustomDeck";
 import { deckList } from "../components/CardApi";
 import '../mdstyles.css';
 
 export default function DeckBuilder({ user }) {
-    const [deckName, setDeckName] = useState('');
+    // --- REDUX UPLINK ---
+    // We pull the state from our Redux store instead of local useState
+    const mainDeck = useSelector((state) => state.deck.mainDeck);
+    const extraDeck = useSelector((state) => state.deck.extraDeck);
+    const deckName = useSelector((state) => state.deck.deckName);
+    const dispatch = useDispatch();
+
     const [show, setShow] = useState(false);
-    const [mainDeck, setMainDeck] = useState([]);
-    const [extraDeck, setExtraDeck] = useState([]);
     const [isHydrating, setIsHydrating] = useState(false);
-    
     const fileInputRef = useRef(null);
 
-    // --- NEW YGOPRODECK HYDRATION ENGINE ---
+    // --- YGOPRODECK HYDRATION ENGINE ---
     const handleImportYDK = (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -30,7 +41,6 @@ export default function DeckBuilder({ user }) {
             const mainIds = [];
             const extraIds = [];
 
-            // 1. Parse IDs from file
             lines.forEach(line => {
                 const trimmed = line.trim();
                 if (trimmed === "#main") { currentSection = "main"; return; }
@@ -43,7 +53,7 @@ export default function DeckBuilder({ user }) {
             });
 
             try {
-                // 2. Batch Fetch from YGOPRODeck
+                // Batch Fetch from YGOPRODeck
                 const allIds = [...mainIds, ...extraIds].join(",");
                 const response = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${allIds}`);
                 const result = await response.json();
@@ -55,31 +65,24 @@ export default function DeckBuilder({ user }) {
                     cardMap[String(card.id)] = card;
                 });
 
-                // 3. Map IDs back to full objects and FLATTEN the image URL
+                // Hydrate and Flatten Images
                 const hydratedMain = mainIds.map(id => {
                     const card = cardMap[id];
-                    if (!card) return null;
-                    return {
-                        ...card,
-                        // Extract the image URL so CustomDeck can find it easily
-                        image: card.card_images[0].image_url, 
-                        instanceId: Math.random()
-                    };
+                    return card ? { ...card, image: card.card_images[0].image_url, instanceId: Math.random() } : null;
                 }).filter(c => c !== null);
 
                 const hydratedExtra = extraIds.map(id => {
                     const card = cardMap[id];
-                    if (!card) return null;
-                    return {
-                        ...card,
-                        image: card.card_images[0].image_url,
-                        instanceId: Math.random()
-                    };
+                    return card ? { ...card, image: card.card_images[0].image_url, instanceId: Math.random() } : null;
                 }).filter(c => c !== null);
 
-                setMainDeck(hydratedMain);
-                setExtraDeck(hydratedExtra);
-                setDeckName(file.name.replace(".ydk", "").replace(/_/g, " ").toUpperCase());
+                // --- REDUX DISPATCH ---
+                // We send the entire hydrated deck to the global store
+                dispatch(importYdkDeck({
+                    main: hydratedMain,
+                    extra: hydratedExtra,
+                    name: file.name.replace(".ydk", "").replace(/_/g, " ").toUpperCase()
+                }));
                 
             } catch (error) {
                 console.error("YGOPRODECK_UPLINK_ERROR:", error);
@@ -94,20 +97,16 @@ export default function DeckBuilder({ user }) {
 
     const triggerFileSelect = () => fileInputRef.current.click();
 
-    // Standard Handlers
+    // Redux Handlers
     const handleAddCard = (newCard) => {
-        if (newCard.type?.includes("Fusion") || newCard.type?.includes("Synchro") || newCard.type?.includes("Link") || newCard.type?.includes("XYZ")) {
-            if (extraDeck.length < 15) setExtraDeck([...extraDeck, { ...newCard, instanceId: Math.random() }]);
-        } else {
-            if (mainDeck.length < 60) setMainDeck([...mainDeck, { ...newCard, instanceId: Math.random() }]);
-        }
+        dispatch(addCardToDeck(newCard));
     };
 
     const deleteCard = (instanceId) => {
-        setMainDeck(prev => prev.filter(card => card.instanceId !== instanceId));
-        setExtraDeck(prev => prev.filter(card => card.instanceId !== instanceId));
+        dispatch(removeCardFromDeck(instanceId));
     };
 
+    // Keep the legacy deckList sync if your other components still rely on it
     useEffect(() => {
         deckList.mainDeck = mainDeck;
         deckList.extraDeck = extraDeck;
@@ -115,6 +114,7 @@ export default function DeckBuilder({ user }) {
 
     const handleSave = async () => {
         if (!user?.id) return alert("LOG_IN_REQUIRED");
+        
         const payload = {
             id: String(Math.floor(Math.random() * 1000000) + 1),
             title: deckName || "NEW_DECKLIST",
@@ -123,12 +123,17 @@ export default function DeckBuilder({ user }) {
             extraDeck: extraDeck.map(card => String(card.id)),
             sideDeck: []
         };
-        const response = await fetch("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-        if (response.ok) setShow(true);
+
+        try {
+            const response = await fetch("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            if (response.ok) setShow(true);
+        } catch (err) {
+            console.error("SAVE_ERROR:", err);
+        }
     };
 
     return (
@@ -144,7 +149,7 @@ export default function DeckBuilder({ user }) {
                                 className="md-input"
                                 placeholder={isHydrating ? "SYNCHRONIZING..." : "IDENTIFY_DECK_NAME..."}
                                 value={deckName} 
-                                onChange={(e) => setDeckName(e.target.value)} 
+                                onChange={(e) => dispatch(updateDeckName(e.target.value))} 
                                 disabled={isHydrating}
                             />
                         </div>
@@ -162,13 +167,21 @@ export default function DeckBuilder({ user }) {
                         <div className="md-panel p-4 h-100">
                             <h5 className="text-white mb-3 terminal-font">MAIN_DECK [{mainDeck.length}/60]</h5>
                             <div className="deck-scroll-container">
-                                <CustomDeck mainDeck={mainDeck} extraDeck={extraDeck} onDeleteCard={(id, inst) => deleteCard(inst)} />
+                                <CustomDeck 
+                                    mainDeck={mainDeck} 
+                                    extraDeck={extraDeck} 
+                                    onDeleteCard={(id, inst) => deleteCard(inst)} 
+                                />
                             </div>
                         </div>
                     </Col>
                     <Col md={5}>
                         <div className="md-panel p-4 bg-black bg-opacity-50 h-100">
-                            <CardApi onAddCard={handleAddCard} onDeleteCard={(id, inst) => deleteCard(inst)} cardList={[...mainDeck, ...extraDeck]} />
+                            <CardApi 
+                                onAddCard={handleAddCard} 
+                                onDeleteCard={(id, inst) => deleteCard(inst)} 
+                                cardList={[...mainDeck, ...extraDeck]} 
+                            />
                         </div>
                     </Col>
                 </Row>
@@ -178,6 +191,7 @@ export default function DeckBuilder({ user }) {
                 <Modal.Header closeButton className="border-info bg-dark"><Modal.Title className="text-info terminal-font">SYSTEM_NOTIFICATION</Modal.Title></Modal.Header>
                 <Modal.Body className="bg-dark text-white text-center py-4">
                     <h5 className="terminal-font">DECK_UPLOAD_COMPLETE</h5>
+                    <p className="text-muted small">Archived to erregeteygo cloud services.</p>
                 </Modal.Body>
             </Modal>
         </div>
