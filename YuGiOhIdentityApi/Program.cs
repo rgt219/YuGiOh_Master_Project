@@ -22,7 +22,7 @@ namespace YuGiOhIdentityApi
             {
                 options.AddPolicy("MyCors", policy =>
                 {
-                    policy.WithOrigins("https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io")
+                    policy.WithOrigins("https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io", "https://erregeteygo.com", "https://www.erregeteygo.com")
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();

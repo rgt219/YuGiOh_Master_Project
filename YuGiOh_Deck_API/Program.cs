@@ -58,7 +58,8 @@ namespace YuGiOhDeckApi
                 {
                     policy.WithOrigins(
                                 "http://localhost:3000",
-                                "https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io" // Replace with your ACTUAL frontend URL
+                                "https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io",
+                                "https://erregeteygo.com", "https://www.erregeteygo.com" // Replace with your ACTUAL frontend URL
                             )
                           .AllowAnyMethod()
                           .AllowAnyHeader()
