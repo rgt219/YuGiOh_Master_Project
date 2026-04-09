@@ -55,16 +55,27 @@ export default function DeckBuilder({ user }) {
                     cardMap[String(card.id)] = card;
                 });
 
-                // 3. Map IDs back to full objects (maintaining duplicates/counts)
-                const hydratedMain = mainIds.map(id => ({
-                    ...cardMap[id],
-                    instanceId: Math.random()
-                })).filter(c => c.id); // Filter out any that failed to map
+                // 3. Map IDs back to full objects and FLATTEN the image URL
+                const hydratedMain = mainIds.map(id => {
+                    const card = cardMap[id];
+                    if (!card) return null;
+                    return {
+                        ...card,
+                        // Extract the image URL so CustomDeck can find it easily
+                        image: card.card_images[0].image_url, 
+                        instanceId: Math.random()
+                    };
+                }).filter(c => c !== null);
 
-                const hydratedExtra = extraIds.map(id => ({
-                    ...cardMap[id],
-                    instanceId: Math.random()
-                })).filter(c => c.id);
+                const hydratedExtra = extraIds.map(id => {
+                    const card = cardMap[id];
+                    if (!card) return null;
+                    return {
+                        ...card,
+                        image: card.card_images[0].image_url,
+                        instanceId: Math.random()
+                    };
+                }).filter(c => c !== null);
 
                 setMainDeck(hydratedMain);
                 setExtraDeck(hydratedExtra);
