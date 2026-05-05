@@ -11,8 +11,8 @@ export default function Login({ setUser }) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        const savedUser = localStorage.getItem("user");
+        const token = sessionStorage.getItem("token");
+        const savedUser = sessionStorage.getItem("user");
 
         // Only redirect if BOTH token and user object exist
         if (token && savedUser) {
@@ -47,11 +47,11 @@ export default function Login({ setUser }) {
                 console.log("UPLINK_ESTABLISHED:", data.userName);
                 
                 // 1. Store the token as a string (for API headers)
-                localStorage.setItem("token", data.token);
+                sessionStorage.setItem("token", data.token);
                 
                 // 2. Store the user profile as a stringified object (for UI display)
                 // We use the key "user" so we can find it easily later
-                localStorage.setItem("user", JSON.stringify({
+                sessionStorage.setItem("user", JSON.stringify({
                     userName: data.userName,
                     firstName: data.firstName,
                     lastName: data.lastName,

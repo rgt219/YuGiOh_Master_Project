@@ -27,8 +27,8 @@ function App() {
 
   const handleLogout = () => {
     // Clear the specific keys used during login
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
     
     // Reset state to null
     setUser(null);
