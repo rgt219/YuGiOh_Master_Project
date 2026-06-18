@@ -9,6 +9,7 @@ import ComboPlayer from './ComboPlayer';
 // Import combo data
 import { whiteForestCenturIonMain } from './WhiteForestCenturIonCombo';
 import { dracotailMainCombo } from './DracotailCombo';
+import { whiteForestAzaminaCombo } from './WhiteForestAzaminaCombo';
 
 export default function DeckDetails() {
     const { deckId } = useParams();
@@ -18,6 +19,7 @@ export default function DeckDetails() {
 
     const comboRegistry = {
         1: dracotailMainCombo,
+        2: whiteForestAzaminaCombo,
         3: whiteForestCenturIonMain,
     };
 
