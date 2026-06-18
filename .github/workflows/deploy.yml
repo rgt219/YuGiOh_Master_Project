@@ -124,7 +124,7 @@ jobs:
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$REVISION_URL/api/mongodb/DeckListMongoDb/user/447572")
 
           if [ "$STATUS" -ne 200 ]; then
-            echo "Smoke test failed with status $STATUS!"
+            echo "Smoke test failed with status $STATUS! Not okay"
             exit 1
           fi
 
