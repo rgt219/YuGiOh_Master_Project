@@ -62,49 +62,69 @@ export default function About() {
         ]
     };
 
+    // Master Duel Laser styles to force override default white card issues
+    const masterDuelLaserCardStyle = {
+        background: 'linear-gradient(135deg, #150d22 0%, #1f1235 100%)',
+        border: '1px solid #00e5ff',
+        boxShadow: '0 0 15px rgba(0, 229, 255, 0.25), inset 0 0 10px rgba(0, 229, 255, 0.1)',
+        borderRadius: '4px',
+        overflow: 'hidden'
+    };
+
+    const textStyleCyan = { color: '#00e5ff' };
+    const textStylePurple = { color: '#bd72ff' };
+
     return (
-        <div className="md-theme-bg p-5" style={{ minHeight: "100vh" }}>
-            <Container>
-                {/* --- HEADER BLOCK (PROSE SANITIZED) --- */}
-                <Row className="mb-5 align-items-center terminal-header-block p-4">
-                    <Col xs={12} md={3} className="text-center">
+        <div style={{ backgroundColor: '#0b0614', minHeight: "100vh" }} className="p-4 p-md-5">
+            {/* Fluid container ensures layout stretches outwards to utilize full width and prevent squeeze */}
+            <Container fluid="xl">
+                
+                {/* --- MAIN HEADER PROFILE BLOCK --- */}
+                <Row className="mb-5 align-items-center p-4 rounded" style={masterDuelLaserCardStyle}>
+                    <Col xs={12} md={3} className="text-center mb-3 mb-md-0">
                         <img 
                             src={profileData.profileIcon} 
                             alt="Avatar" 
-                            className="profile-avatar-circle md-border-info"
+                            className="img-fluid rounded-circle border border-2"
+                            style={{ borderColor: '#00e5ff', width: '150px', height: '150px', objectFit: 'cover' }}
                         />
                     </Col>
                     <Col xs={12} md={9}>
-                        <h1 className="md-text-glitch text-info">{profileData.userName}</h1>
-                        <h4 className="text-muted fw-bold">SYSTEM_ARCHITECT // {profileData.realName.toUpperCase()}</h4>
-                        <div className="md-divider-purple mt-3 mb-3"></div>
-                        <p className="md-text-terminal lead">{profileData.aboutText}</p>
+                        <h1 className="fw-bold md-text-glitch" style={textStyleCyan}>{profileData.userName}</h1>
+                        <h5 className="fw-bold tracking-wider" style={textStylePurple}>SYSTEM_ARCHITECT // {profileData.realName.toUpperCase()}</h5>
+                        <hr style={{ backgroundColor: '#00e5ff', height: '2px', opacity: 0.5 }} />
+                        <p className="text-white opacity-90 lead fs-6">{profileData.aboutText}</p>
                         
                         {/* Education Node */}
-                        <div className="mt-3 d-flex align-items-center text-white">
-                            <span className="fs-4 me-2">{profileData.education.icon}</span>
-                            <span className="fw-semibold text-purple">{profileData.education.degree}</span>
-                            <span className="mx-2 text-muted">|</span>
+                        <div className="mt-3 d-flex flex-wrap align-items-center text-white small">
+                            <span className="fs-5 me-2">{profileData.education.icon}</span>
+                            <span className="fw-semibold" style={textStylePurple}>{profileData.education.degree}</span>
+                            <span className="mx-2 text-muted d-none d-sm-inline">|</span>
                             <span className="text-muted">{profileData.education.institution}</span>
                         </div>
                     </Col>
                 </Row>
 
-                <Row>
-                    {/* LEFT COLUMN: TECH DECK & CURRENT RUNTIME PROJECT */}
-                    <Col lg={4} className="mb-4">
-                        {/* TECH MASTERIES PANEL */}
-                        <Card className="login-terminal-panel mb-4 md-border-purple">
-                            <Card.Header className="terminal-header bg-purple-dark">
-                                <span className="terminal-title text-purple">TECH_DECK_RECIPE</span>
+                {/* --- 2-COLUMN MACRO MATRIX GRID --- */}
+                <Row className="g-4">
+                    
+                    {/* LEFT SIDE COLUMN (Width: 4/12) -> Inventory Recipes & Platform Specifications */}
+                    <Col lg={4} xs={12}>
+                        
+                        {/* TECH DECK RECIPE */}
+                        <Card className="mb-4" style={masterDuelLaserCardStyle}>
+                            <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
+                                <span className="fw-bold tracking-widest" style={textStylePurple}>TECH_DECK_RECIPE</span>
                             </Card.Header>
-                            <Card.Body className="md-input-field p-3">
+                            <Card.Body>
                                 {profileData.skillsDeck.map((deck, idx) => (
-                                    <div key={idx} className="mb-4">
-                                        <small className="text-muted d-block mb-2 fw-bold">// {deck.category}</small>
+                                    <div key={idx} className="mb-3">
+                                        <small className="d-block mb-2 fw-bold text-muted text-uppercase" style={{ fontSize: '0.75rem' }}>
+                                            // {deck.category}
+                                        </small>
                                         <div className="d-flex flex-wrap gap-1">
                                             {deck.items.map((skill, i) => (
-                                                <Badge key={i} bg="dark" className="p-2 md-border-info fs-7 text-info">
+                                                <Badge key={i} bg="transparent" className="p-2 border fs-7" style={{ borderColor: 'rgba(0, 229, 255, 0.4)', color: '#00e5ff' }}>
                                                     {skill}
                                                 </Badge>
                                             ))}
@@ -114,18 +134,15 @@ export default function About() {
                             </Card.Body>
                         </Card>
 
-                        {/* THIS APPLICATION SCRIPT OVERVIEW */}
-                        <Card className="login-terminal-panel md-border-info">
-                            <Card.Header className="terminal-header">
-                                <span className="terminal-dot red me-2"></span>
-                                <span className="terminal-dot yellow me-2"></span>
-                                <span className="terminal-dot green me-2"></span>
-                                <span className="terminal-title text-info">PLATFORM_SPECIFICATIONS (ERREGETEYGO.COM)</span>
+                        {/* PLATFORM SPECIFICATIONS */}
+                        <Card style={masterDuelLaserCardStyle}>
+                            <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
+                                <span className="fw-bold tracking-widest" style={textStyleCyan}>PLATFORM_SPECIFICATIONS</span>
                             </Card.Header>
-                            <Card.Body className="md-input-field text-white fs-7">
-                                <ul className="ps-3 mb-0">
+                            <Card.Body className="text-white">
+                                <ul className="ps-3 mb-0" style={{ listStyleType: 'square' }}>
                                     {profileData.platformSpecs.map((spec, index) => (
-                                        <li key={index} className="mb-2 border-bottom border-dark pb-2 last-border-0">
+                                        <li key={index} className="mb-3 pb-2 border-bottom border-dark border-opacity-20 lh-base" style={{ fontSize: '0.85rem' }}>
                                             {spec}
                                         </li>
                                     ))}
@@ -134,31 +151,31 @@ export default function About() {
                         </Card>
                     </Col>
 
-                    {/* RIGHT COLUMN: CAMPAIGN LOGS (WORK EXPERIENCE) */}
-                    <Col lg={8}>
-                        <Card className="login-terminal-panel mb-4">
-                            <Card.Header className="terminal-header d-flex align-items-center">
-                                <span className="terminal-title text-hot-orange">PROFESSIONAL_DEPLOYMENT_HISTORY</span>
+                    {/* RIGHT SIDE COLUMN (Width: 8/12) -> Professional Deployment Logs */}
+                    <Col lg={8} xs={12}>
+                        <Card style={masterDuelLaserCardStyle}>
+                            <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
+                                <span className="fw-bold tracking-widest" style={{ color: '#ffaa00' }}>PROFESSIONAL_DEPLOYMENT_HISTORY</span>
                             </Card.Header>
-                            <Card.Body className="md-input-field p-0">
+                            <Card.Body className="p-0">
                                 {profileData.deploymentHistory.map((job, index) => (
                                     <div key={index} className="p-4 border-bottom border-dark text-white">
-                                        <Row className="align-items-start">
+                                        <Row className="align-items-start mb-2">
                                             <Col xs={12} md={8}>
-                                                <h4 className="text-info md-text-glitch mb-1">{job.company}</h4>
-                                                <h5 className="text-hot-orange fw-semibold fs-6">{job.role}</h5>
+                                                <h4 className="fw-bold mb-1" style={textStyleCyan}>{job.company}</h4>
+                                                <h5 className="fw-semibold fs-6" style={{ color: '#ffaa00' }}>{job.role}</h5>
                                             </Col>
-                                            <Col xs={12} md={4} className="text-md-end text-muted small">
-                                                <div className="fw-bold text-purple">{job.duration}</div>
-                                                <div>{job.location}</div>
+                                            <Col xs={12} md={4} className="text-md-end small">
+                                                <div className="fw-bold" style={textStylePurple}>{job.duration}</div>
+                                                <div className="text-muted">{job.location}</div>
                                             </Col>
                                         </Row>
                                         
-                                        <p className="mt-2 text-muted fst-italic fs-7">{job.summary}</p>
+                                        <p className="text-muted fst-italic mb-3" style={{ fontSize: '0.85rem' }}>{job.summary}</p>
                                         
-                                        <ul className="mt-3 text-light-gray fs-7 custom-terminal-bullets">
+                                        <ul className="ps-3 text-white-50 lh-base" style={{ fontSize: '0.85rem' }}>
                                             {job.highlights.map((bullet, bIdx) => (
-                                                <li key={bIdx} className="mb-2">
+                                                <li key={bIdx} className="mb-2 text-light">
                                                     {bullet}
                                                 </li>
                                             ))}
@@ -168,6 +185,7 @@ export default function About() {
                             </Card.Body>
                         </Card>
                     </Col>
+
                 </Row>
             </Container>
         </div>
