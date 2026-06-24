@@ -10,6 +10,9 @@ import ComboPlayer from './ComboPlayer';
 import { whiteForestCenturIonMain } from './WhiteForestCenturIonCombo';
 import { dracotailMainCombo } from './DracotailCombo';
 import { whiteForestAzaminaCombo } from './WhiteForestAzaminaCombo';
+import { blueEyesCombo } from './BlueEyesCombo';
+import { kewlTuneCombo } from './KewlTuneCombo';
+
 
 export default function DeckDetails() {
     const { deckId } = useParams();
@@ -21,6 +24,8 @@ export default function DeckDetails() {
         1: dracotailMainCombo,
         2: whiteForestAzaminaCombo,
         3: whiteForestCenturIonMain,
+        4: blueEyesCombo, 
+        5: kewlTuneCombo
     };
 
     const selectedCombo = comboRegistry[id];
