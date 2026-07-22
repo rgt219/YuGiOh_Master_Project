@@ -3,7 +3,10 @@ import { Container, Row, Col, Card, Badge } from 'react-bootstrap';
 import "../mdstyles.css"; // Reuse the master duel stylesheet
 
 export default function About() {
-    // 1. Unified Cyber-Duelist Profile Data Structure
+    const textStyleMutedPastel = { color: '#a69cb5' }; 
+
+    const textStyleSoftCyan = { color: '#8cdce6' };
+    // 1. Unified Cyber-Duelist Profile Data Structure [cite: 1]
     const profileData = {
         userName: "ErreGeTe", 
         realName: "Ryan Thomas",
@@ -71,12 +74,29 @@ export default function About() {
         overflow: 'hidden'
     };
 
+    // Explicitly overrides and resets any leaking flex layouts or column counts from mdstyles.css
+    const forceVerticalListStyle = {
+        display: 'block',
+        columnCount: 'auto',
+        columns: 'auto',
+        flexDirection: 'column',
+        width: '100%',
+        paddingLeft: '1.25rem',
+        margin: 0
+    };
+
+    const forceVerticalLiStyle = {
+        display: 'list-item',
+        width: '100%',
+        float: 'none',
+        whiteSpace: 'normal'
+    };
+
     const textStyleCyan = { color: '#00e5ff' };
     const textStylePurple = { color: '#bd72ff' };
 
     return (
         <div style={{ backgroundColor: '#0b0614', minHeight: "100vh" }} className="p-4 p-md-5">
-            {/* Fluid container ensures layout stretches outwards to utilize full width and prevent squeeze */}
             <Container fluid="xl">
                 
                 {/* --- MAIN HEADER PROFILE BLOCK --- */}
@@ -85,8 +105,8 @@ export default function About() {
                         <img 
                             src={profileData.profileIcon} 
                             alt="Avatar" 
-                            className="img-fluid rounded-circle border border-2"
-                            style={{ borderColor: '#00e5ff', width: '150px', height: '150px', objectFit: 'cover' }}
+                            className="img-fluid border border-2"
+                            style={{ borderColor: '#00e5ff', width: '300px', height: '300px', objectFit: 'cover' }}
                         />
                     </Col>
                     <Col xs={12} md={9}>
@@ -100,7 +120,7 @@ export default function About() {
                             <span className="fs-5 me-2">{profileData.education.icon}</span>
                             <span className="fw-semibold" style={textStylePurple}>{profileData.education.degree}</span>
                             <span className="mx-2 text-muted d-none d-sm-inline">|</span>
-                            <span className="text-muted">{profileData.education.institution}</span>
+                            <span style={textStyleSoftCyan}>{profileData.education.institution}</span>
                         </div>
                     </Col>
                 </Row>
@@ -119,7 +139,7 @@ export default function About() {
                             <Card.Body>
                                 {profileData.skillsDeck.map((deck, idx) => (
                                     <div key={idx} className="mb-3">
-                                        <small className="d-block mb-2 fw-bold text-muted text-uppercase" style={{ fontSize: '0.75rem' }}>
+                                        <small className="d-block mb-2 fw-bold text text-uppercase" style={{ fontSize: '0.75rem', color: '#a69cb5' }}>
                                             // {deck.category}
                                         </small>
                                         <div className="d-flex flex-wrap gap-1">
@@ -140,9 +160,13 @@ export default function About() {
                                 <span className="fw-bold tracking-widest" style={textStyleCyan}>PLATFORM_SPECIFICATIONS</span>
                             </Card.Header>
                             <Card.Body className="text-white">
-                                <ul className="ps-3 mb-0" style={{ listStyleType: 'square' }}>
+                                <ul style={forceVerticalListStyle}>
                                     {profileData.platformSpecs.map((spec, index) => (
-                                        <li key={index} className="mb-3 pb-2 border-bottom border-dark border-opacity-20 lh-base" style={{ fontSize: '0.85rem' }}>
+                                        <li 
+                                            key={index} 
+                                            className="mb-3 pb-2 border-bottom border-dark border-opacity-20 lh-base text-light" 
+                                            style={{ ...forceVerticalLiStyle, listStyleType: 'square', fontSize: '0.85rem' }}
+                                        >
                                             {spec}
                                         </li>
                                     ))}
@@ -171,11 +195,15 @@ export default function About() {
                                             </Col>
                                         </Row>
                                         
-                                        <p className="text-muted fst-italic mb-3" style={{ fontSize: '0.85rem' }}>{job.summary}</p>
+                                        <p className="text fst-italic mb-3" style={{ fontSize: '0.85rem', color: '#a69cb5' }}>{job.summary}</p>
                                         
-                                        <ul className="ps-3 text-white-50 lh-base" style={{ fontSize: '0.85rem' }}>
+                                        <ul style={{ ...forceVerticalListStyle, color: 'rgba(255, 255, 255, 0.75)' }}>
                                             {job.highlights.map((bullet, bIdx) => (
-                                                <li key={bIdx} className="mb-2 text-light">
+                                                <li 
+                                                    key={bIdx} 
+                                                    className="mb-2 text-light lh-base"
+                                                    style={{ ...forceVerticalLiStyle, listStyleType: 'disc', fontSize: '0.85rem' }}
+                                                >
                                                     {bullet}
                                                 </li>
                                             ))}

@@ -73,11 +73,37 @@ export default function Home({user}) {
                                     className={`md-nav-card ${isLocked ? "md-card-disabled" : ""}`} 
                                     style={{ width: '18rem', textDecoration: 'none', cursor: isLocked ? 'not-allowed' : 'pointer' }}
                                 >
-                                    <div className="md-card-img-container" style={{ position: 'relative' }}>
-                                        <Card.Img src={link.img} style={{ height: "160px", objectFit: "cover", opacity: isLocked ? 0.3 : 0.8 }} />
+                                    {/* Ensure the wrapper container handles relative layouts and forces full width */}
+                                    <div className="md-card-img-container" style={{ position: 'relative', width: '100%' }}>
+                                        <Card.Img 
+                                            src={link.img} 
+                                            style={{ width: '100%', height: "160px", objectFit: "cover", opacity: isLocked ? 0.3 : 0.8 }} 
+                                        />
                                         {isLocked && (
-                                            <div className="md-text-disabled">
-                                                <span>MUST_BE_LOGGED_IN</span>
+                                            <div 
+                                                className="md-text-disabled" 
+                                                style={{ 
+                                                    position: 'absolute', 
+                                                    top: 0, 
+                                                    left: 0, 
+                                                    width: '100%', 
+                                                    height: '100%', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center',
+                                                    padding: '0 15px'
+                                                }}
+                                            >
+                                                <span 
+                                                    className="fw-bold tracking-widest text-center" 
+                                                    style={{ 
+                                                        color: '#ff4d4d', // Cyber-alert red style, or keep your standard text configuration
+                                                        fontSize: '0.9rem',
+                                                        textShadow: '0 0 8px rgba(0,0,0,0.8)' // High contrast shadow to pop off the card art
+                                                    }}
+                                                >
+                                                    MUST_BE_LOGGED_IN
+                                                </span>
                                             </div>
                                         )}
                                     </div>

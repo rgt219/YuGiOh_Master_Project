@@ -47,7 +47,7 @@ export default function DeckDetails() {
                 </div>
             </div>
 
-            {/* KEY CARDS - Master Duel "Gallery" Style */}
+            {/* KEY CARDS - Master Duel "Gallery" Style
             <div className="md-glass-panel mb-4 p-3" style={{ borderLeft: "4px solid #00d4ff" }}>
                 <h2 className="h6 text-info mb-3 terminal-font">CORE_RESOURCES</h2>
                 <div className="d-flex justify-content-start align-items-center flex-wrap gap-4">
@@ -62,7 +62,7 @@ export default function DeckDetails() {
                         </div>
                     ))}
                 </div>
-            </div>
+            </div> */}
 
             {/* MAIN INTERFACE */}
             <div style={{ height: "70vh", border: "1px solid rgba(0, 212, 255, 0.2)" }}>

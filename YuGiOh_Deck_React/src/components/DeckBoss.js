@@ -33,18 +33,18 @@ export default function DeckBoss({deck, isDeckListed, toggleDeckList})
                 </div>
 
                 <div className="deck-info-overlay">
-                    <h3 className='deck-title'>
+                    <h3 className='deck-title' style={{textAlign: 'center'}}>
                         <Link to={`/decks/${deck.id}`}>{deck.title}</Link>
                     </h3>
                     
-                    <div className="deck-stats-row">
-                        <span className='deck-genre'>{deck.extraDeckType}</span>
+                    {/* <div className="deck-stats-row">
+                        <span className='deck-genre' style={{textAlign: 'center'}}>{deck.extraDeckType}</span>
                         <span className={`deck-rating-badge ${getRatingClass(deck.rating)}`}>
                             {deck.rating}
                         </span>
-                    </div>
+                    </div> */}
 
-                    <label className="md-switch">
+                    {/* <label className="md-switch">
                         <input 
                             type="checkbox" 
                             checked={isDeckListed} 
@@ -56,7 +56,7 @@ export default function DeckBoss({deck, isDeckListed, toggleDeckList})
                                 {isDeckListed ? "IN DECKLIST" : "ADD TO LIST"}
                             </span>
                         </div>
-                    </label>
+                    </label> */}
                 </div>
             </div> 
         </div>
