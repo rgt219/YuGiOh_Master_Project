@@ -29,35 +29,34 @@ export default function DeckProfileDetails() {
     const handleExportYDK = () => {
         if (!deck) return;
 
-        // Build the YDK string structure
         let ydkContent = "#created by ErreGeTe YGO\n#main\n";
         
-        // Add Main Deck IDs (using id or passcode depending on your card object structure)
         deck.mainDeck?.forEach(card => {
-            ydkContent += `${card.id}\n`;
+            const cardId = card.id || card.Id;
+            if (cardId) ydkContent += `${cardId}\n`;
         });
 
         ydkContent += "#extra\n";
         deck.extraDeck?.forEach(card => {
-            ydkContent += `${card.id}\n`;
+            const cardId = card.id || card.Id;
+            if (cardId) ydkContent += `${cardId}\n`;
         });
 
         ydkContent += "!side\n";
         deck.sideDeck?.forEach(card => {
-            ydkContent += `${card.id}\n`;
+            const cardId = card.id || card.Id;
+            if (cardId) ydkContent += `${cardId}\n`;
         });
 
-        // Create the file download
         const blob = new Blob([ydkContent], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         
         link.href = url;
-        link.download = `${deck.title.replace(/\s+/g, '_') || 'deck'}.ydk`;
+        link.download = `${(deck.title || 'deck').replace(/\s+/g, '_')}.ydk`;
         document.body.appendChild(link);
         link.click();
         
-        // Cleanup
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     };
@@ -65,7 +64,7 @@ export default function DeckProfileDetails() {
     if (loading) return (
         <div className="md-theme-bg min-vh-100 d-flex flex-column justify-content-center align-items-center">
             <Spinner animation="border" variant="info" />
-            <h5 className="text-info mt-3" style={{fontFamily: 'Cascadia Mono'}}>SYNCHRONIZING_WITH_AZURE_DATABASE...</h5>
+            <h5 className="text-info mt-3" style={{ fontFamily: 'Cascadia Mono' }}>SYNCHRONIZING_WITH_AZURE_DATABASE...</h5>
         </div>
     );
 
@@ -83,7 +82,6 @@ export default function DeckProfileDetails() {
                             <p className="text-muted m-0 small">FILE_PATH: ROOT/DECKS/{deck.id}</p>
                         </Col>
                         <Col xs="auto" className="d-flex gap-2">
-                            {/* THE EXPORT BUTTON */}
                             <Button onClick={handleExportYDK} className="md-btn-primary">
                                 EXPORT_YDK
                             </Button>
@@ -98,7 +96,7 @@ export default function DeckProfileDetails() {
                 <Row>
                     <Col md={12} className="md-panel p-4">
                         <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h5 className="text-white m-0" style={{letterSpacing: '1px'}}>
+                            <h5 className="text-white m-0" style={{ letterSpacing: '1px' }}>
                                 MAIN DECK ({deck.mainDeck?.length || 0}/60)
                             </h5>
                             <span className="text-info small terminal-font">STATUS: VERIFIED</span>
@@ -108,6 +106,7 @@ export default function DeckProfileDetails() {
                                 mainDeck={deck.mainDeck} 
                                 extraDeck={deck.extraDeck} 
                                 sideDeck={deck.sideDeck}
+                                cardsPerRow={10}
                             />
                         </div>
                     </Col>

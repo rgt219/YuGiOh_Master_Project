@@ -114,6 +114,41 @@ export default function DeckBuilder({ user }) {
         reader.readAsText(file);
     };
 
+    // --- YDK EXPORT ENGINE ---
+    const handleExportYDK = () => {
+        if (mainDeck.length === 0 && extraDeck.length === 0) {
+            alert("DECK_IS_EMPTY: Add cards before exporting.");
+            return;
+        }
+
+        let ydkContent = "#created by ErreGeTe YGO\n#main\n";
+        
+        mainDeck.forEach(card => {
+            const cardId = card.id || card.Id;
+            if (cardId) ydkContent += `${cardId}\n`;
+        });
+
+        ydkContent += "#extra\n";
+        extraDeck.forEach(card => {
+            const cardId = card.id || card.Id;
+            if (cardId) ydkContent += `${cardId}\n`;
+        });
+
+        ydkContent += "!side\n";
+
+        const blob = new Blob([ydkContent], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        
+        link.href = url;
+        link.download = `${(deckName || 'custom_deck').replace(/\s+/g, '_')}.ydk`;
+        document.body.appendChild(link);
+        link.click();
+        
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
     const triggerFileSelect = () => fileInputRef.current.click();
 
     const handleAddCard = (newCard) => {
@@ -131,13 +166,11 @@ export default function DeckBuilder({ user }) {
         dispatch(addCardToDeck(newCard));
     };
 
-    // 🚀 Robust Delete Handler: Handles both direct instance clicks & CardApi deletes
     const deleteCard = (id, instanceId) => {
         if (instanceId) {
             dispatch(removeCardFromDeck(instanceId));
         } else if (id) {
             const cardIdStr = String(id);
-            // Find the last added copy matching cardId
             const targetCard = [...mainDeck, ...extraDeck]
                 .slice()
                 .reverse()
@@ -161,8 +194,8 @@ export default function DeckBuilder({ user }) {
             id: String(Math.floor(Math.random() * 1000000) + 1),
             title: deckName || "NEW_DECKLIST",
             userId: String(user.id),
-            mainDeck: mainDeck.map(card => String(card.id)), 
-            extraDeck: extraDeck.map(card => String(card.id)),
+            mainDeck: mainDeck.map(card => String(card.id || card.Id)), 
+            extraDeck: extraDeck.map(card => String(card.id || card.Id)),
             sideDeck: []
         };
 
@@ -179,7 +212,7 @@ export default function DeckBuilder({ user }) {
     };
 
     return (
-        <div className="md-theme-bg py-5 mt-5" style={{minHeight: "100vh"}}>
+        <div className="md-theme-bg py-5 mt-5" style={{ minHeight: "100vh" }}>
             <input type="file" accept=".ydk" ref={fileInputRef} style={{ display: "none" }} onChange={handleImportYDK} />
 
             <Container fluid className="px-4">
@@ -199,7 +232,19 @@ export default function DeckBuilder({ user }) {
                             <Button className="md-btn-outline" onClick={triggerFileSelect} disabled={isHydrating}>
                                 {isHydrating ? <Spinner size="sm" animation="border" /> : "IMPORT_YDK"}
                             </Button>
-                            <Button className="md-btn-primary" onClick={handleSave}>ARCHIVE_DECK</Button>
+                            
+                            <Button className="md-btn-outline" onClick={handleExportYDK}>
+                                EXPORT_YDK
+                            </Button>
+
+                            <Button 
+                                className="md-btn-primary" 
+                                onClick={handleSave} 
+                                disabled={!user || isHydrating}
+                                title={!user ? "LOG_IN_REQUIRED_TO_SAVE" : ""}
+                            >
+                                {user ? "ARCHIVE_DECK" : "ARCHIVE (LOGIN REQ)"}
+                            </Button>
                         </div>
                     </Col>
                 </Row>
@@ -230,7 +275,9 @@ export default function DeckBuilder({ user }) {
             </Container>
 
             <Modal show={show} onHide={() => setShow(false)} centered contentClassName="md-modal">
-                <Modal.Header closeButton className="border-info bg-dark"><Modal.Title className="text-info terminal-font">SYSTEM_NOTIFICATION</Modal.Title></Modal.Header>
+                <Modal.Header closeButton className="border-info bg-dark">
+                    <Modal.Title className="text-info terminal-font">SYSTEM_NOTIFICATION</Modal.Title>
+                </Modal.Header>
                 <Modal.Body className="bg-dark text-white text-center py-4">
                     <h5 className="terminal-font">DECK_UPLOAD_COMPLETE</h5>
                     <p className="text-muted small">Archived to erregeteygo cloud services.</p>
