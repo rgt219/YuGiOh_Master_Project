@@ -6,7 +6,8 @@ import {
     addCardToDeck, 
     removeCardFromDeck, 
     updateDeckName, 
-    importYdkDeck 
+    importYdkDeck,
+    clearDeck 
 } from "../store/deckSlice";
 
 import CardApi from "../components/CardApi";
@@ -146,6 +147,16 @@ export default function DeckBuilder({ user }) {
         URL.revokeObjectURL(url);
     };
 
+    const handleClearDeck = () => {
+        if (mainDeck.length === 0 && extraDeck.length === 0 && !deckName) {
+            return;
+        }
+
+        if (window.confirm("SYSTEM_WARNING: Are you sure you want to clear all cards and the deck name?")) {
+            dispatch(clearDeck());
+        }
+    };
+
     const triggerFileSelect = () => fileInputRef.current.click();
 
     const handleAddCard = (newCard) => {
@@ -213,47 +224,68 @@ export default function DeckBuilder({ user }) {
             <input type="file" accept=".ydk" ref={fileInputRef} style={{ display: "none" }} onChange={handleImportYDK} />
 
             <Container fluid className="px-4">
+                {/* TOOLBAR */}
                 <Row className="mb-4">
-                    <Col md={12} className="md-panel p-3 d-flex align-items-center justify-content-between border-info">
-                        <div className="d-flex align-items-center gap-3 w-50">
-                            <h4 className="m-0 text-info terminal-font">DECK_EDITOR_V2</h4>
-                            <Form.Control 
-                                className="md-input"
-                                placeholder={isHydrating ? "SYNCHRONIZING..." : "IDENTIFY_DECK_NAME..."}
-                                value={deckName} 
-                                onChange={(e) => dispatch(updateDeckName(e.target.value))} 
-                                disabled={isHydrating}
-                            />
-                        </div>
-                        <div className="d-flex gap-2">
-                            <Button className="md-btn-outline" onClick={triggerFileSelect} disabled={isHydrating}>
-                                {isHydrating ? <Spinner size="sm" animation="border" /> : "IMPORT_YDK"}
-                            </Button>
+                    <Col md={12} className="md-panel p-3 border-info">
+                        <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                             
-                            <Button className="md-btn-outline" onClick={handleExportYDK}>
-                                EXPORT_YDK
-                            </Button>
-
-                            {!user ? (
-                                <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip id="archive-disabled-tooltip">Must be logged in</Tooltip>}
-                                >
-                                    <span className="d-inline-block">
-                                        <Button className="md-btn-primary" disabled style={{ pointerEvents: 'none' }}>
-                                            ARCHIVE_DECK
-                                        </Button>
-                                    </span>
-                                </OverlayTrigger>
-                            ) : (
-                                <Button 
-                                    className="md-btn-primary" 
-                                    onClick={handleSave} 
+                            {/* Left Section: Title & Deck Name Input */}
+                            <div className="d-flex align-items-center gap-3 flex-grow-1">
+                                <h4 className="m-0 text-info terminal-font text-nowrap">DECK_EDITOR_V2</h4>
+                                <Form.Control 
+                                    className="md-input flex-grow-1"
+                                    placeholder={isHydrating ? "SYNCHRONIZING..." : "ENTER_DECK_NAME..."}
+                                    value={deckName} 
+                                    onChange={(e) => dispatch(updateDeckName(e.target.value))} 
                                     disabled={isHydrating}
-                                >
-                                    ARCHIVE_DECK
+                                    style={{ maxWidth: '400px' }}
+                                />
+                            </div>
+
+                            {/* Right Section: Grouped Toolbar Actions */}
+                            <div className="d-flex align-items-center gap-2 flex-wrap">
+                                {/* File Tools */}
+                                <div className="d-flex gap-2">
+                                    <Button className="md-btn-outline text-nowrap" onClick={triggerFileSelect} disabled={isHydrating}>
+                                        {isHydrating ? <Spinner size="sm" animation="border" /> : "IMPORT YDK"}
+                                    </Button>
+                                    <Button className="md-btn-outline text-nowrap" onClick={handleExportYDK}>
+                                        EXPORT YDK
+                                    </Button>
+                                </div>
+
+                                <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
+
+                                {/* Reset Tool */}
+                                <Button variant="outline-danger" className="terminal-font text-nowrap px-3" onClick={handleClearDeck}>
+                                    CLEAR
                                 </Button>
-                            )}
+
+                                <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
+
+                                {/* 🚀 GREEN SAVE DECK BUTTON */}
+                                {!user ? (
+                                    <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip id="archive-disabled-tooltip">Must be logged in to save</Tooltip>}
+                                    >
+                                        <span className="d-inline-block">
+                                            <Button variant="success" className="text-nowrap fw-bold" disabled style={{ pointerEvents: 'none' }}>
+                                                SAVE DECK
+                                            </Button>
+                                        </span>
+                                    </OverlayTrigger>
+                                ) : (
+                                    <Button 
+                                        variant="success"
+                                        className="text-nowrap fw-bold" 
+                                        onClick={handleSave} 
+                                        disabled={isHydrating}
+                                    >
+                                        SAVE DECK
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </Col>
                 </Row>

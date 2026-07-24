@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { OverlayTrigger, Card, Container, Row, Col, Badge } from 'react-bootstrap';
+import { OverlayTrigger, Card, Badge } from 'react-bootstrap';
 
 const getAttributeColor = (attribute) => {
     if (!attribute) return 'dark';
@@ -16,16 +16,54 @@ const getAttributeColor = (attribute) => {
     }
 };
 
+// 🚀 Helper to categorize & sort cards: Monsters (1) -> Spells (2) -> Traps (3) -> Alphabetical
+const sortDeckCards = (deckList) => {
+    if (!deckList || !deckList.length) return [];
+
+    const getCardCategory = (card) => {
+        const type = (card.type || card.Type || "").toLowerCase();
+        const frameType = (card.frameType || card.FrameType || "").toLowerCase();
+
+        if (type.includes("spell") || frameType === "spell") return 2; // Spells
+        if (type.includes("trap") || frameType === "trap") return 3;  // Traps
+        return 1; // Monsters (Normal, Effect, Ritual, Pendulum, etc.)
+    };
+
+    return [...deckList].sort((a, b) => {
+        const catA = getCardCategory(a);
+        const catB = getCardCategory(b);
+
+        // 1. First sort by Card Category (Monsters -> Spells -> Traps)
+        if (catA !== catB) {
+            return catA - catB;
+        }
+
+        // 2. Then sort alphabetically by Card Name
+        const nameA = (a.name || a.Name || "").toLowerCase();
+        const nameB = (b.name || b.Name || "").toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+};
+
 export default function CustomDeck({ mainDeck = [], extraDeck = [], sideDeck = [], onDeleteCard, cardsPerRow }) {
     
-    // Explicit 10-column grid style when cardsPerRow={10} is passed
+    // 🚀 Automatically sort lists whenever cards are added or removed
+    const sortedMainDeck = useMemo(() => sortDeckCards(mainDeck), [mainDeck]);
+    const sortedExtraDeck = useMemo(() => sortDeckCards(extraDeck), [extraDeck]);
+    const sortedSideDeck = useMemo(() => sortDeckCards(sideDeck), [sideDeck]);
+
+    // Dynamic grid layout with left/right padding and clean gaps
     const gridStyle = cardsPerRow ? {
         display: 'grid',
         gridTemplateColumns: `repeat(${cardsPerRow}, minmax(0, 1fr))`,
-        gap: '6px',
+        gap: '10px 8px',
+        padding: '0 12px',
         width: '100%',
         overflowX: 'visible'
-    } : { overflowX: 'visible' };
+    } : { 
+        padding: '0 8px',
+        overflowX: 'visible' 
+    };
 
     const renderCardList = (list) => (
         list.map((card, index) => {
@@ -50,7 +88,7 @@ export default function CustomDeck({ mainDeck = [], extraDeck = [], sideDeck = [
                     key={displayCard.instanceId || `${displayCard.id}-${index}`}
                     placement='right'
                     overlay={
-                        /* 🚀 EXACT SIDE-BY-SIDE HOVER FROM CardApi.js */
+                        /* SIDE-BY-SIDE HOVER OVERLAY MATCHING CardApi.js */
                         <Card 
                             style={{ width: '50rem', backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} 
                             text="white" 
@@ -135,11 +173,11 @@ export default function CustomDeck({ mainDeck = [], extraDeck = [], sideDeck = [
                     }
                 >
                     <div 
-                        className="gallery__item__small"
+                        className="gallery__item__small d-flex justify-content-center"
                         onClick={() => onDeleteCard && onDeleteCard(displayCard.id, displayCard.instanceId)}
                         style={{ cursor: onDeleteCard ? 'pointer' : 'default', width: '100%' }}
                     >
-                        <div className={onDeleteCard ? "clickable-card" : ""}> 
+                        <div className={onDeleteCard ? "clickable-card" : ""} style={{ width: '92%', margin: '0 auto' }}> 
                             <img 
                                 src={displayCard.image} 
                                 alt={displayCard.name} 
@@ -160,26 +198,26 @@ export default function CustomDeck({ mainDeck = [], extraDeck = [], sideDeck = [
     return (
         <div className="deck-display-wrapper">
             <div className="main-deck-section mb-5">
-                <h6 className="text-white-50 mb-3" style={{ letterSpacing: '2px' }}>MAIN_DECK // {mainDeck.length}</h6>
+                <h6 className="text-white-50 mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>MAIN_DECK // {sortedMainDeck.length}</h6>
                 <div className="gallery__small" style={gridStyle}>
-                    {renderCardList(mainDeck)}
+                    {renderCardList(sortedMainDeck)}
                 </div>
             </div>
 
-            {extraDeck.length > 0 && (
+            {sortedExtraDeck.length > 0 && (
                 <div className="extra-deck-section mt-4 pt-4" style={{ borderTop: '1px solid rgba(0,210,255,0.2)' }}>
-                    <h6 className="text-info mb-3" style={{ letterSpacing: '2px' }}>EXTRA_DECK // {extraDeck.length}/15</h6>
+                    <h6 className="text-info mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>EXTRA_DECK // {sortedExtraDeck.length}/15</h6>
                     <div className="gallery__small" style={gridStyle}>
-                        {renderCardList(extraDeck)}
+                        {renderCardList(sortedExtraDeck)}
                     </div>
                 </div>
             )}
 
-            {sideDeck.length > 0 && (
+            {sortedSideDeck.length > 0 && (
                 <div className="side-deck-section mt-4 pt-4" style={{ borderTop: '1px solid rgba(0,210,255,0.2)' }}>
-                    <h6 className="text-warning mb-3" style={{ letterSpacing: '2px' }}>SIDE_DECK // {sideDeck.length}/15</h6>
+                    <h6 className="text-warning mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>SIDE_DECK // {sortedSideDeck.length}/15</h6>
                     <div className="gallery__small" style={gridStyle}>
-                        {renderCardList(sideDeck)}
+                        {renderCardList(sortedSideDeck)}
                     </div>
                 </div>
             )}

@@ -18,6 +18,9 @@ import { SignalRProvider } from './components/SignalRContext.js';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import GlobalToast from './components/GlobalToast';
 import ProtectedRoute from './components/ProtectedRoute.js';
+import ComboDisplay from './components/ComboDisplay.js';
+import { whiteForestAzaminaCombo } from './components/WhiteForestAzaminaCombo.js';
+import ComboPlayerSandbox from './components/ComboPlayerSandbox.js';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -26,14 +29,9 @@ function App() {
   });
 
   const handleLogout = () => {
-    // Clear the specific keys used during login
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
-    
-    // Reset state to null
     setUser(null);
-    
-    // Optional: If you want to force a redirect to login after logout
     window.location.href = "/login"; 
   }
 
@@ -47,21 +45,19 @@ function App() {
           <NavbarYGO user={user} onLogout={handleLogout} /> 
           <DecksProvider>
             <Routes>
-              {/* Home handles its own state internally */}
+              {/* Public Routes */}
               <Route path="/" element={<Home user={user}/>} />
-              
-              {/* Login is now standalone! No Carousel here. */}
               <Route path="/login" element={<Login setUser={setUser}/>} />
-              <Route path="/about" element={<About></About>} />
-              
-              
+              <Route path="/about" element={<About />} />
               <Route path="/decklist" element={<DeckList/>} />
               <Route path="/decks/:deckId" element={<DeckDetails />} />
               <Route path="/register" element={<Register />}/>
               
+              {/* 🚀 DeckBuilder is now PUBLIC so guests can use it & export YDK */}
+              <Route path="/deckbuilder" element={<DeckBuilder user={user}/>} />
+
+              {/* Protected Routes (Log in required) */}
               <Route element={<ProtectedRoute user={user} />}>
-                {/* DeckBuilder is also standalone */}
-                <Route path="/deckbuilder" element={<DeckBuilder user={user}/>} />
                 <Route path="/profile" element={<UserProfile user={user}/>}/>
                 <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />
               </Route>
@@ -69,6 +65,10 @@ function App() {
           </DecksProvider>
         </SignalRProvider>
       </Router>
+
+      {/* <ComboPlayerSandbox 
+          combo={whiteForestAzaminaCombo} 
+      /> */}
     </QueryClientProvider>
   );
 }
