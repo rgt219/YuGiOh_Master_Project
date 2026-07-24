@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, OverlayTrigger, Container, Row, Col, Form, Card, Spinner, Badge } from 'react-bootstrap';
+import { Button, OverlayTrigger, Container, Row, Col, Form, Card, Spinner, Badge, Tooltip } from 'react-bootstrap';
 import { useQuery } from '@tanstack/react-query';
 
 export const deckList = {
@@ -49,7 +49,7 @@ const fetchYgoCards = async () => {
         // 🚀 Primary: Azure Blob Storage CDN
         image: `${AZURE_BLOB_BASE_URL}/${card.id}.jpg`,
         // 🛡️ Fallback: Original YGOProDeck URL
-        fallbackImage: card.card_images[0].image_url_small
+        fallbackImage: card.card_images[0].image_url
     }));
 };
 
@@ -161,64 +161,81 @@ export default function CardApi({ onAddCard, onDeleteCard, cardList }) {
                                 overlay={
                                     /* 🚀 MASTER DUEL STYLE HOVER CARD TOOLTIP */
                                     <Card 
-                                        style={{ width: '30rem', backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} 
+                                        style={{ width: '50rem', backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} 
                                         text="white" 
-                                        className="border-info shadow-lg p-2"
+                                        className="border-info shadow-lg p-3"
                                     >
                                         <Card.Body>
                                             {hoveredCardData && String(hoveredCardData.id) === String(card.id) ? (
-                                                <div>
-                                                    {/* Card Title */}
-                                                    <h5 className="fw-bold mb-3 text-white" style={{ fontFamily: "Cascadia Mono, monospace", letterSpacing: '1px' }}>
-                                                        {hoveredCardData.name}
-                                                    </h5>
+                                                /* Use a Row to split the image and details */
+                                                <div className="row">
+                                                    {/* --- Card Image (Left Side) --- */}
+                                                    <div className="col-md-5 text-center d-flex align-items-center justify-content-center">
+                                                        <img 
+                                                            src={hoveredCardData.image}
+                                                            alt={hoveredCardData.name}
+                                                            onError={(e) => { e.target.onerror = null; e.target.src = card.fallbackImage; }}
+                                                            className="img-fluid rounded mb-3"
+                                                            style={{
+                                                                maxHeight: '400px',
+                                                                boxShadow: '0 0 20px rgba(0, 240, 255, 0.3)' // Subtle cyan glow
+                                                            }}
+                                                        />
+                                                    </div>
 
-                                                    {/* Badges Row */}
-                                                    <div className="d-flex align-items-center mb-2 flex-wrap gap-1">
-                                                        <Badge bg="dark" className="border border-secondary text-uppercase fs-7">
-                                                            {hoveredCardData.type}
-                                                        </Badge>
-                                                        {hoveredCardData.race && (
+                                                    {/* --- Card Details (Right Side) --- */}
+                                                    <div className="col-md-7">
+                                                        <h5 className="fw-bold mb-3 text-white" style={{ fontFamily: "Cascadia Mono, monospace", letterSpacing: '1px' }}>
+                                                            {hoveredCardData.name}
+                                                        </h5>
+
+                                                        {/* Badges Row */}
+                                                        <div className="d-flex align-items-center mb-2 flex-wrap gap-1">
                                                             <Badge bg="dark" className="border border-secondary text-uppercase fs-7">
-                                                                {hoveredCardData.race}
+                                                                {hoveredCardData.type}
                                                             </Badge>
-                                                        )}
-                                                        {hoveredCardData.attribute && (
-                                                            <Badge bg={getAttributeColor(hoveredCardData.attribute)} className="ms-auto text-uppercase fs-7 fw-bold">
-                                                                {hoveredCardData.attribute}
-                                                            </Badge>
-                                                        )}
-                                                    </div>
+                                                            {hoveredCardData.race && (
+                                                                <Badge bg="dark" className="border border-secondary text-uppercase fs-7">
+                                                                    {hoveredCardData.race}
+                                                                </Badge>
+                                                            )}
+                                                            {hoveredCardData.attribute && (
+                                                                <Badge bg={getAttributeColor(hoveredCardData.attribute)} className="ms-auto text-uppercase fs-7 fw-bold">
+                                                                    {hoveredCardData.attribute}
+                                                                  </Badge>
+                                                              )}
+                                                            </div>
 
-                                                    {/* Level / Rank Stars */}
-                                                    {hoveredCardData.level && (
-                                                        <div className="mb-2 text-start">
-                                                            <span className="small text-white-50 fw-bold me-2">Level / Rank:</span>
-                                                            <span className="text-info fw-bold">{hoveredCardData.level} ★</span>
+                                                            {/* Level / Rank Stars */}
+                                                            {hoveredCardData.level && (
+                                                                <div className="mb-2 text-start">
+                                                                  <span className="small text-white-50 fw-bold me-2">Level / Rank:</span>
+                                                                  <span className="text-info fw-bold">{hoveredCardData.level} ★</span>
+                                                                </div>
+                                                            )}
+
+                                                            {/* ATK / DEF Stat Bar */}
+                                                            {typeof hoveredCardData.atk === 'number' && (
+                                                                <div className="d-flex align-items-center px-3 py-1 mb-3 rounded" style={{ backgroundColor: 'rgba(0, 240, 255, 0.08)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
+                                                                  <span className="small text-white-50 fw-bold me-2">ATK /</span>
+                                                                  <span className="text-white fw-bold me-4">{hoveredCardData.atk}</span>
+                                                                  
+                                                                  <span className="small text-white-50 fw-bold me-2">DEF /</span>
+                                                                  <span className="text-white fw-bold">{hoveredCardData.def ?? '-'}</span>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Card Effect Text Box */}
+                                                            <div className="text-start p-3 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
+                                                                <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2">
+                                                                    Card Effect / Text
+                                                                </h6>
+                                                                <p className="text-white-50 m-0" style={{ fontSize: '0.85rem', lineHeight: '1.4', maxHeight: '180px', overflowY: 'auto' }}>
+                                                                    {hoveredCardData.desc}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    )}
-
-                                                    {/* ATK / DEF Stat Bar */}
-                                                    {typeof hoveredCardData.atk === 'number' && (
-                                                        <div className="d-flex align-items-center px-3 py-1 mb-3 rounded" style={{ backgroundColor: 'rgba(0, 240, 255, 0.08)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-                                                            <span className="small text-white-50 fw-bold me-2">ATK /</span>
-                                                            <span className="text-white fw-bold me-4">{hoveredCardData.atk}</span>
-                                                            
-                                                            <span className="small text-white-50 fw-bold me-2">DEF /</span>
-                                                            <span className="text-white fw-bold">{hoveredCardData.def ?? '-'}</span>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Card Effect Text Box */}
-                                                    <div className="text-start p-3 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-                                                        <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2">
-                                                            Card Effect / Text
-                                                        </h6>
-                                                        <p className="text-white-50 m-0" style={{ fontSize: '0.85rem', lineHeight: '1.4', maxHeight: '180px', overflowY: 'auto' }}>
-                                                            {hoveredCardData.desc}
-                                                        </p>
                                                     </div>
-                                                </div>
                                             ) : (
                                                 <div className="text-center p-3">
                                                     <span className="text-info terminal-font">LOADING_DATA...</span>

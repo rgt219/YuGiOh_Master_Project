@@ -52,7 +52,6 @@ export default function DeckBuilder({ user }) {
             });
 
             try {
-                // Batch Fetch from YGOPRODeck
                 const allIds = [...mainIds, ...extraIds].join(",");
                 const response = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${allIds}`);
                 const result = await response.json();
@@ -64,7 +63,6 @@ export default function DeckBuilder({ user }) {
                     cardMap[String(card.id)] = card;
                 });
 
-                // 🚀 Enforce Max 3 Copies Rule during YDK Import
                 const cardCounts = {};
 
                 const hydratedMain = [];
@@ -99,7 +97,6 @@ export default function DeckBuilder({ user }) {
                     }
                 });
 
-                // --- REDUX DISPATCH ---
                 dispatch(importYdkDeck({
                     main: hydratedMain,
                     extra: hydratedExtra,
@@ -119,11 +116,9 @@ export default function DeckBuilder({ user }) {
 
     const triggerFileSelect = () => fileInputRef.current.click();
 
-    // 🚀 Redux Handlers with 3-Copy Max Validation
     const handleAddCard = (newCard) => {
         const cardId = String(newCard.id || newCard.Id);
         
-        // Count existing copies in both Main and Extra decks
         const existingCount = [...mainDeck, ...extraDeck].filter(
             (card) => String(card.id || card.Id) === cardId
         ).length;
@@ -136,11 +131,24 @@ export default function DeckBuilder({ user }) {
         dispatch(addCardToDeck(newCard));
     };
 
-    const deleteCard = (instanceId) => {
-        dispatch(removeCardFromDeck(instanceId));
+    // 🚀 Robust Delete Handler: Handles both direct instance clicks & CardApi deletes
+    const deleteCard = (id, instanceId) => {
+        if (instanceId) {
+            dispatch(removeCardFromDeck(instanceId));
+        } else if (id) {
+            const cardIdStr = String(id);
+            // Find the last added copy matching cardId
+            const targetCard = [...mainDeck, ...extraDeck]
+                .slice()
+                .reverse()
+                .find(c => String(c.id || c.Id) === cardIdStr);
+            
+            if (targetCard?.instanceId) {
+                dispatch(removeCardFromDeck(targetCard.instanceId));
+            }
+        }
     };
 
-    // Legacy sync
     useEffect(() => {
         deckList.mainDeck = mainDeck;
         deckList.extraDeck = extraDeck;
@@ -204,7 +212,7 @@ export default function DeckBuilder({ user }) {
                                 <CustomDeck 
                                     mainDeck={mainDeck} 
                                     extraDeck={extraDeck} 
-                                    onDeleteCard={(id, inst) => deleteCard(inst)} 
+                                    onDeleteCard={(id, inst) => deleteCard(id, inst)} 
                                 />
                             </div>
                         </div>
@@ -213,7 +221,7 @@ export default function DeckBuilder({ user }) {
                         <div className="md-panel p-4 bg-black bg-opacity-50 h-100">
                             <CardApi 
                                 onAddCard={handleAddCard} 
-                                onDeleteCard={(id, inst) => deleteCard(inst)} 
+                                onDeleteCard={(id, inst) => deleteCard(id, inst)} 
                                 cardList={[...mainDeck, ...extraDeck]} 
                             />
                         </div>

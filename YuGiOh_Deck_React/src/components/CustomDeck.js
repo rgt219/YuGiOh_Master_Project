@@ -6,10 +6,9 @@ export default function CustomDeck({ mainDeck = [], extraDeck = [], onDeleteCard
     
     const renderCardList = (list) => (
         list.map((card, index) => {
-            // FIX: Normalizing keys because .NET often sends PascalCase (Image, Name, Desc)
-            // but your React state uses camelCase (image, name, desc).
             const displayCard = {
                 id: card.id || card.Id,
+                instanceId: card.instanceId,
                 name: card.name || card.Name || "Unknown Card",
                 image: card.image || card.Image,
                 desc: card.desc || card.Desc,
@@ -21,42 +20,46 @@ export default function CustomDeck({ mainDeck = [], extraDeck = [], onDeleteCard
 
             return (
                 <OverlayTrigger
-                    // Use a combination of ID and Index for the key if instanceId is missing
-                    key={`${displayCard.id}-${index}`}
+                    key={displayCard.instanceId || `${displayCard.id}-${index}`}
                     placement='right'
                     overlay={
-                        <Card style={{ width: '36rem' }} bg="dark" text="white" className="border-info">
+                        <Card 
+                            style={{ width: '30rem', backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} 
+                            text="white" 
+                            className="border-info shadow-lg p-2"
+                        >
                             <Card.Body>
                                 <Container style={{ margin: 0 }}>
                                     <Row>
                                         <Col>
-                                            <Card.Title style={{ fontFamily: "Cascadia Mono" }}>
+                                            <Card.Title style={{ fontFamily: "Cascadia Mono, monospace" }}>
                                                 {displayCard.name}
                                             </Card.Title>
                                         </Col>
-                                        <Col xs lg="3" className="text-info">
-                                            {displayCard.attribute} | 
-                                            <img src={"/images/level.png"} alt="" style={{ width: "15px", height: "15px", marginLeft: "4px" }} />
-                                            {displayCard.level}
+                                        <Col xs lg="4" className="text-info text-end">
+                                            {displayCard.attribute} {displayCard.level > 0 && `| Lv ${displayCard.level}`}
                                         </Col>
                                     </Row>
                                 </Container>
                                 <Card.Subtitle className="mb-2 text-muted">
                                     {displayCard.race} / {displayCard.type}
                                 </Card.Subtitle>
-                                <Card.Text>
+                                <Card.Text style={{ fontSize: '0.85rem', maxHeight: '150px', overflowY: 'auto' }}>
                                     {displayCard.desc}
                                 </Card.Text>
                             </Card.Body>
                         </Card>
                     }>
-                    <div className="gallery__item__small">
+                    <div 
+                        className="gallery__item__small"
+                        onClick={() => onDeleteCard && onDeleteCard(displayCard.id, displayCard.instanceId)}
+                        style={{ cursor: onDeleteCard ? 'pointer' : 'default' }}
+                    >
                         <div className={onDeleteCard ? "clickable-card" : ""}> 
                             <img 
                                 src={displayCard.image} 
                                 alt={displayCard.name} 
                                 className="card-image"
-                                // If the image fails to load, you might be hitting a broken URL
                                 onError={(e) => { e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg' }}
                             />
                         </div>
