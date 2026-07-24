@@ -51,9 +51,9 @@ export default function Home({ user }) {
                 <nav className="mb-5">
                     <div className="d-flex justify-content-center gap-4 flex-wrap">
                         {[
-                            { path: "/", label: "Home", img: "./images/lenatus_art.jpg" },
                             { path: "/about", label: "About", img: "./images/droplet_art.jpg" },
-                            { path: "/deckbuilder", label: "Deck Builder", img: "./images/exodia.png" }
+                            { path: "/deckbuilder", label: "Deck Builder", img: "./images/exodia.png" },
+                            { path: "/contact", label: "Contact", img: "./images/lenatus_art.jpg" },
                         ].map((link) => (
                             <Card 
                                 as={Link} 
