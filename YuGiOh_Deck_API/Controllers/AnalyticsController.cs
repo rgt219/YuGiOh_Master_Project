@@ -18,15 +18,34 @@ namespace YuGiOh_Deck_API.Controllers
         }
 
         [HttpGet("top-cards")]
-        public async Task<IActionResult> GetTopCards(int limit = 10)
+        public async Task<IActionResult> GetTopCards([FromQuery] int limit = 10)
         {
-            // Now you don't need "new BsonDocument()" or manual mapping
-            var topCards = await _statsCollection.Find(_ => true)
-                .SortByDescending(c => c.TotalUsage)
-                .Limit(limit)
-                .ToListAsync();
+            try
+            {
+                // 1. 🚀 Force Cosmos DB Serverless to create the index for TotalUsage descending.
+                // Serverless WILL REJECT .SortByDescending() without this index registered!
+                var indexKeys = Builders<CardStat>.IndexKeys.Descending(c => c.TotalUsage);
+                await _statsCollection.Indexes.CreateOneAsync(new CreateIndexModel<CardStat>(indexKeys));
 
-            return Ok(topCards);
+                // 2. Fetch top cards using strongly-typed LINQ
+                var topCards = await _statsCollection.Find(_ => true)
+                    .SortByDescending(c => c.TotalUsage)
+                    .Limit(limit)
+                    .ToListAsync();
+
+                return Ok(topCards);
+            }
+            catch (Exception ex)
+            {
+                // Log detailed exception info to Container App logs and return clear 500 JSON payload
+                Console.WriteLine($"[GetTopCards Exception]: {ex}");
+                return StatusCode(500, new
+                {
+                    message = "Error fetching top cards from serverless database.",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
+            }
         }
 
         [HttpGet("rising-tech")]

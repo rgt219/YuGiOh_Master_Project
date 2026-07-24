@@ -42,7 +42,7 @@ export default function DeckBoss({ deck, isDeckListed, toggleDeckList }) {
                             <img 
                                 src={`images/${deck.image}`} 
                                 alt={deck.title} 
-                                onError={(e) => { e.target.src = "images/cardback.jpg"; }}
+                                onError={(e) => { e.target.src = "/YuGiOh_Deck_React/public/images/cardback.png"; }}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         }
@@ -63,15 +63,15 @@ export default function DeckBoss({ deck, isDeckListed, toggleDeckList }) {
                             </Link>
                         </h5>
 
-                        {deck.rating && (
+                        {/* {deck.rating && (
                             <span className={`rating-pill ${getRatingClass(deck.rating)}`}>
                                 {deck.rating} PT
                             </span>
-                        )}
+                        )} */}
                     </div>
 
                     {/* Deck Quick Actions / Status */}
-                    {toggleDeckList && (
+                    {/* {toggleDeckList && (
                         <div className="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25">
                             <span className="text-muted small" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
                                 STATUS // {isDeckListed ? "ACTIVE_LIST" : "STANDBY"}
@@ -84,7 +84,7 @@ export default function DeckBoss({ deck, isDeckListed, toggleDeckList }) {
                                 {isDeckListed ? "REMOVE" : "+ DECKLIST"}
                             </button>
                         </div>
-                    )}
+                    )} */}
                 </div>
 
             </div>
