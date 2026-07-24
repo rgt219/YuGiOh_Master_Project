@@ -16,7 +16,6 @@ import '../mdstyles.css';
 
 export default function DeckBuilder({ user }) {
     // --- REDUX UPLINK ---
-    // We pull the state from our Redux store instead of local useState
     const mainDeck = useSelector((state) => state.deck.mainDeck);
     const extraDeck = useSelector((state) => state.deck.extraDeck);
     const deckName = useSelector((state) => state.deck.deckName);
@@ -65,19 +64,42 @@ export default function DeckBuilder({ user }) {
                     cardMap[String(card.id)] = card;
                 });
 
-                // Hydrate and Flatten Images
-                const hydratedMain = mainIds.map(id => {
-                    const card = cardMap[id];
-                    return card ? { ...card, image: card.card_images[0].image_url, instanceId: Math.random() } : null;
-                }).filter(c => c !== null);
+                // 🚀 Enforce Max 3 Copies Rule during YDK Import
+                const cardCounts = {};
 
-                const hydratedExtra = extraIds.map(id => {
-                    const card = cardMap[id];
-                    return card ? { ...card, image: card.card_images[0].image_url, instanceId: Math.random() } : null;
-                }).filter(c => c !== null);
+                const hydratedMain = [];
+                mainIds.forEach(id => {
+                    const count = cardCounts[id] || 0;
+                    if (count < 3) {
+                        const card = cardMap[id];
+                        if (card) {
+                            hydratedMain.push({ 
+                                ...card, 
+                                image: card.card_images[0].image_url, 
+                                instanceId: Math.random() 
+                            });
+                            cardCounts[id] = count + 1;
+                        }
+                    }
+                });
+
+                const hydratedExtra = [];
+                extraIds.forEach(id => {
+                    const count = cardCounts[id] || 0;
+                    if (count < 3) {
+                        const card = cardMap[id];
+                        if (card) {
+                            hydratedExtra.push({ 
+                                ...card, 
+                                image: card.card_images[0].image_url, 
+                                instanceId: Math.random() 
+                            });
+                            cardCounts[id] = count + 1;
+                        }
+                    }
+                });
 
                 // --- REDUX DISPATCH ---
-                // We send the entire hydrated deck to the global store
                 dispatch(importYdkDeck({
                     main: hydratedMain,
                     extra: hydratedExtra,
@@ -97,8 +119,20 @@ export default function DeckBuilder({ user }) {
 
     const triggerFileSelect = () => fileInputRef.current.click();
 
-    // Redux Handlers
+    // 🚀 Redux Handlers with 3-Copy Max Validation
     const handleAddCard = (newCard) => {
+        const cardId = String(newCard.id || newCard.Id);
+        
+        // Count existing copies in both Main and Extra decks
+        const existingCount = [...mainDeck, ...extraDeck].filter(
+            (card) => String(card.id || card.Id) === cardId
+        ).length;
+
+        if (existingCount >= 3) {
+            alert(`DECK_RULE_VIOLATION: Maximum 3 copies of "${newCard.name || 'this card'}" allowed.`);
+            return;
+        }
+
         dispatch(addCardToDeck(newCard));
     };
 
@@ -106,7 +140,7 @@ export default function DeckBuilder({ user }) {
         dispatch(removeCardFromDeck(instanceId));
     };
 
-    // Keep the legacy deckList sync if your other components still rely on it
+    // Legacy sync
     useEffect(() => {
         deckList.mainDeck = mainDeck;
         deckList.extraDeck = extraDeck;

@@ -1,108 +1,101 @@
-import React, {useState, useEffect} from 'react';
-import '../styles.css';
+import React, { useState } from 'react';
 import DeckBoss from './DeckBoss';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import '../md-deck-grid.css';
 
-export default function DecksGrid({decks, decklist, toggleDeckList}) 
-{
+export default function DecksGrid({ decks = [], decklist = [], toggleDeckList }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [extraDeckType, setExtraDeckType] = useState("All Extra Deck Types");
     const [rating, setRating] = useState("All");
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
+    const matchesSearchTerm = (deck) => deck.title.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesExtraDeckType = (deck) => {
+        if (extraDeckType === "All Extra Deck Types") return true;
+        return deck.extraDeckType?.toLowerCase() === extraDeckType.toLowerCase();
     };
 
-    const handleExtraDeckTypeChange = (e) => {
-        setExtraDeckType(e.target.value);
-    };
-
-    const handleRatingChange = (e) => {
-        setRating(e.target.value);
-    };
-
-    const matchesSearchTerm = (deck, searchTerm) => {
-        return deck.title.toLowerCase().includes(searchTerm.toLowerCase())    
-    };
-
-    const matchesExtraDeckType = (deck, extraDeckType) => {
-        return extraDeckType === "All Extra Deck Types" || deck.extraDeckType.toLowerCase() === extraDeckType.toLowerCase();
-    };
-
-    const matchesRating = (deck, rating) => {
+    const matchesRating = (deck) => {
         switch(rating) {
-            case "All":
-                return true;
-
-            case "Good":
-                return deck.rating >= 8;
-
-            case "Ok":
-                return deck.rating >= 5 && deck.rating < 8;
-
-            case "Bad":
-                return deck.rating < 5;
-
-            default:
-                return false;
+            case "Good": return deck.rating >= 8;
+            case "Ok": return deck.rating >= 5 && deck.rating < 8;
+            case "Bad": return deck.rating < 5;
+            default: return true;
         }
     };
 
-    const filteredDecks = decks.filter((deck) =>
-        matchesExtraDeckType(deck, extraDeckType) && 
-        matchesRating(deck, rating) &&
-        matchesSearchTerm(deck, searchTerm)
+    const filteredDecks = decks.filter(deck => 
+        matchesExtraDeckType(deck) && matchesRating(deck) && matchesSearchTerm(deck)
     );
-
-
 
     return (
-        <div>
-            <h3 className="text-info">Below are a few of my favorite decks to play in the TCG. Click below for more info!</h3>
-            <input 
-                type="text"
-                className="search-input"
-                placeholder="Search decks..."
-                value={searchTerm}
-                onChange={handleSearchChange}>
-                
-            </input>
+        <div className="container-fluid px-4 py-3">
+            {/* Header Header */}
+            <div className="d-flex align-items-center justify-content-between mb-3">
+                <h3 className="text-info terminal-font m-0" style={{ letterSpacing: '2px', fontFamily: 'Rajdhani, sans-serif' }}>
+                    FEATURED_ARCHETYPES // TCG_SELECTIONS
+                </h3>
+                <span className="text-white-50 small" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+                    TOTAL_INDEXED: [{filteredDecks.length}]
+                </span>
+            </div>
 
-            <div className="filter-bar">
-                <div className="filter-slot">
-                    <label>Extra Deck Type</label>
-                    <select className="filter-dropdown" value={extraDeckType} onChange={handleExtraDeckTypeChange}>
-                        <option>All Extra Deck Types</option>
-                        <option>Fusion</option>
-                        <option>Synchro</option>
-                        <option>XYZ</option>
-                        <option>Link</option>
-                    </select>
-                </div>
-                <div className="filter-slot">
-                    <label>Rating</label>
-                    <select className="filter-dropdown" value={rating} onChange={handleRatingChange}>
-                        <option>All</option>
-                        <option>Good</option>
-                        <option>Ok</option>
-                        <option>Bad</option>
-                    </select>
+            {/* Cyber Filter Bar */}
+            <div className="md-filter-panel">
+                <div className="row g-3 align-items-center">
+                    {/* Search Input */}
+                    <div className="col-md-6">
+                        <input 
+                            type="text"
+                            className="form-control md-search-field"
+                            placeholder="SEARCH_ARCHETYPE_OR_CARD..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    {/* Extra Deck Filter */}
+                    <div className="col-md-3">
+                        <select 
+                            className="form-select md-select-field" 
+                            value={extraDeckType} 
+                            onChange={(e) => setExtraDeckType(e.target.value)}
+                        >
+                            <option value="All Extra Deck Types">ALL EXTRA DECKS</option>
+                            <option value="Fusion">FUSION</option>
+                            <option value="Synchro">SYNCHRO</option>
+                            <option value="XYZ">XYZ</option>
+                            <option value="Link">LINK</option>
+                        </select>
+                    </div>
+
+                    {/* Rating Filter */}
+                    <div className="col-md-3">
+                        <select 
+                            className="form-select md-select-field" 
+                            value={rating} 
+                            onChange={(e) => setRating(e.target.value)}
+                        >
+                            <option value="All">ALL TIER RATINGS</option>
+                            <option value="Good">TIER 1 / GOOD (8+)</option>
+                            <option value="Ok">TIER 2 / OK (5-7)</option>
+                            <option value="Bad">ROGUE / CASUAL (&lt;5)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div className='decks-grid'>
-            {
-                filteredDecks.map(deck => (
-                    <DeckBoss
-                        deck={deck}
-                        toggleDeckList={toggleDeckList}
-                        key={deck.id}
-                        isDeckListed={decklist.includes(deck.id)}>
-                    </DeckBoss>
-                ))
-            }    
+            {/* Decks Grid */}
+            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                {filteredDecks.map(deck => (
+                    <div className="col" key={deck.id}>
+                        <DeckBoss
+                            deck={deck}
+                            toggleDeckList={toggleDeckList}
+                            isDeckListed={decklist.includes(deck.id)}
+                        />
+                    </div>
+                ))}
             </div>
         </div>
-        
     );
- }
+}
