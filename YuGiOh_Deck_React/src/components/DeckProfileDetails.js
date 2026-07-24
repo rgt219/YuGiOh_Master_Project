@@ -25,7 +25,6 @@ export default function DeckProfileDetails() {
         loadDeckData();
     }, [deckId]);
 
-    // --- YDK EXPORT ENGINE ---
     const handleExportYDK = () => {
         if (!deck) return;
 

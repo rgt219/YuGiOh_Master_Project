@@ -80,14 +80,10 @@ export default function Home({ user }) {
 
                 <hr className="border-info opacity-25 mb-5" />
 
-                {/* Main Layout Row */}
                 <Row>
-                    {/* Left Side: Main Decks Grid */}
                     <Col lg={9} md={8}>
                         <DecksGrid decks={decks} decklist={decklist} toggleDeckList={toggleDeckList}/>
                     </Col>
-
-                    {/* Right Side: Trending Cards */}
                     <Col lg={3} md={4}>
                         <TrendingCards />
                     </Col>

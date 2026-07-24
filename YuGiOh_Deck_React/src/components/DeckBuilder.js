@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, Container, Row, Col, Modal, Form, Spinner } from 'react-bootstrap';
+import { Button, Container, Row, Col, Modal, Form, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
     addCardToDeck, 
@@ -15,7 +15,6 @@ import { deckList } from "../components/CardApi";
 import '../mdstyles.css';
 
 export default function DeckBuilder({ user }) {
-    // --- REDUX UPLINK ---
     const mainDeck = useSelector((state) => state.deck.mainDeck);
     const extraDeck = useSelector((state) => state.deck.extraDeck);
     const deckName = useSelector((state) => state.deck.deckName);
@@ -25,7 +24,6 @@ export default function DeckBuilder({ user }) {
     const [isHydrating, setIsHydrating] = useState(false);
     const fileInputRef = useRef(null);
 
-    // --- YGOPRODECK HYDRATION ENGINE ---
     const handleImportYDK = (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -114,7 +112,6 @@ export default function DeckBuilder({ user }) {
         reader.readAsText(file);
     };
 
-    // --- YDK EXPORT ENGINE ---
     const handleExportYDK = () => {
         if (mainDeck.length === 0 && extraDeck.length === 0) {
             alert("DECK_IS_EMPTY: Add cards before exporting.");
@@ -188,7 +185,7 @@ export default function DeckBuilder({ user }) {
     }, [mainDeck, extraDeck]);
 
     const handleSave = async () => {
-        if (!user?.id) return alert("LOG_IN_REQUIRED");
+        if (!user?.id) return;
         
         const payload = {
             id: String(Math.floor(Math.random() * 1000000) + 1),
@@ -237,14 +234,26 @@ export default function DeckBuilder({ user }) {
                                 EXPORT_YDK
                             </Button>
 
-                            <Button 
-                                className="md-btn-primary" 
-                                onClick={handleSave} 
-                                disabled={!user || isHydrating}
-                                title={!user ? "LOG_IN_REQUIRED_TO_SAVE" : ""}
-                            >
-                                {user ? "ARCHIVE_DECK" : "ARCHIVE (LOGIN REQ)"}
-                            </Button>
+                            {!user ? (
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={<Tooltip id="archive-disabled-tooltip">Must be logged in</Tooltip>}
+                                >
+                                    <span className="d-inline-block">
+                                        <Button className="md-btn-primary" disabled style={{ pointerEvents: 'none' }}>
+                                            ARCHIVE_DECK
+                                        </Button>
+                                    </span>
+                                </OverlayTrigger>
+                            ) : (
+                                <Button 
+                                    className="md-btn-primary" 
+                                    onClick={handleSave} 
+                                    disabled={isHydrating}
+                                >
+                                    ARCHIVE_DECK
+                                </Button>
+                            )}
                         </div>
                     </Col>
                 </Row>
