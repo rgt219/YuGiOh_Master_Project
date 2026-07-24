@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, OverlayTrigger, Container, Row, Col, Form, Card, Spinner } from 'react-bootstrap';
+import { Button, OverlayTrigger, Container, Row, Col, Form, Card, Spinner, Badge } from 'react-bootstrap';
 import { useQuery } from '@tanstack/react-query';
 
 export const deckList = {
@@ -13,6 +13,21 @@ export const deckList = {
 };
 
 const AZURE_BLOB_BASE_URL = "https://ygocardstore.blob.core.windows.net/card-images";
+
+// Helper for Attribute badge colors
+const getAttributeColor = (attribute) => {
+    if (!attribute) return 'dark';
+    switch (attribute.toUpperCase()) {
+        case 'DARK': return 'dark';
+        case 'LIGHT': return 'warning';
+        case 'FIRE': return 'danger';
+        case 'WATER': return 'primary';
+        case 'WIND': return 'success';
+        case 'EARTH': return 'secondary';
+        case 'DIVINE': return 'warning';
+        default: return 'info';
+    }
+};
 
 // 1. Fetcher maps all card details and image URLs into memory
 const fetchYgoCards = async () => {
@@ -39,7 +54,7 @@ const fetchYgoCards = async () => {
 };
 
 export default function CardApi({ onAddCard, onDeleteCard, cardList }) {
-    // 2. React Query caches the entire catalog in RAM for 1-2 hours
+    // 2. React Query caches the entire catalog in RAM
     const { 
         data: cards = [], 
         isLoading: queryLoading, 
@@ -62,7 +77,6 @@ export default function CardApi({ onAddCard, onDeleteCard, cardList }) {
         setHoveredCardData(card);
     };
 
-    // Derived values for dropdowns (Memoized to avoid re-calculation on every keystroke)
     const frameTypes = useMemo(() => ["all", ...new Set(cards.map(card => card.frameType))], [cards]);
     const cardLevels = ['', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const attributes = useMemo(() => ['', ...new Set(cards.map(card => card.attribute).filter(Boolean))], [cards]);
@@ -86,16 +100,14 @@ export default function CardApi({ onAddCard, onDeleteCard, cardList }) {
         return results.slice(0, 60); 
     }, [cards, searchTerm, selectedFrame, cardLevel, attribute]);
 
-    // Loading State
     if (queryLoading) return (
         <div className="text-center p-5">
             <Spinner animation="border" variant="info" />
-            <div className="text-info mt-2">ACCESSING_MASTER_DATABASE...</div>
+            <div className="text-info mt-2 terminal-font">ACCESSING_MASTER_DATABASE...</div>
         </div>
     );
 
-    // Error State
-    if (isError) return <div className="text-danger p-5">ERROR: DATABASE_OFFLINE</div>;
+    if (isError) return <div className="text-danger p-5 terminal-font">ERROR: DATABASE_OFFLINE</div>;
 
     return (
         <div className="md-api-container">
@@ -147,35 +159,76 @@ export default function CardApi({ onAddCard, onDeleteCard, cardList }) {
                                 placement="left"
                                 onEnter={() => handleMouseEnter(card)}
                                 overlay={
-                                    <Card style={{ width: '36rem' }} bg="dark" text="white" className="border-info shadow-lg">
+                                    /* 🚀 MASTER DUEL STYLE HOVER CARD TOOLTIP */
+                                    <Card 
+                                        style={{ width: '30rem', backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} 
+                                        text="white" 
+                                        className="border-info shadow-lg p-2"
+                                    >
                                         <Card.Body>
                                             {hoveredCardData && String(hoveredCardData.id) === String(card.id) ? (
-                                                <>
-                                                    <Container style={{ margin: 0 }}>
-                                                        <Row>
-                                                            <Col>
-                                                                <Card.Title style={{ fontFamily: "Cascadia Mono" }}>{hoveredCardData.name}</Card.Title>
-                                                            </Col>
-                                                            <Col xs lg="4" className="text-end">
-                                                                {hoveredCardData.attribute} {hoveredCardData.level && `| Lv ${hoveredCardData.level}`}
-                                                            </Col>
-                                                        </Row>
-                                                    </Container>
-                                                    <Card.Subtitle className="mb-2 text-muted">{hoveredCardData.race} / {hoveredCardData.type}</Card.Subtitle>
-                                                    <Card.Text style={{ fontSize: '0.85rem', maxHeight: '200px', overflowY: 'auto' }}>
-                                                        {hoveredCardData.desc}
-                                                    </Card.Text>
-                                                </>
+                                                <div>
+                                                    {/* Card Title */}
+                                                    <h5 className="fw-bold mb-3 text-white" style={{ fontFamily: "Cascadia Mono, monospace", letterSpacing: '1px' }}>
+                                                        {hoveredCardData.name}
+                                                    </h5>
+
+                                                    {/* Badges Row */}
+                                                    <div className="d-flex align-items-center mb-2 flex-wrap gap-1">
+                                                        <Badge bg="dark" className="border border-secondary text-uppercase fs-7">
+                                                            {hoveredCardData.type}
+                                                        </Badge>
+                                                        {hoveredCardData.race && (
+                                                            <Badge bg="dark" className="border border-secondary text-uppercase fs-7">
+                                                                {hoveredCardData.race}
+                                                            </Badge>
+                                                        )}
+                                                        {hoveredCardData.attribute && (
+                                                            <Badge bg={getAttributeColor(hoveredCardData.attribute)} className="ms-auto text-uppercase fs-7 fw-bold">
+                                                                {hoveredCardData.attribute}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Level / Rank Stars */}
+                                                    {hoveredCardData.level && (
+                                                        <div className="mb-2 text-start">
+                                                            <span className="small text-white-50 fw-bold me-2">Level / Rank:</span>
+                                                            <span className="text-info fw-bold">{hoveredCardData.level} ★</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* ATK / DEF Stat Bar */}
+                                                    {typeof hoveredCardData.atk === 'number' && (
+                                                        <div className="d-flex align-items-center px-3 py-1 mb-3 rounded" style={{ backgroundColor: 'rgba(0, 240, 255, 0.08)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
+                                                            <span className="small text-white-50 fw-bold me-2">ATK /</span>
+                                                            <span className="text-white fw-bold me-4">{hoveredCardData.atk}</span>
+                                                            
+                                                            <span className="small text-white-50 fw-bold me-2">DEF /</span>
+                                                            <span className="text-white fw-bold">{hoveredCardData.def ?? '-'}</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Card Effect Text Box */}
+                                                    <div className="text-start p-3 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
+                                                        <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2">
+                                                            Card Effect / Text
+                                                        </h6>
+                                                        <p className="text-white-50 m-0" style={{ fontSize: '0.85rem', lineHeight: '1.4', maxHeight: '180px', overflowY: 'auto' }}>
+                                                            {hoveredCardData.desc}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             ) : (
-                                                <div className="text-center p-2">
-                                                    <span className="text-info">LOADING_DATA...</span>
+                                                <div className="text-center p-3">
+                                                    <span className="text-info terminal-font">LOADING_DATA...</span>
                                                 </div>
                                             )}
                                         </Card.Body>
                                     </Card>
                                 }
                             >
-                                {/* 4. Optimized Image Tag with Azure CDN & Fallback */}
+                                {/* Optimized Card Image */}
                                 <img 
                                     className="card_details" 
                                     src={card.image} 
