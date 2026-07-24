@@ -12,9 +12,8 @@ export const deckSlice = createSlice({
   reducers: {
     // ACTION: Add a card
     addCardToDeck: (state, action) => {
-      const card = action.payload; // payload is the card object from your API
+      const card = action.payload;
       
-      // Determine if it's an Extra Deck monster
       const isExtra = card.type?.includes("Fusion") || card.type?.includes("Synchro") || 
                       card.type?.includes("Link") || card.type?.includes("XYZ");
 
@@ -31,7 +30,6 @@ export const deckSlice = createSlice({
 
     // ACTION: Remove a card
     removeCardFromDeck: (state, action) => {
-      // payload here will just be the instanceId
       state.mainDeck = state.mainDeck.filter(c => c.instanceId !== action.payload);
       state.extraDeck = state.extraDeck.filter(c => c.instanceId !== action.payload);
     },
@@ -46,12 +44,23 @@ export const deckSlice = createSlice({
       state.mainDeck = action.payload.main;
       state.extraDeck = action.payload.extra;
       state.deckName = action.payload.name;
+    },
+
+    // 🚀 ACTION: Clear Deck (Resets all cards and deck name)
+    clearDeck: (state) => {
+      state.mainDeck = [];
+      state.extraDeck = [];
+      state.deckName = '';
     }
   },
 });
 
-// We export the "Action Creators" so components can trigger these functions
-export const { addCardToDeck, removeCardFromDeck, updateDeckName, importYdkDeck } = deckSlice.actions;
+export const { 
+  addCardToDeck, 
+  removeCardFromDeck, 
+  updateDeckName, 
+  importYdkDeck, 
+  clearDeck 
+} = deckSlice.actions;
 
-// We export the reducer to be plugged into store.js
 export default deckSlice.reducer;
