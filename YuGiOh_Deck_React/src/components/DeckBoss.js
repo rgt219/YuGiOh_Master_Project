@@ -1,7 +1,8 @@
 import React from 'react';
 import HoverVideoPlayer from 'react-hover-video-player';
 import { Link } from 'react-router-dom';
-import '../md-deck-grid.css';
+import "../mdstyles.css";
+import "../styles.css";
 
 export default function DeckBoss({ deck, isDeckListed, toggleDeckList }) {
 

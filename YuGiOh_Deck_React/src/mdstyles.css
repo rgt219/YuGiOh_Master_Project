@@ -890,3 +890,133 @@
 .terminal-font {
     font-family: 'Cascadia Mono', monospace;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --md-bg-dark: #090d14;
+  --md-panel-bg: rgba(16, 23, 38, 0.85);
+  --md-neon-cyan: #00f0ff;
+  --md-neon-gold: #ffbe00;
+  --md-border-color: rgba(0, 240, 255, 0.3);
+}
+
+/* --- TERMINAL FILTER BAR --- */
+.md-filter-panel {
+  background: var(--md-panel-bg);
+  border: 1px solid var(--md-border-color);
+  backdrop-filter: blur(10px);
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+  padding: 18px 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+}
+
+.md-search-field {
+  background: rgba(5, 8, 15, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  padding: 10px 16px;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.md-search-field:focus {
+  outline: none;
+  border-color: var(--md-neon-cyan);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+  background: rgba(10, 18, 32, 0.95);
+}
+
+.md-select-field {
+  background: rgba(5, 8, 15, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: var(--md-neon-cyan);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  padding: 8px 14px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* --- DECK BOSS CARD CONTAINER --- */
+.deck-card-container {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.deck-card-container:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+.deck-boss-frame {
+  position: relative;
+  background: linear-gradient(145deg, #121929 0%, #080c14 100%);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.deck-card-container:hover .deck-boss-frame {
+  border-color: var(--md-neon-cyan);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+}
+
+/* Holographic Shimmer Effect on Hover */
+.deck-boss-frame::after {
+  content: '';
+  position: absolute;
+  top: -150%;
+  left: -150%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(
+    45deg,
+    transparent 45%,
+    rgba(255, 255, 255, 0.13) 50%,
+    transparent 55%
+  );
+  transition: all 0.6s ease;
+  pointer-events: none;
+}
+
+.deck-card-container:hover .deck-boss-frame::after {
+  top: 100%;
+  left: 100%;
+}
+
+/* --- EXTRA DECK TYPE BADGES (Official YGO Colors) --- */
+.extra-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  padding: 3px 10px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.badge-fusion { background: linear-gradient(135deg, #a020f0, #4a0082); color: #fff; border: 1px solid #d870ff; }
+.badge-synchro { background: linear-gradient(135deg, #ffffff, #dcdcdc); color: #000; border: 1px solid #fff; }
+.badge-xyz { background: linear-gradient(135deg, #222222, #000000); color: #ffbe00; border: 1px solid #ffbe00; }
+.badge-link { background: linear-gradient(135deg, #0055ff, #001188); color: #fff; border: 1px solid #66a3ff; }
+.badge-default { background: rgba(0, 0, 0, 0.75); color: var(--md-neon-cyan); border: 1px solid var(--md-neon-cyan); }
+
+/* --- RATING BADGE --- */
+.rating-pill {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+.rating-good { background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid #00ff88; }
+.rating-ok { background: rgba(255, 190, 0, 0.2); color: #ffbe00; border: 1px solid #ffbe00; }
+.rating-bad { background: rgba(255, 0, 85, 0.2); color: #ff0055; border: 1px solid #ff0055; }

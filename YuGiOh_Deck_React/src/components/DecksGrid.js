@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DeckBoss from './DeckBoss';
-import '../md-deck-grid.css';
+import '../mdstyles.css';
+import "../styles.css";
 
 export default function DecksGrid({ decks = [], decklist = [], toggleDeckList }) {
     const [searchTerm, setSearchTerm] = useState("");
