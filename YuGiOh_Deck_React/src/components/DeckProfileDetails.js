@@ -5,6 +5,7 @@ import CustomDeck from "./CustomDeck";
 import AiDeckCopywriter from "./AiDeckCopywriter";
 import AiComboPlaybook from "./AiComboPlaybook";
 import '../mdstyles.css';
+import DeckPriceWidget from "./DeckPriceWidget";
 
 export default function DeckProfileDetails() {
     const { deckId } = useParams();
@@ -147,6 +148,15 @@ export default function DeckProfileDetails() {
                                 cardsPerRow={10}
                             />
                         </div>
+                    </Col>
+                </Row>
+                <Row className="mb-4">
+                    <Col md={12}>
+                        <DeckPriceWidget 
+                            mainDeck={deck.mainDeck} 
+                            extraDeck={deck.extraDeck} 
+                            sideDeck={deck.sideDeck} 
+                        />
                     </Col>
                 </Row>
             </Container>
