@@ -67,55 +67,76 @@ export default function DeckProfileDetails() {
     if (loading) return (
         <div className="md-theme-bg min-vh-100 d-flex flex-column justify-content-center align-items-center">
             <Spinner animation="border" variant="info" />
-            <h5 className="text-info mt-3" style={{ fontFamily: 'Cascadia Mono' }}>SYNCHRONIZING_WITH_AZURE_DATABASE...</h5>
+            <h5 className="text-info mt-3 terminal-font">SYNCHRONIZING_WITH_AZURE_DATABASE...</h5>
         </div>
     );
 
-    if (!deck) return <div className="md-theme-bg text-danger p-5">ERROR: DECK_DATA_CORRUPTED_OR_MISSING</div>;
+    if (!deck) return <div className="md-theme-bg text-danger p-5 terminal-font">ERROR: DECK_DATA_CORRUPTED_OR_MISSING</div>;
 
     return (
         <div className="md-theme-bg min-vh-100 py-5 mt-5">
             <Container>
+                {/* HEADER / ACTION BAR */}
                 <div className="md-panel p-4 mb-4 border-info">
-                    <Row className="align-items-center">
-                        <Col>
-                            <h2 className="text-info m-0" style={{ fontFamily: 'Cascadia Mono' }}>
+                    <Row className="align-items-center gy-3">
+                        {/* DECK TITLE & METADATA */}
+                        <Col lg={4} md={12}>
+                            <h2 className="text-info m-0 terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
                                 {deck.title?.toUpperCase() || "UNNAMED_DECK"}
                             </h2>
-                            <p className="text-muted m-0 small">FILE_PATH: ROOT/DECKS/{deck.id}</p>
+                            <p className="text-muted m-0 small terminal-font">FILE_PATH: ROOT/DECKS/{deck.id}</p>
                         </Col>
-                        <Col xs="auto" className="d-flex gap-2">
+
+                        {/* MASTER DUEL ACTION TOOLBAR */}
+                        <Col lg={8} md={12} className="d-flex justify-content-lg-end justify-content-start align-items-stretch flex-wrap gap-2">
+                            {/* AI DECK ARTICLE BUTTON */}
                             <Button 
                                 variant="outline-info" 
-                                className="terminal-font fw-bold"
+                                className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center border-opacity-75"
                                 onClick={() => setShowCopywriterModal(true)}
+                                style={{ minHeight: '42px' }}
                             >
-                                ✍️ GENERATE DECK ARTICLE
+                                ✍️ DECK_ARTICLE
                             </Button>
+
+                            {/* AI COMBO PLAYBOOK BUTTON */}
                             <Button 
                                 variant="outline-warning" 
-                                className="terminal-font fw-bold"
+                                className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center border-opacity-75"
                                 onClick={() => setShowPlaybookModal(true)}
+                                style={{ minHeight: '42px' }}
                             >
-                                🎮 TEST HAND & COMBO PLAYBOOK
+                                🎮 COMBO_PLAYBOOK
                             </Button>
-                            <Button onClick={handleExportYDK} className="md-btn-primary">
-                                EXPORT_YDK
+
+                            {/* EXPORT YDK BUTTON */}
+                            <Button 
+                                onClick={handleExportYDK} 
+                                variant="info"
+                                className="terminal-font fw-bold text-dark px-3 py-2 d-inline-flex align-items-center justify-content-center"
+                                style={{ minHeight: '42px' }}
+                            >
+                                📥 EXPORT_YDK
                             </Button>
-                            
-                            <Button as={Link} to="/profile" className="md-btn-outline">
-                                BACK TO PROFILE
+
+                            {/* BACK BUTTON */}
+                            <Button 
+                                as={Link} 
+                                to="/profile" 
+                                variant="outline-secondary"
+                                className="terminal-font px-3 py-2 d-inline-flex align-items-center justify-content-center border-opacity-50 text-white-50"
+                                style={{ minHeight: '42px', textDecoration: 'none' }}
+                            >
+                                ⬅️ BACK
                             </Button>
                         </Col>
                     </Row>
                 </div>
 
+                {/* DECK VIEWER CONTAINER */}
                 <Row>
                     <Col md={12} className="md-panel p-4">
                         <div className="d-flex justify-content-between align-items-center mb-4">
-                            {/* <h5 className="text-white m-0" style={{ letterSpacing: '1px' }}>
-                                MAIN DECK ({deck.mainDeck?.length || 0}/60)
-                            </h5> */}
                             <span className="text-info small terminal-font">STATUS: VERIFIED</span>
                         </div>
                         <div className="deck-scroll-container">
@@ -129,6 +150,8 @@ export default function DeckProfileDetails() {
                     </Col>
                 </Row>
             </Container>
+
+            {/* MODALS */}
             <AiDeckCopywriter
                 show={showCopywriterModal}
                 onHide={() => setShowCopywriterModal(false)}
