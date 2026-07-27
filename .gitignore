@@ -2,6 +2,7 @@
 **/node_modules/
 **/build/
 .env.local
+.env
 
 # --- .NET/C# ---
 **/bin/

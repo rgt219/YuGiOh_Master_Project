@@ -12,6 +12,7 @@ import {
 
 import CardApi from "../components/CardApi";
 import CustomDeck from "./CustomDeck";
+import AiCardSuggester from "./AiCardSuggester"; // 👈 1. IMPORT AI COMPONENT
 import { deckList } from "../components/CardApi";
 import '../mdstyles.css';
 
@@ -22,6 +23,7 @@ export default function DeckBuilder({ user }) {
     const dispatch = useDispatch();
 
     const [show, setShow] = useState(false);
+    const [showAiModal, setShowAiModal] = useState(false); // 👈 2. MODAL STATE
     const [isHydrating, setIsHydrating] = useState(false);
     const fileInputRef = useRef(null);
 
@@ -244,6 +246,17 @@ export default function DeckBuilder({ user }) {
 
                             {/* Right Section: Grouped Toolbar Actions */}
                             <div className="d-flex align-items-center gap-2 flex-wrap">
+                                {/* 🚀 3. AI SUGGEST BUTTON */}
+                                <Button 
+                                    variant="info" 
+                                    className="terminal-font text-dark fw-bold text-nowrap"
+                                    onClick={() => setShowAiModal(true)}
+                                >
+                                    🤖 AI SUGGEST
+                                </Button>
+
+                                <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
+
                                 {/* File Tools */}
                                 <div className="d-flex gap-2">
                                     <Button className="md-btn-outline text-nowrap" onClick={triggerFileSelect} disabled={isHydrating}>
@@ -263,7 +276,7 @@ export default function DeckBuilder({ user }) {
 
                                 <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
 
-                                {/* 🚀 GREEN SAVE DECK BUTTON */}
+                                {/* Save Tool */}
                                 {!user ? (
                                     <OverlayTrigger
                                         placement="top"
@@ -314,6 +327,20 @@ export default function DeckBuilder({ user }) {
                     </Col>
                 </Row>
             </Container>
+
+            {/* 🚀 AI CARD SUGGESTER MODAL */}
+            <AiCardSuggester 
+                show={showAiModal} 
+                onHide={() => setShowAiModal(false)} 
+                mainDeck={mainDeck} 
+                extraDeck={extraDeck}
+                onAddCard={handleAddCard} 
+                onAutoBuildDeck={({ main, extra, name }) => {
+                    // Dispatches the full generated deck directly into Redux!
+                    dispatch(importYdkDeck({ main, extra, name }));
+                    setShowAiModal(false);
+                }}
+            />
 
             <Modal show={show} onHide={() => setShow(false)} centered contentClassName="md-modal">
                 <Modal.Header closeButton className="border-info bg-dark">

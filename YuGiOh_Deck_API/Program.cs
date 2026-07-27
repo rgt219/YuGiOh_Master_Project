@@ -22,7 +22,16 @@ namespace YuGiOhDeckApi
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
             builder.Services.AddSignalR();
+            builder.Services.AddHttpClient();
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                var redisConnection = builder.Configuration["Redis:ConnectionString"]
+                                    ?? builder.Configuration["REDIS_CONNECTIONSTRING"];
+
+                options.Configuration = redisConnection;
+                options.InstanceName = "Erregeteygo_"; // Prefixes all keys in Redis
+            });
 
             // Register the Analytics Collection
             builder.Services.AddSingleton<IMongoCollection<CardStat>>(sp =>

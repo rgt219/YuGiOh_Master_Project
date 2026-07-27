@@ -1,5 +1,6 @@
 import './App.css';
 import './styles.css';
+import * as Sentry from "@sentry/react";
 import DeckList from './components/DeckList';
 import DeckDetails from './components/DeckDetails';
 import { DecksProvider } from './components/DecksContext';
@@ -39,39 +40,43 @@ function App() {
   const queryClient = new QueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <SignalRProvider>
-          <GlobalToast />
-          <NavbarYGO user={user} onLogout={handleLogout} /> 
-          <DecksProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home user={user}/>} />
-              <Route path="/login" element={<Login setUser={setUser}/>} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/decklist" element={<DeckList/>} />
-              <Route path="/decks/:deckId" element={<DeckDetails />} />
-              <Route path="/register" element={<Register />}/>
-              
-              {/* 🚀 DeckBuilder is now PUBLIC so guests can use it & export YDK */}
-              <Route path="/deckbuilder" element={<DeckBuilder user={user}/>} />
+    <Sentry.ErrorBoundary fallback={
+      <div className="md-theme-bg min-vh-100 d-flex flex-column justify-content-center align-items-center text-center p-5">
+        <h3 className="text-danger terminal-font">SYSTEM_CRASH_DETECTED</h3>
+        <p className="text-white-50">An unexpected system exception occurred. Diagnostics have been dispatched to telemetry servers.</p>
+        <button className="md-btn-primary mt-3" onClick={() => window.location.href = '/'}>
+          REBOOT_SYSTEM
+        </button>
+      </div>
+    }>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <SignalRProvider>
+            <GlobalToast />
+            <NavbarYGO user={user} onLogout={handleLogout} /> 
+            <DecksProvider>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home user={user}/>} />
+                <Route path="/login" element={<Login setUser={setUser}/>} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/decklist" element={<DeckList/>} />
+                <Route path="/decks/:deckId" element={<DeckDetails />} />
+                <Route path="/register" element={<Register />}/>
+                
+                <Route path="/deckbuilder" element={<DeckBuilder user={user}/>} />
 
-              {/* Protected Routes (Log in required) */}
-              <Route element={<ProtectedRoute user={user} />}>
-                <Route path="/profile" element={<UserProfile user={user}/>}/>
-                <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />
-              </Route>
-            </Routes>
-          </DecksProvider>
-        </SignalRProvider>
-      </Router>
-
-      {/* <ComboPlayerSandbox 
-          combo={whiteForestAzaminaCombo} 
-      /> */}
-    </QueryClientProvider>
+                <Route element={<ProtectedRoute user={user} />}>
+                  <Route path="/profile" element={<UserProfile user={user}/>}/>
+                  <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />
+                </Route>
+              </Routes>
+            </DecksProvider>
+          </SignalRProvider>
+        </Router>
+      </QueryClientProvider>
+    </Sentry.ErrorBoundary>
   );
 }
 

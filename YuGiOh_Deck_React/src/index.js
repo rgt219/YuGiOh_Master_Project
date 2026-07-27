@@ -1,3 +1,4 @@
+import "./instrument";
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -6,6 +7,7 @@ import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.css';
 import { Provider } from 'react-redux'; // The "Antenna"
 import { store } from './store/store'; // The "Brain"
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
