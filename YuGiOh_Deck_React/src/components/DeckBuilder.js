@@ -306,7 +306,6 @@ export default function DeckBuilder({ user }) {
                 <Row className="g-4">
                     <Col md={7}>
                         <div className="md-panel p-4 h-100">
-                            <h5 className="text-white mb-3 terminal-font">MAIN_DECK [{mainDeck.length}/60]</h5>
                             <div className="deck-scroll-container">
                                 <CustomDeck 
                                     mainDeck={mainDeck} 

@@ -20,6 +20,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import GlobalToast from './components/GlobalToast';
 import ProtectedRoute from './components/ProtectedRoute.js';
 import Contact from './components/Contact.js';
+import CommunityDecks from "./components/CommunityDecks";
 // import ComboDisplay from './components/ComboDisplay.js';
 import { whiteForestAzaminaCombo } from './components/WhiteForestAzaminaCombo.js';
 // import ComboPlayerSandbox from './components/ComboPlayerSandbox.js';
@@ -61,15 +62,17 @@ function App() {
                 <Route path="/login" element={<Login setUser={setUser}/>} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/community" element={<CommunityDecks />} />
                 <Route path="/decklist" element={<DeckList/>} />
                 <Route path="/decks/:deckId" element={<DeckDetails />} />
                 <Route path="/register" element={<Register />}/>
                 
                 <Route path="/deckbuilder" element={<DeckBuilder user={user}/>} />
+                <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />
 
                 <Route element={<ProtectedRoute user={user} />}>
                   <Route path="/profile" element={<UserProfile user={user}/>}/>
-                  <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />
+                  
                 </Route>
               </Routes>
             </DecksProvider>

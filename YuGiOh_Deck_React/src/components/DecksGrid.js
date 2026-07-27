@@ -33,10 +33,10 @@ export default function DecksGrid({ decks = [], decklist = [], toggleDeckList })
             {/* Header Header */}
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <h3 className="text-info terminal-font m-0" style={{ letterSpacing: '2px', fontFamily: 'Rajdhani, sans-serif' }}>
-                    FEATURED_ARCHETYPES // TCG_SELECTIONS
+                    FEATURED ARCHETYPES // TCG SELECTIONS
                 </h3>
                 <span className="text-white-50 small" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                    TOTAL_INDEXED: [{filteredDecks.length}]
+                    TOTAL INDEXED: [{filteredDecks.length}]
                 </span>
             </div>
 
@@ -48,7 +48,7 @@ export default function DecksGrid({ decks = [], decklist = [], toggleDeckList })
                         <input 
                             type="text"
                             className="form-control md-search-field"
-                            placeholder="SEARCH_ARCHETYPE_OR_CARD..."
+                            placeholder="SEARCH ARCHETYPE OR CARD..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />

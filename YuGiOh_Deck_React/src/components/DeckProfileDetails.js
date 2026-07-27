@@ -93,39 +93,39 @@ export default function DeckProfileDetails() {
                             {/* AI DECK ARTICLE BUTTON */}
                             <Button 
                                 variant="outline-info" 
-                                className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center border-opacity-75"
+                                className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center"
                                 onClick={() => setShowCopywriterModal(true)}
                                 style={{ minHeight: '42px' }}
                             >
-                                ✍️ DECK_ARTICLE
+                                ✍️ DECK ARTICLE
                             </Button>
 
-                            {/* AI COMBO PLAYBOOK BUTTON */}
+                            {/* AI COMBO PLAYBOOK BUTTON - GOLD */}
                             <Button 
                                 variant="outline-warning" 
-                                className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center border-opacity-75"
+                                className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center"
                                 onClick={() => setShowPlaybookModal(true)}
                                 style={{ minHeight: '42px' }}
                             >
-                                🎮 COMBO_PLAYBOOK
+                                🎮 COMBO PLAYBOOK
                             </Button>
 
-                            {/* EXPORT YDK BUTTON */}
+                            {/* EXPORT YDK BUTTON - GREEN / DOWNLOAD */}
                             <Button 
                                 onClick={handleExportYDK} 
-                                variant="info"
-                                className="terminal-font fw-bold text-dark px-3 py-2 d-inline-flex align-items-center justify-content-center"
+                                variant="outline-success" 
+                                className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center"
                                 style={{ minHeight: '42px' }}
                             >
-                                📥 EXPORT_YDK
+                                📥 EXPORT YDK
                             </Button>
 
-                            {/* BACK BUTTON */}
+                            {/* BACK BUTTON - CYAN TERMINAL */}
                             <Button 
                                 as={Link} 
                                 to="/profile" 
-                                variant="outline-secondary"
-                                className="terminal-font px-3 py-2 d-inline-flex align-items-center justify-content-center border-opacity-50 text-white-50"
+                                variant="outline-info" 
+                                className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center"
                                 style={{ minHeight: '42px', textDecoration: 'none' }}
                             >
                                 ⬅️ BACK

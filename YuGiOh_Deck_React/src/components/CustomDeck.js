@@ -198,7 +198,7 @@ export default function CustomDeck({ mainDeck = [], extraDeck = [], sideDeck = [
     return (
         <div className="deck-display-wrapper">
             <div className="main-deck-section mb-5">
-                <h6 className="text-white-50 mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>MAIN_DECK // {sortedMainDeck.length}</h6>
+                <h6 className="text-white-50 mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>MAIN DECK // {sortedMainDeck.length}</h6>
                 <div className="gallery__small" style={gridStyle}>
                     {renderCardList(sortedMainDeck)}
                 </div>
@@ -206,7 +206,7 @@ export default function CustomDeck({ mainDeck = [], extraDeck = [], sideDeck = [
 
             {sortedExtraDeck.length > 0 && (
                 <div className="extra-deck-section mt-4 pt-4" style={{ borderTop: '1px solid rgba(0,210,255,0.2)' }}>
-                    <h6 className="text-info mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>EXTRA_DECK // {sortedExtraDeck.length}/15</h6>
+                    <h6 className="text-info mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>EXTRA DECK // {sortedExtraDeck.length}/15</h6>
                     <div className="gallery__small" style={gridStyle}>
                         {renderCardList(sortedExtraDeck)}
                     </div>
@@ -215,7 +215,7 @@ export default function CustomDeck({ mainDeck = [], extraDeck = [], sideDeck = [
 
             {sortedSideDeck.length > 0 && (
                 <div className="side-deck-section mt-4 pt-4" style={{ borderTop: '1px solid rgba(0,210,255,0.2)' }}>
-                    <h6 className="text-warning mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>SIDE_DECK // {sortedSideDeck.length}/15</h6>
+                    <h6 className="text-warning mb-3" style={{ letterSpacing: '2px', paddingLeft: '12px' }}>SIDE DECK // {sortedSideDeck.length}/15</h6>
                     <div className="gallery__small" style={gridStyle}>
                         {renderCardList(sortedSideDeck)}
                     </div>

@@ -1,17 +1,62 @@
-import React, { useState } from 'react';
-import { Card, Badge, Table, Button, Form, Modal } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Card, Badge, Table, Button, Form, Modal, Spinner } from 'react-bootstrap';
 import '../mdstyles.css';
 
-export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDeck = [], onApplyBudgetSwap }) {
-    const [priceProvider, setPriceProvider] = useState('tcgplayer_price'); // 'tcgplayer_price' | 'cardmarket_price' | 'ebay_price'
+export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDeck = [] }) {
+    const [priceProvider, setPriceProvider] = useState('tcgplayer_price');
     const [showBudgetModal, setShowBudgetModal] = useState(false);
+    const [livePrices, setLivePrices] = useState({});
+    const [loadingPrices, setLoadingPrices] = useState(false);
 
     const allCards = [...mainDeck, ...extraDeck, ...sideDeck];
 
-    // Helper: Extract price float from card object
+    // 🚀 Automatically fetch live card prices if database entries don't have them
+    useEffect(() => {
+        const fetchPrices = async () => {
+            if (allCards.length === 0) return;
+
+            // Collect unique card IDs or Names
+            const cardIds = [...new Set(allCards.map(c => c.id || c.Id).filter(Boolean))];
+
+            if (cardIds.length === 0) return;
+
+            setLoadingPrices(true);
+            try {
+                // YGOProDeck allows fetching multiple card IDs separated by commas
+                const res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${cardIds.join(',')}`);
+                if (!res.ok) throw new Error("Price fetch failed");
+                const data = await res.json();
+
+                // Map card ID -> card_prices object
+                const priceMap = {};
+                data.data?.forEach(card => {
+                    if (card.card_prices?.[0]) {
+                        priceMap[card.id] = card.card_prices[0];
+                    }
+                });
+                setLivePrices(priceMap);
+            } catch (err) {
+                console.error("FAILED_TO_FETCH_CARD_PRICES:", err);
+            } finally {
+                setLoadingPrices(false);
+            }
+        };
+
+        fetchPrices();
+    }, [mainDeck, extraDeck, sideDeck]);
+
+    // Helper: Extract price float from card object or live fetched cache
     const getCardPrice = (card) => {
-        const prices = card?.card_prices?.[0] || card?.card_prices || {};
-        const val = parseFloat(prices[priceProvider] || 0);
+        const cardId = card.id || card.Id;
+        // 1. Check live fetched prices
+        const cachedPrices = livePrices[cardId];
+        if (cachedPrices && cachedPrices[priceProvider]) {
+            return parseFloat(cachedPrices[priceProvider]) || 0;
+        }
+
+        // 2. Fallback to prices directly attached to card
+        const directPrices = card?.card_prices?.[0] || card?.card_prices || card?.cardPrices || {};
+        const val = parseFloat(directPrices[priceProvider] || 0);
         return isNaN(val) ? 0 : val;
     };
 
@@ -28,17 +73,16 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
                 name,
                 count: 0,
                 unitPrice: price,
-                totalPrice: 0,
-                image: card.image || card.card_images?.[0]?.image_url,
-                cardData: card
+                totalPrice: 0
             };
         }
         cardMap[name].count += 1;
         cardMap[name].totalPrice += price;
+        cardMap[name].unitPrice = price;
     });
 
     const uniqueCardList = Object.values(cardMap);
-    
+
     // Sort by most expensive total cost
     const topExpensiveCards = [...uniqueCardList]
         .sort((a, b) => b.totalPrice - a.totalPrice)
@@ -81,12 +125,19 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
             <div className="d-flex justify-content-between align-items-center mb-3 p-3 bg-dark bg-opacity-60 rounded border border-secondary border-opacity-30">
                 <div>
                     <small className="text-muted terminal-font d-block">ESTIMATED_DECK_TOTAL</small>
-                    <div className="display-6 fw-bold terminal-font text-success">
-                        {getCurrencySymbol()}{totalPrice.toFixed(2)}
-                    </div>
+                    {loadingPrices ? (
+                        <div className="d-flex align-items-center gap-2 mt-1">
+                            <Spinner size="sm" animation="border" variant="success" />
+                            <small className="text-success terminal-font">FETCHING_LIVE_PRICES...</small>
+                        </div>
+                    ) : (
+                        <div className="display-6 fw-bold terminal-font text-success">
+                            {getCurrencySymbol()}{totalPrice.toFixed(2)}
+                        </div>
+                    )}
                 </div>
 
-                {expensiveTargets.length > 0 && (
+                {expensiveTargets.length > 0 && !loadingPrices && (
                     <Button 
                         variant="outline-warning" 
                         size="sm" 
@@ -99,7 +150,7 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
             </div>
 
             {/* TOP 5 MOST EXPENSIVE CARDS TABLE */}
-            {topExpensiveCards.length > 0 && (
+            {!loadingPrices && topExpensiveCards.length > 0 && (
                 <div>
                     <small className="text-info terminal-font fw-bold d-block mb-2">
                         🔥 TOP_VALUE_DRIVERS (MOST EXPENSIVE CARDS)
@@ -136,7 +187,7 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
                 </Modal.Header>
                 <Modal.Body className="bg-dark text-white p-4">
                     <p className="text-white-50 small mb-3">
-                        The following cards in your deck carry a market value over $15.00 unit cost. Here are recommended budget staples and tech options to reduce overall deck cost:
+                        The following cards in your deck carry a market value over $15.00 unit cost. Here are recommended budget staples to reduce overall deck cost:
                     </p>
 
                     <div className="d-flex flex-column gap-3">
@@ -146,7 +197,7 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
                                     <span className="text-danger fw-bold terminal-font me-2">{item.name}</span>
                                     <Badge bg="danger">${item.unitPrice.toFixed(2)} / ea</Badge>
                                     <small className="text-muted d-block mt-1">
-                                        Total Impact: ${(item.totalPrice).toFixed(2)} ({item.count} copies)
+                                        Total Impact: ${item.totalPrice.toFixed(2)} ({item.count} copies)
                                     </small>
                                 </div>
 

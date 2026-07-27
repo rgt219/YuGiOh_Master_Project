@@ -34,10 +34,10 @@ export default function Contact() {
                     <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-3 mb-3">
                         <div className="d-flex justify-content-between align-items-center">
                             <h3 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px' }}>
-                                DUELIST_PROFILE // CONTACT_CARD
+                                DUELIST PROFILE
                             </h3>
                             <Badge bg="info" className="text-dark fw-bold text-uppercase px-3 py-2">
-                                VERIFIED_DUELIST
+                                VERIFIED DUELIST
                             </Badge>
                         </div>
                     </Card.Header>
@@ -117,29 +117,34 @@ export default function Contact() {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="d-flex gap-2 flex-wrap">
+                                <div className="d-flex flex-row flex-wrap gap-2 w-100">
+                                    {/* EMAIL - CYAN (INFO) */}
                                     <Button 
                                         href={`mailto:${contactInfo.email}`} 
-                                        className="md-btn-primary flex-grow-1"
+                                        variant="info"
+                                        className="flex-fill fw-bold text-dark terminal-font text-nowrap py-2"
                                     >
-                                        SEND_TRANSMISSION
+                                        ✉️ EMAIL
                                     </Button>
 
+                                    {/* CALL - GOLD/YELLOW (WARNING) */}
                                     <Button 
                                         href={`tel:${contactInfo.phone.replace(/[^0-9+]/g, '')}`} 
-                                        className="md-btn-outline"
+                                        variant="warning"
+                                        className="flex-fill fw-bold text-dark terminal-font text-nowrap py-2"
                                     >
-                                        CALL_DUELIST
+                                        📞 CALL
                                     </Button>
 
+                                    {/* RESUME - GREEN (SUCCESS) */}
                                     <Button 
                                         href={contactInfo.resumeUrl} 
                                         target="_blank" 
                                         rel="noopener noreferrer" 
                                         variant="success" 
-                                        className="fw-bold text-nowrap"
+                                        className="flex-fill fw-bold text-white terminal-font text-nowrap py-2"
                                     >
-                                        ACTIVATE_RESUME 📄
+                                        📄 RESUME
                                     </Button>
                                 </div>
                             </Col>

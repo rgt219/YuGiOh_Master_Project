@@ -111,7 +111,7 @@ export default function About() {
                     </Col>
                     <Col xs={12} md={9}>
                         <h1 className="fw-bold md-text-glitch" style={textStyleCyan}>{profileData.userName}</h1>
-                        <h5 className="fw-bold tracking-wider" style={textStylePurple}>SYSTEM_ARCHITECT // {profileData.realName.toUpperCase()}</h5>
+                        <h5 className="fw-bold tracking-wider" style={textStylePurple}>SYSTEM ARCHITECT // {profileData.realName.toUpperCase()}</h5>
                         <hr style={{ backgroundColor: '#00e5ff', height: '2px', opacity: 0.5 }} />
                         <p className="text-white opacity-90 lead fs-6">{profileData.aboutText}</p>
                         
@@ -134,7 +134,7 @@ export default function About() {
                         {/* TECH DECK RECIPE */}
                         <Card className="mb-4" style={masterDuelLaserCardStyle}>
                             <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
-                                <span className="fw-bold tracking-widest" style={textStylePurple}>TECH_DECK_RECIPE</span>
+                                <span className="fw-bold tracking-widest" style={textStylePurple}>TECH DECK RECIPE</span>
                             </Card.Header>
                             <Card.Body>
                                 {profileData.skillsDeck.map((deck, idx) => (
@@ -157,7 +157,7 @@ export default function About() {
                         {/* PLATFORM SPECIFICATIONS */}
                         <Card style={masterDuelLaserCardStyle}>
                             <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
-                                <span className="fw-bold tracking-widest" style={textStyleCyan}>PLATFORM_SPECIFICATIONS</span>
+                                <span className="fw-bold tracking-widest" style={textStyleCyan}>PLATFORM SPECIFICATIONS</span>
                             </Card.Header>
                             <Card.Body className="text-white">
                                 <ul style={forceVerticalListStyle}>
@@ -179,7 +179,7 @@ export default function About() {
                     <Col lg={8} xs={12}>
                         <Card style={masterDuelLaserCardStyle}>
                             <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
-                                <span className="fw-bold tracking-widest" style={{ color: '#ffaa00' }}>PROFESSIONAL_DEPLOYMENT_HISTORY</span>
+                                <span className="fw-bold tracking-widest" style={{ color: '#ffaa00' }}>PROFESSIONAL DEPLOYMENT HISTORY</span>
                             </Card.Header>
                             <Card.Body className="p-0">
                                 {profileData.deploymentHistory.map((job, index) => (
