@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Container, Row, Col, Spinner, Button } from 'react-bootstrap';
 import CustomDeck from "./CustomDeck"; 
+import AiDeckCopywriter from "./AiDeckCopywriter";
 import '../mdstyles.css';
 
 export default function DeckProfileDetails() {
     const { deckId } = useParams();
     const [deck, setDeck] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showCopywriterModal, setShowCopywriterModal] = useState(false);
 
     useEffect(() => {
         const loadDeckData = async () => {
@@ -81,6 +83,13 @@ export default function DeckProfileDetails() {
                             <p className="text-muted m-0 small">FILE_PATH: ROOT/DECKS/{deck.id}</p>
                         </Col>
                         <Col xs="auto" className="d-flex gap-2">
+                            <Button 
+                                variant="outline-info" 
+                                className="terminal-font fw-bold"
+                                onClick={() => setShowCopywriterModal(true)}
+                            >
+                                ✍️ GENERATE DECK ARTICLE
+                            </Button>
                             <Button onClick={handleExportYDK} className="md-btn-primary">
                                 EXPORT_YDK
                             </Button>
@@ -95,9 +104,9 @@ export default function DeckProfileDetails() {
                 <Row>
                     <Col md={12} className="md-panel p-4">
                         <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h5 className="text-white m-0" style={{ letterSpacing: '1px' }}>
+                            {/* <h5 className="text-white m-0" style={{ letterSpacing: '1px' }}>
                                 MAIN DECK ({deck.mainDeck?.length || 0}/60)
-                            </h5>
+                            </h5> */}
                             <span className="text-info small terminal-font">STATUS: VERIFIED</span>
                         </div>
                         <div className="deck-scroll-container">
@@ -111,6 +120,13 @@ export default function DeckProfileDetails() {
                     </Col>
                 </Row>
             </Container>
+            <AiDeckCopywriter
+                show={showCopywriterModal}
+                onHide={() => setShowCopywriterModal(false)}
+                deckName={deck.title}
+                mainDeck={deck.mainDeck}
+                extraDeck={deck.extraDeck}
+            />
         </div>
     );
 }
