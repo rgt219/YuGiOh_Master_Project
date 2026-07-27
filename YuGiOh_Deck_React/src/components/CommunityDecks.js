@@ -3,6 +3,9 @@ import { Container, Row, Col, Form, InputGroup, Card, Badge, Spinner, Button } f
 import { Link } from 'react-router-dom';
 import '../mdstyles.css';
 
+// 🚀 YOUR AZURE BLOB STORAGE CONTAINER
+const AZURE_BLOB_BASE_URL = "https://ygocardstore.blob.core.windows.net/card-images";
+
 export default function CommunityDecks() {
     const [decks, setDecks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -26,6 +29,24 @@ export default function CommunityDecks() {
 
         fetchDecks();
     }, []);
+
+    // 🚀 Robust Helper: Safely extract Card ID regardless of MongoDB serialization format
+    const getPreviewCardId = (deck) => {
+        const previewCard = deck.mainDeck?.[0] || deck.extraDeck?.[0] || deck.sideDeck?.[0];
+        if (!previewCard) return null;
+
+        // If previewCard is an object
+        if (typeof previewCard === 'object' && previewCard !== null) {
+            return previewCard.id || previewCard.Id || previewCard.cardId || previewCard._id || null;
+        }
+
+        // If previewCard is stored directly as a primitive number or string ID
+        if (typeof previewCard === 'number' || typeof previewCard === 'string') {
+            return previewCard;
+        }
+
+        return null;
+    };
 
     // Filter & Sort Logic
     const filteredDecks = decks.filter(deck => {
@@ -57,7 +78,7 @@ export default function CommunityDecks() {
                             </p>
                         </div>
                         <Button as={Link} to="/deckbuilder" variant="info" className="terminal-font fw-bold text-dark px-3 py-2">
-                            + Create New Deck
+                            + CREATE NEW DECK
                         </Button>
                     </div>
                 </div>
@@ -70,7 +91,7 @@ export default function CommunityDecks() {
                                 <InputGroup.Text className="bg-dark text-info border-secondary terminal-font">🔍</InputGroup.Text>
                                 <Form.Control
                                     type="text"
-                                    placeholder="SEARCH ARCHETYPE OR TITLE..."
+                                    placeholder="SEARCH_ARCHETYPE_OR_TITLE..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="bg-dark text-white border-secondary terminal-font"
@@ -122,8 +143,15 @@ export default function CommunityDecks() {
                         {filteredDecks.map((d, idx) => {
                             const mainCount = d.mainDeck?.length || 0;
                             const extraCount = d.extraDeck?.length || 0;
-                            const previewCard = d.mainDeck?.[0] || d.extraDeck?.[0];
-                            const previewImg = previewCard?.image || previewCard?.card_images?.[0]?.image_url;
+                            
+                            // 1. Safely extract ID using our new helper
+                            const cardId = getPreviewCardId(d);
+
+                            // 2. Primary: Azure Blob CDN URL
+                            const previewImg = cardId ? `${AZURE_BLOB_BASE_URL}/${cardId}.jpg` : null;
+
+                            // 3. Fallback: YGOProDeck CDN
+                            const fallbackImg = cardId ? `https://images.ygoprodeck.com/images/cards/${cardId}.jpg` : null;
 
                             return (
                                 <Col key={d.id || d._id || idx} lg={4} md={6}>
@@ -132,8 +160,17 @@ export default function CommunityDecks() {
                                             {previewImg ? (
                                                 <img 
                                                     src={previewImg} 
-                                                    alt="Preview" 
+                                                    alt={d.title || "Deck Preview"} 
                                                     style={{ width: '60px', height: '88px', borderRadius: '4px', objectFit: 'cover' }} 
+                                                    /* 🛡️ Fallback to YGOProDeck CDN if Azure Blob fails or 404s */
+                                                    onError={(e) => {
+                                                        if (fallbackImg && e.target.src !== fallbackImg) {
+                                                            e.target.src = fallbackImg;
+                                                        } else {
+                                                            // If both images fail, show placeholder div instead of broken image
+                                                            e.target.style.display = 'none';
+                                                        }
+                                                    }}
                                                 />
                                             ) : (
                                                 <div 
@@ -169,7 +206,7 @@ export default function CommunityDecks() {
                                                 size="sm"
                                                 className="terminal-font fw-bold"
                                             >
-                                                View Deck ➔
+                                                VIEW_DECK ➔
                                             </Button>
                                         </div>
                                     </Card>
