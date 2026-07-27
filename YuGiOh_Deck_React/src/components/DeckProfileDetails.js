@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Container, Row, Col, Spinner, Button } from 'react-bootstrap';
 import CustomDeck from "./CustomDeck"; 
 import AiDeckCopywriter from "./AiDeckCopywriter";
+import AiComboPlaybook from "./AiComboPlaybook";
 import '../mdstyles.css';
 
 export default function DeckProfileDetails() {
@@ -10,6 +11,7 @@ export default function DeckProfileDetails() {
     const [deck, setDeck] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showCopywriterModal, setShowCopywriterModal] = useState(false);
+    const [showPlaybookModal, setShowPlaybookModal] = useState(false);
 
     useEffect(() => {
         const loadDeckData = async () => {
@@ -90,6 +92,13 @@ export default function DeckProfileDetails() {
                             >
                                 ✍️ GENERATE DECK ARTICLE
                             </Button>
+                            <Button 
+                                variant="outline-warning" 
+                                className="terminal-font fw-bold"
+                                onClick={() => setShowPlaybookModal(true)}
+                            >
+                                🎮 TEST HAND & COMBO PLAYBOOK
+                            </Button>
                             <Button onClick={handleExportYDK} className="md-btn-primary">
                                 EXPORT_YDK
                             </Button>
@@ -123,6 +132,13 @@ export default function DeckProfileDetails() {
             <AiDeckCopywriter
                 show={showCopywriterModal}
                 onHide={() => setShowCopywriterModal(false)}
+                deckName={deck.title}
+                mainDeck={deck.mainDeck}
+                extraDeck={deck.extraDeck}
+            />
+            <AiComboPlaybook
+                show={showPlaybookModal}
+                onHide={() => setShowPlaybookModal(false)}
                 deckName={deck.title}
                 mainDeck={deck.mainDeck}
                 extraDeck={deck.extraDeck}
