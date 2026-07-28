@@ -26,7 +26,10 @@ namespace YuGiOhDeckApi
             builder.Services.AddHttpClient();
             // Register HttpClient and Scraper Service
             builder.Services.AddHttpClient<IMetaDeckScraperService, MetaDeckScraperService>();
+
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
+            // Register the background service
+            builder.Services.AddHostedService<MetaDeckBackgroundService>();
             builder.Services.AddStackExchangeRedisCache(options =>
             {
                 var redisConnection = builder.Configuration["Redis:ConnectionString"]

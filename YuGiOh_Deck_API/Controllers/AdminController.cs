@@ -1,23 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
-using YuGiOhDeckApi.Models;
 using YuGiOhDeckApi.Services;
+using YuGiOhDeckApi.Data;
 
-namespace ErreGeTeYgo.Api.Controllers
+namespace YuGiOhDeckApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class AdminController : ControllerBase
     {
         private readonly IMetaDeckScraperService _scraperService;
-        private readonly IMongoCollection<MetaDeck> _metaDeckCollection;
+        private readonly MongoDbService _mongoDbService;
 
         public AdminController(
             IMetaDeckScraperService scraperService,
-            IMongoDatabase mongoDatabase) // Injected from MongoDB driver
+            MongoDbService mongoDbService) // Inject MongoDbService instead
         {
             _scraperService = scraperService;
-            _metaDeckCollection = mongoDatabase.GetCollection<MetaDeck>("MetaDecks");
+            _mongoDbService = mongoDbService;
         }
 
         [HttpPost("scrape-meta-decks")]
@@ -25,26 +24,12 @@ namespace ErreGeTeYgo.Api.Controllers
         {
             var scrapedDecks = await _scraperService.ScrapeTcgMetaDecksAsync();
 
-            if (!scrapedDecks.Any())
-            {
-                return BadRequest("No meta decks were scraped.");
-            }
-
             foreach (var deck in scrapedDecks)
             {
-                // Upsert logic: Replace existing deck by ID, or insert if it doesn't exist
-                await _metaDeckCollection.ReplaceOneAsync(
-                    filter: d => d.Id == deck.Id,
-                    replacement: deck,
-                    options: new ReplaceOptions { IsUpsert = true }
-                );
+                await _mongoDbService.SaveMetaDeckAsync(deck);
             }
 
-            return Ok(new
-            {
-                Message = $"Successfully scraped and saved {scrapedDecks.Count} meta decks.",
-                Decks = scrapedDecks
-            });
+            return Ok(new { Count = scrapedDecks.Count, Decks = scrapedDecks });
         }
     }
 }

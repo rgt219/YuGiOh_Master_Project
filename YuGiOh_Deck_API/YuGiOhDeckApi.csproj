@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <StartupObject>YuGiOhDeckApi.Program</StartupObject>
+    <UserSecretsId>4a73578c-089c-4943-bcfa-0192d98b9350</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

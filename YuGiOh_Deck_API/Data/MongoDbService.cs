@@ -15,14 +15,16 @@ namespace YuGiOhDeckApi.Data
     public class MongoDbService : IMongoDbService
     {
         private readonly IMongoCollection<DeckList> _deckListCollection;
+        private readonly IMongoCollection<MetaDeck> _metaDeckCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
         {
-
             MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionURI);
             IMongoDatabase database = client.GetDatabase(mongoDBSettings.Value.DatabaseName);
+
             _deckListCollection = database.GetCollection<DeckList>(mongoDBSettings.Value.CollectionName);
+            _metaDeckCollection = database.GetCollection<MetaDeck>("MetaDecks");
 
             // Fire and forget the cache loader
             _ = InitializeCardCache();
@@ -128,6 +130,37 @@ namespace YuGiOhDeckApi.Data
         public async Task<IEnumerable<DeckList>> GetAsync()
         {
             return await _deckListCollection.Find(_ => true).ToListAsync();
+        }
+
+        public async Task SaveMetaDeckAsync(MetaDeck metaDeck)
+        {
+            var filter = Builders<MetaDeck>.Filter.Eq(x => x.Id, metaDeck.Id);
+
+            // ReplaceOneAsync with IsUpsert = true will insert the document if it doesn't exist,
+            // or update it if a document with the same Id already exists.
+            await _metaDeckCollection.ReplaceOneAsync(
+                filter,
+                metaDeck,
+                new ReplaceOptions { IsUpsert = true }
+            );
+        }
+
+        public async Task<List<MetaDeck>> GetMetaDecksAsync()
+        {
+            // Fetches all documents from the MetaDecks collection
+            return await _metaDeckCollection.Find(_ => true).ToListAsync();
+        }
+
+        public async Task SaveMetaDecksBulkAsync(List<MetaDeck> metaDecks)
+        {
+            // 1. Wipe out old stale meta deck records
+            await _metaDeckCollection.DeleteManyAsync(_ => true);
+
+            // 2. Insert the fresh batch
+            if (metaDecks != null && metaDecks.Any())
+            {
+                await _metaDeckCollection.InsertManyAsync(metaDecks);
+            }
         }
 
         // Internal helper classes for the YGOPro API JSON structure

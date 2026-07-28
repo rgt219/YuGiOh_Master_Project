@@ -77,6 +77,16 @@ export default function NavbarYGO({ user, onLogout }) {
             >
               Community
             </Nav.Link>
+            {/* 🏆 NEW META DECKS LINK */}
+            <Nav.Link 
+              as={Link} 
+              to="/meta-decks" 
+              className="text-warning fw-bold"
+              onMouseEnter={() => mdSound.playHover()}
+              onClick={() => mdSound.playClick()}
+            >
+              Meta Decks
+            </Nav.Link>
           </Nav>
 
           {/* RIGHT SIDE OF NAVBAR */}

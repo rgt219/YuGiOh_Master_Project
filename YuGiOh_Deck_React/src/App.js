@@ -21,6 +21,8 @@ import GlobalToast from './components/GlobalToast';
 import ProtectedRoute from './components/ProtectedRoute.js';
 import Contact from './components/Contact.js';
 import CommunityDecks from "./components/CommunityDecks";
+import MetaDecks from './components/MetaDecks.js';
+import MetaDeckProfile from './components/MetaDeckProfile.js';
 // import ComboDisplay from './components/ComboDisplay.js';
 import { whiteForestAzaminaCombo } from './components/WhiteForestAzaminaCombo.js';
 // import ComboPlayerSandbox from './components/ComboPlayerSandbox.js';
@@ -63,6 +65,8 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/community" element={<CommunityDecks />} />
+                <Route path="/meta-decks" element={<MetaDecks />} />
+                <Route path="/meta-decks/:id" element={<MetaDeckProfile />} />
                 <Route path="/decklist" element={<DeckList/>} />
                 <Route path="/decks/:deckId" element={<DeckDetails />} />
                 <Route path="/register" element={<Register />}/>

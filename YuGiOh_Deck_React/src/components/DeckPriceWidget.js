@@ -144,7 +144,7 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
                         className="terminal-font fw-bold"
                         onClick={() => setShowBudgetModal(true)}
                     >
-                        ⚡ BUDGET OPTIMIZER ({expensiveTargets.length} HIGH-COST CARDS)
+                        ⚡ BUDGET OPTIMIZER
                     </Button>
                 )}
             </div>
