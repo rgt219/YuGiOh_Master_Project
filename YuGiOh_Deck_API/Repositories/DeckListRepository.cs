@@ -2,6 +2,7 @@
 using MongoDB.Bson;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
+using YuGiOhDeckApi.Services;
 
 namespace YuGiOhDeckApi.Repositories
 {
@@ -23,7 +24,7 @@ namespace YuGiOhDeckApi.Repositories
         {
             var deckListinDb = await _context.DeckList.FindAsync(id);
 
-            if(deckListinDb == null)
+            if (deckListinDb == null)
             {
                 throw new KeyNotFoundException($"DeckList with id {id} not found.");
             }

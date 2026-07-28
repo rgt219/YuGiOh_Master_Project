@@ -19,7 +19,7 @@ namespace YuGiOhDeckApi.Data
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
         {
-            
+
             MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionURI);
             IMongoDatabase database = client.GetDatabase(mongoDBSettings.Value.DatabaseName);
             _deckListCollection = database.GetCollection<DeckList>(mongoDBSettings.Value.CollectionName);

@@ -2,7 +2,6 @@ using Confluent.Kafka;
 using Microsoft.AspNetCore.SignalR;
 using YuGiOhDeckApi.Hubs;
 using System.Text.Json;
-// using YuGiOh_Analytics_Consumer;
 
 public class KafkaToSignalRBridge : BackgroundService
 {

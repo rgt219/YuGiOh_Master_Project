@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using YuGiOh_Analytics_Consumer.Service;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
+using YuGiOhDeckApi.Services;
 using YuGiOhDeckApi.Repositories;
 using YuGiOhDeckApi.Hubs;
 //Comment for pushing
@@ -23,6 +24,8 @@ namespace YuGiOhDeckApi
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
             builder.Services.AddSignalR();
             builder.Services.AddHttpClient();
+            // Register HttpClient and Scraper Service
+            builder.Services.AddHttpClient<IMetaDeckScraperService, MetaDeckScraperService>();
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
             builder.Services.AddStackExchangeRedisCache(options =>
             {

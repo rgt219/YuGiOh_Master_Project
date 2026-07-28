@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using YuGiOhDeckApi.Models;
 
-namespace YuGiOhDeckApi.Data
+namespace YuGiOhDeckApi.Services
 {
     public class AppDbContext : DbContext
     {
