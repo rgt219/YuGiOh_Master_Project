@@ -2,8 +2,10 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
+
 namespace YuGiOhDeckApi.Models
 {
+    [BsonIgnoreExtraElements]
     public class MetaDeck
     {
         [BsonId]
@@ -34,5 +36,15 @@ namespace YuGiOhDeckApi.Models
         [BsonElement("lastUpdated")]
         [JsonPropertyName("lastUpdated")]
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+
+        [BsonElement("pilot")]
+        [BsonIgnoreIfNull]
+        [JsonPropertyName("pilot")]
+        public string Pilot { get; set; } = string.Empty;
+
+        [BsonElement("placement")]
+        [BsonIgnoreIfNull]
+        [JsonPropertyName("placement")]
+        public string Placement { get; set; } = string.Empty;
     }
 }

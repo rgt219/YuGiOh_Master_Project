@@ -40,7 +40,7 @@ export default function MetaDeckProfile() {
     }
 
     // 1. Fetch Meta Deck Profile from .NET API
-    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/metadecks/${id}`)
+    fetch(`https://localhost:8080/api/metadecks/${id}`)
       .then(async (res) => {
         if (!res.ok) {
           const errData = await res.json().catch(() => null);
@@ -148,6 +148,8 @@ export default function MetaDeckProfile() {
   const archetype = deck?.archetype || deck?.Archetype || 'TOURNAMENT META DECK';
   const deckIdStr = deck?.id || deck?.Id || id || '';
   const format = deck?.format || deck?.Format || 'TCG';
+  const pilot = deck?.pilot || deck?.Pilot || '--------';
+  const placement = deck?.placement || deck?.Placement || 'Unknown';
   const tier = deck?.tier || deck?.Tier || 'TIER 1';
   const sampleDeck = deck?.sampleDeck || deck?.SampleDeck;
   const mainDeckIds = sampleDeck?.mainDeck || sampleDeck?.MainDeck || [];
@@ -218,6 +220,8 @@ export default function MetaDeckProfile() {
                 <span className="small text-white-50">DECK ID: #{deckIdStr.substring(0, 8)}...</span>
               </div>
               <div className="d-flex gap-2">
+                <Badge bg="success" className="text-dark fw-bold px-3 py-2">PILOT: {pilot}</Badge>
+                <Badge bg="dark" className="text-light fw-bold px-3 py-2">PLACEMENT: {placement}</Badge>
                 <Badge bg="info" className="text-dark fw-bold px-3 py-2">FORMAT: {format}</Badge>
                 <Badge bg="warning" className="text-dark fw-bold px-3 py-2">{tier}</Badge>
               </div>

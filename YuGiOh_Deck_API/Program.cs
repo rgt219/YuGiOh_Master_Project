@@ -7,6 +7,7 @@ using YuGiOhDeckApi.Models;
 using YuGiOhDeckApi.Services;
 using YuGiOhDeckApi.Repositories;
 using YuGiOhDeckApi.Hubs;
+using Azure.Storage.Blobs;
 //Comment for pushing
 
 namespace YuGiOhDeckApi
@@ -30,6 +31,13 @@ namespace YuGiOhDeckApi
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
             // Register the background service
             builder.Services.AddHostedService<MetaDeckBackgroundService>();
+
+            string blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"]
+                           ?? builder.Configuration["BlobStorage__ConnectionString"]
+                           ?? throw new InvalidOperationException("CRITICAL ERROR: Azure Storage connection string is missing in configuration.");
+
+            builder.Services.AddSingleton(sp => new BlobServiceClient(blobConnectionString));
+
             builder.Services.AddStackExchangeRedisCache(options =>
             {
                 var redisConnection = builder.Configuration["Redis:ConnectionString"]

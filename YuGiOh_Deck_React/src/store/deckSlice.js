@@ -30,8 +30,27 @@ export const deckSlice = createSlice({
 
     // ACTION: Remove a card
     removeCardFromDeck: (state, action) => {
-      state.mainDeck = state.mainDeck.filter(c => c.instanceId !== action.payload);
-      state.extraDeck = state.extraDeck.filter(c => c.instanceId !== action.payload);
+        const targetId = action.payload; // Primitive string passed from handleRemoveCard
+
+        if (state.mainDeck) {
+            // Find index of exact match (by instanceId or card id)
+            const mainIndex = state.mainDeck.findIndex(
+                (c) => c.instanceId === targetId || (c.id || c.Id)?.toString() === targetId?.toString()
+            );
+            if (mainIndex !== -1) {
+                state.mainDeck.splice(mainIndex, 1); // Remove only 1 copy
+                return;
+            }
+        }
+
+        if (state.extraDeck) {
+            const extraIndex = state.extraDeck.findIndex(
+                (c) => c.instanceId === targetId || (c.id || c.Id)?.toString() === targetId?.toString()
+            );
+            if (extraIndex !== -1) {
+                state.extraDeck.splice(extraIndex, 1);
+            }
+        }
     },
 
     // ACTION: Set Name

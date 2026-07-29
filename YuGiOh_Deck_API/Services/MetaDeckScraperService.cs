@@ -104,7 +104,6 @@ namespace YuGiOhDeckApi.Services
                 .Where(x => !string.IsNullOrEmpty(x.Href) && x.Href.Contains("/deck/"))
                 .GroupBy(x => x.Href)
                 .Select(g => g.First())
-                .Take(10)
                 .ToList();
 
             _logger.LogInformation("Pass 1 Complete: Found {Count} distinct deck links. Starting Pass 2...", distinctLinks.Count);
@@ -114,7 +113,7 @@ namespace YuGiOhDeckApi.Services
             {
                 string fullDeckUrl = link.Href.StartsWith("http") ? link.Href : $"https://ygoprodeck.com{link.Href}";
 
-                var (mainDeck, extraDeck, sideDeck) = await ScrapeDeckDetailsAsync(fullDeckUrl);
+                var (mainDeck, extraDeck, sideDeck, pilot, placement) = await ScrapeDeckDetailsAsync(fullDeckUrl);
 
                 string metaId = Guid.NewGuid().ToString();
                 string archetype = string.IsNullOrWhiteSpace(link.Text) ? "Tournament Meta Deck" : link.Text;
@@ -135,7 +134,9 @@ namespace YuGiOhDeckApi.Services
                         ExtraDeck = extraDeck,
                         SideDeck = sideDeck
                     },
-                    LastUpdated = DateTime.UtcNow
+                    LastUpdated = DateTime.UtcNow,
+                    Pilot = pilot,
+                    Placement = placement
                 });
 
                 _logger.LogInformation("Parsed '{Archetype}' -> Main: {MainCount}, Extra: {ExtraCount}, Side: {SideCount}",
@@ -148,63 +149,60 @@ namespace YuGiOhDeckApi.Services
             return metaDecks;
         }
 
-        private async Task<(List<string> Main, List<string> Extra, List<string> Side)> ScrapeDeckDetailsAsync(string deckUrl)
+        private async Task<(List<string> Main, List<string> Extra, List<string> Side, string Pilot, string Placement)> ScrapeDeckDetailsAsync(string deckUrl)
         {
-            // Attempt 1: YDK Direct Download API (Primary Route)
-            var deckIdMatch = Regex.Match(deckUrl, @"-(\d+)$");
-            if (deckIdMatch.Success)
-            {
-                string deckId = deckIdMatch.Groups[1].Value;
-                string[] ydkUrls = new[]
-                {
-                    $"https://ygoprodeck.com/api/deck/downloadYDK.php?file={deckId}",
-                    $"https://ygoprodeck.com/api/deck/downloadYDK.php?deck_id={deckId}"
-                };
-
-                foreach (var ydkUrl in ydkUrls)
-                {
-                    try
-                    {
-                        await Task.Delay(300); // Rate throttle
-                        string ydkContent = await _httpClient.GetStringAsync(ydkUrl);
-
-                        if (!string.IsNullOrWhiteSpace(ydkContent) && ydkContent.Contains("#main"))
-                        {
-                            var ydkResult = ParseYdkContent(ydkContent);
-                            if (ydkResult.Main.Any())
-                            {
-                                return ydkResult;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // Fall back to next YDK URL or DOM parsing
-                    }
-                }
-            }
-
-            // Attempt 2: DOM Parsing Fallback (Isolated Container Scoping)
             var mainDeck = new List<string>();
             var extraDeck = new List<string>();
             var sideDeck = new List<string>();
+            string pilot = "Unknown Pilot";
+            string placement = "Tournament Meta Deck";
 
             try
             {
                 await Task.Delay(300); // Rate throttle
                 string html = await _httpClient.GetStringAsync(deckUrl);
+
                 var doc = new HtmlDocument();
                 doc.LoadHtml(html);
 
-                // Scoped container queries
+                // 1. Extract Pilot & Placement metadata from HTML DOM
+                pilot = ExtractPilotFromDoc(doc);
+                placement = ExtractPlacementFromDoc(doc);
+
+                // 2. Try YDK download for card list first (fast & accurate)
+                var deckIdMatch = Regex.Match(deckUrl, @"-(\d+)$");
+                if (deckIdMatch.Success)
+                {
+                    string deckId = deckIdMatch.Groups[1].Value;
+                    string ydkUrl = $"https://ygoprodeck.com/api/deck/downloadYDK.php?file={deckId}";
+
+                    try
+                    {
+                        string ydkContent = await _httpClient.GetStringAsync(ydkUrl);
+                        if (!string.IsNullOrWhiteSpace(ydkContent) && ydkContent.Contains("#main"))
+                        {
+                            var ydkResult = ParseYdkContent(ydkContent);
+                            if (ydkResult.Main.Any())
+                            {
+                                return (ydkResult.Main, ydkResult.Extra, ydkResult.Side, pilot, placement);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Fall back to DOM card extraction below if YDK download fails
+                    }
+                }
+
+                // 3. Fallback: Parse card IDs from HTML DOM nodes
                 var mainNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class, 'main-deck') or contains(@id, 'main-deck') or contains(@id, 'deck-main')]")
-                               ?? doc.DocumentNode.SelectSingleNode("//*[contains(text(), 'Main Deck')]/following-sibling::div[1]");
+                            ?? doc.DocumentNode.SelectSingleNode("//*[contains(text(), 'Main Deck')]/following-sibling::div[1]");
 
                 var extraNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class, 'extra-deck') or contains(@id, 'extra-deck') or contains(@id, 'deck-extra')]")
                                 ?? doc.DocumentNode.SelectSingleNode("//*[contains(text(), 'Extra Deck')]/following-sibling::div[1]");
 
                 var sideNode = doc.DocumentNode.SelectSingleNode("//div[contains(@class, 'side-deck') or contains(@id, 'side-deck') or contains(@id, 'deck-side')]")
-                               ?? doc.DocumentNode.SelectSingleNode("//*[contains(text(), 'Side Deck')]/following-sibling::div[1]");
+                            ?? doc.DocumentNode.SelectSingleNode("//*[contains(text(), 'Side Deck')]/following-sibling::div[1]");
 
                 mainDeck = ExtractCardIdsFromNode(mainNode);
                 extraDeck = ExtractCardIdsFromNode(extraNode);
@@ -212,10 +210,10 @@ namespace YuGiOhDeckApi.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to scrape deck details from DOM: {Url}", deckUrl);
+                _logger.LogWarning(ex, "Failed to scrape deck details from: {Url}", deckUrl);
             }
 
-            return (mainDeck, extraDeck, sideDeck);
+            return (mainDeck, extraDeck, sideDeck, pilot, placement);
         }
 
         private List<string> ExtractCardIdsFromNode(HtmlNode? containerNode)
@@ -248,11 +246,49 @@ namespace YuGiOhDeckApi.Services
             return cardIds;
         }
 
-        private (List<string> Main, List<string> Extra, List<string> Side) ParseYdkContent(string ydkContent)
+        private string ExtractPilotFromDoc(HtmlDocument doc)
+        {
+            // Targets the exact anchor tag containing '/by-player/' in its href!
+            var node = doc.DocumentNode.SelectSingleNode("//a[contains(@href, 'by-player')]");
+
+            if (node != null)
+            {
+                return node.InnerText.Trim(); // Yields "Jesse Kotton" directly!
+            }
+
+            return "Unknown Pilot";
+        }
+
+        private string ExtractPlacementFromDoc(HtmlDocument doc)
+        {
+            // 1. Target the specific deck metadata wrapper container on YGOProDeck
+            var node = doc.DocumentNode.SelectSingleNode("//span[contains(@class, 'deck-metadata-child') and .//i[contains(@class, 'fa-trophy')]]")
+                    ?? doc.DocumentNode.SelectSingleNode("//span[contains(@class, 'deck-metadata-child') and contains(., 'Reached')]")
+                    ?? doc.DocumentNode.SelectSingleNode("//span[contains(@class, 'deck-metadata-child') and .//a[contains(@href, '/tournament/')]]")
+                    ?? doc.DocumentNode.SelectSingleNode("//a[contains(@href, '/tournament/') and not(contains(text(), 'Meta'))]");
+
+            if (node != null)
+            {
+                // 2. Collapse whitespace & line breaks (" Reached " + "Top 64" + " at " + "European WCQ 2026")
+                string cleanText = Regex.Replace(node.InnerText, @"\s+", " ").Trim();
+
+                // 3. Ensure we didn't grab the top site navigation title
+                if (!string.IsNullOrWhiteSpace(cleanText) && !cleanText.StartsWith("Tournament Meta", StringComparison.OrdinalIgnoreCase))
+                {
+                    return cleanText; // Yields: "Reached Top 64 at European WCQ 2026"
+                }
+            }
+
+            return "Tournament Meta Deck";
+        }
+
+        private (List<string> Main, List<string> Extra, List<string> Side, string Pilot, string Placement) ParseYdkContent(string ydkContent)
         {
             var main = new List<string>();
             var extra = new List<string>();
             var side = new List<string>();
+            var pilot = "";
+            var placement = "";
 
             string currentSection = "main";
             var lines = ydkContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
@@ -275,7 +311,7 @@ namespace YuGiOhDeckApi.Services
                 }
             }
 
-            return (main, extra, side);
+            return (main, extra, side, pilot, placement);
         }
     }
 }

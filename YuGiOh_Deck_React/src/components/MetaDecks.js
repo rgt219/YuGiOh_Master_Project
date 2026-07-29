@@ -10,7 +10,7 @@ export default function MetaDecks({ mdSound }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/metadecks')
+    fetch('https://localhost:8080/api/metadecks')
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch tournament meta decks');
         return res.json();
