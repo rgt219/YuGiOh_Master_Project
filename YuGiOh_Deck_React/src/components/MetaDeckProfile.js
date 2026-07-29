@@ -40,7 +40,7 @@ export default function MetaDeckProfile() {
     }
 
     // 1. Fetch Meta Deck Profile from .NET API
-    fetch(`https://localhost:8080/api/metadecks/${id}`)
+    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/metadecks/${id}`)
       .then(async (res) => {
         if (!res.ok) {
           const errData = await res.json().catch(() => null);
