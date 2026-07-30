@@ -1,98 +1,83 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
 
-namespace YuGiOh_Deck_API.Controllers
+namespace YuGiOhDeckApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class AnalyticsController : ControllerBase
     {
-        // CHANGE: Use CardStat instead of BsonDocument
-        private readonly IMongoCollection<CardStat> _statsCollection;
+        private readonly MongoDbService _mongoDbService;
+        private readonly ILogger<AnalyticsController> _logger;
 
-        public AnalyticsController(IMongoCollection<CardStat> statsCollection)
+        public AnalyticsController(MongoDbService mongoDbService, ILogger<AnalyticsController> logger)
         {
-            _statsCollection = statsCollection;
+            _mongoDbService = mongoDbService;
+            _logger = logger;
         }
 
-        [HttpGet("top-cards")]
-        public async Task<IActionResult> GetTopCards([FromQuery] int limit = 10)
+        // GET: api/analytics/trending?format=TCG&limit=18
+        [HttpGet("trending")]
+        public async Task<ActionResult<List<CardAnalytics>>> GetTrendingCards([FromQuery] string? format = "TCG", [FromQuery] int limit = 18)
         {
             try
             {
-                // 1. 🚀 Force Cosmos DB Serverless to create the index for TotalUsage descending.
-                // Serverless WILL REJECT .SortByDescending() without this index registered!
-                var indexKeys = Builders<CardStat>.IndexKeys.Descending(c => c.TotalUsage);
-                await _statsCollection.Indexes.CreateOneAsync(new CreateIndexModel<CardStat>(indexKeys));
-
-                // 2. Fetch top cards using strongly-typed LINQ
-                var topCards = await _statsCollection.Find(_ => true)
-                    .SortByDescending(c => c.TotalUsage)
-                    .Limit(limit)
-                    .ToListAsync();
-
-                return Ok(topCards);
+                string targetFormat = string.IsNullOrWhiteSpace(format) ? "TCG" : format;
+                var trending = await _mongoDbService.GetTrendingCardsAsync(targetFormat, limit);
+                return Ok(trending);
             }
             catch (Exception ex)
             {
-                // Log detailed exception info to Container App logs and return clear 500 JSON payload
-                Console.WriteLine($"[GetTopCards Exception]: {ex}");
-                return StatusCode(500, new
-                {
-                    message = "Error fetching top cards from serverless database.",
-                    error = ex.Message,
-                    innerError = ex.InnerException?.Message
-                });
+                _logger.LogError(ex, "Error retrieving trending card analytics for format: {Format}", format);
+                return StatusCode(500, new { message = "Error retrieving analytics data.", error = ex.Message });
             }
         }
 
-        [HttpGet("rising-tech")]
-        public async Task<IActionResult> GetRisingTech()
+        // POST: api/analytics/reaggregate
+        [HttpPost("reaggregate")]
+        public async Task<IActionResult> ReaggregateAnalytics()
         {
-            var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-
-            // We look for cards used at least once today, 
-            // then sort by today's volume specifically.
-            var rising = await _statsCollection.Aggregate()
-                .Match(c => c.DailyUsage.ContainsKey(today))
-                .Project(c => new
-                {
-                    CardId = c.CardId,
-                    TodayUsage = c.DailyUsage[today],
-                    TotalUsage = c.TotalUsage
-                })
-                .SortByDescending(x => x.TodayUsage)
-                .Limit(5)
-                .ToListAsync();
-
-            return Ok(rising);
-        }
-
-        [HttpGet("meta-health")]
-        public async Task<IActionResult> GetMetaHealth()
-        {
-            var topCards = await _statsCollection.Find(_ => true)
-                .SortByDescending(c => c.TotalUsage)
-                .Limit(10)
-                .ToListAsync();
-
-            if (!topCards.Any()) return Ok(new { score = 100, status = "Diverse", topCard = "None" });
-
-            var leader = topCards.First();
-            double topOneUsage = leader.TotalUsage;
-            double totalTopTenUsage = topCards.Sum(c => c.TotalUsage);
-
-            double concentration = (topOneUsage / totalTopTenUsage) * 100;
-            double healthScore = Math.Clamp(100 - (concentration * 1.5), 0, 100);
-
-            return Ok(new
+            try
             {
-                score = (int)healthScore,
-                status = healthScore > 75 ? "Diverse" : healthScore > 40 ? "Competitive" : "Tier 0 Warning",
-                topCard = leader.CardName // Pass the name here
-            });
+                await _mongoDbService.RecomputeCardAnalyticsAsync();
+                return Ok(new { message = "Successfully recomputed card analytics across all formats." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reaggregating card analytics.");
+                return StatusCode(500, new { message = "Failed to reaggregate analytics.", error = ex.Message });
+            }
         }
+
+        [HttpGet("recent-activity")]
+        public async Task<IActionResult> GetRecentActivity([FromQuery] int limit = 5)
+        {
+            // 1. Check in-memory Kafka bridge buffer
+            var recent = KafkaToSignalRBridge.GetRecentActivities();
+
+            if (recent.Any())
+            {
+                return Ok(recent.Take(limit));
+            }
+
+            // 2. Fallback: Query 5 most recent public decks from MongoDB
+            var recentDecks = await _mongoDbService.GetRecentDecksAsync(limit); // Or query DeckListMongoDb sorted by _id desc
+
+            var fallbackActivities = recentDecks.Select(d => new UserActivityDto
+            {
+                Username = !string.IsNullOrWhiteSpace(d.UserId) ? d.UserId : "Anonymous",
+                Title = !string.IsNullOrWhiteSpace(d.Title) ? d.Title : "Unnamed Deck",
+                Action = "published"
+            }).ToList();
+
+            return Ok(fallbackActivities);
+        }
+
+
     }
 }

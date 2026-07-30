@@ -54,7 +54,7 @@ public class DeckControllerTests
         var newDeck = new DeckList { Title = "Exodia Deck" };
 
         // ACT
-        await controller.Post(newDeck);
+        await controller.Save(newDeck);
 
         // ASSERT - Verify that PublishDeckUpdate was called exactly once with the correct title
         mockKafka.Verify(k => k.PublishDeckUpdate(It.Is<DeckList>(d => d.Title == "Exodia Deck")), Times.Once);

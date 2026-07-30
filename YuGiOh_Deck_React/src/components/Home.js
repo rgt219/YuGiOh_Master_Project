@@ -3,9 +3,9 @@ import Carousel from 'react-bootstrap/Carousel';
 import Card from 'react-bootstrap/Card';
 import { Link } from 'react-router-dom';
 import DecksGrid from "./DecksGrid";
-import { Container, Row, Col } from "react-bootstrap";
 import TrendingCards from "./TrendingCards";
 import Footer from "./Footer";
+import LiveTicker from "./LiveTicker";
 
 export default function Home({ user }) {
     const [decks, setDecks] = useState([]);
@@ -27,6 +27,7 @@ export default function Home({ user }) {
 
     return (
         <div className="md-theme-bg">
+            {/* CAROUSEL HEADER */}
             <Carousel className="md-carousel border-bottom border-info" style={{ width: "100%", height: "515px" }}>
                 <Carousel.Item>
                     <img className='d-block w-100' src='./images/ygoss1.jpg' alt="yugioh" style={{ objectFit: 'cover', height: '515px' }} />
@@ -48,12 +49,16 @@ export default function Home({ user }) {
             </Carousel>
 
             <div className="container md-content-panel">
+                {/* QUICK NAVIGATION CARDS 
+                    TODO: Add back gap-4 and flex-wrap when more buttons are needed*/}
                 <nav className="mb-5">
-                    <div className="d-flex justify-content-center gap-4 flex-wrap">
+                    <div className="d-flex justify-content-center ">
                         {[
                             { path: "/about", label: "About", img: "./images/droplet_art.jpg" },
-                            { path: "/deckbuilder", label: "Deck Builder", img: "./images/exodia.png" },
                             { path: "/contact", label: "Contact", img: "./images/lenatus_art.jpg" },
+                            { path: "/deckbuilder", label: "Deck Builder", img: "./images/exodia.png" },
+                            { path: "/community", label: "Community", img: "./images/yujo.png" },
+                            { path: "/community", label: "Meta Decks", img: "./images/dysonsphere.png" },
                         ].map((link) => (
                             <Card 
                                 as={Link} 
@@ -80,14 +85,21 @@ export default function Home({ user }) {
 
                 <hr className="border-info opacity-25 mb-5" />
 
-                <Row>
-                    <Col lg={9} md={8}>
-                        <DecksGrid decks={decks} decklist={decklist} toggleDeckList={toggleDeckList}/>
-                    </Col>
-                    <Col lg={3} md={4}>
-                        <TrendingCards />
-                    </Col>
-                </Row>
+                <section className="mb-5">
+                    <LiveTicker></LiveTicker>
+                </section>
+
+                {/* 1. DECKS GRID SECTION (TOP) */}
+                <section className="mb-5">
+                    <DecksGrid decks={decks} decklist={decklist} toggleDeckList={toggleDeckList} />
+                </section>
+
+                <hr className="border-info opacity-25 mb-5" />
+
+                {/* 2. TRENDING CARDS SECTION (BOTTOM) */}
+                <section className="mb-4">
+                    <TrendingCards />
+                </section>
             </div>
             
             <Footer />

@@ -17,6 +17,7 @@ namespace YuGiOhDeckApi.Data
     {
         private readonly IMongoCollection<DeckList> _deckListCollection;
         private readonly IMongoCollection<MetaDeck> _metaDeckCollection;
+        private readonly IMongoCollection<CardAnalytics> _cardAnalyticsCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -26,6 +27,7 @@ namespace YuGiOhDeckApi.Data
 
             _deckListCollection = database.GetCollection<DeckList>(mongoDBSettings.Value.CollectionName);
             _metaDeckCollection = database.GetCollection<MetaDeck>("MetaDecks");
+            _cardAnalyticsCollection = database.GetCollection<CardAnalytics>("CardAnalytics");
 
             // Fire and forget the cache loader
             _ = InitializeCardCache();
@@ -105,14 +107,12 @@ namespace YuGiOhDeckApi.Data
             return response;
         }
 
-        // Keep your existing CRUD methods here...
         public async Task<DeckList> GetByIdAsync(string id) => await _deckListCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
         public async Task CreateAsync(DeckList deckList) => await _deckListCollection.InsertOneAsync(deckList);
         public async Task UpdateByIdAsync(DeckList deck, string id) => await _deckListCollection.ReplaceOneAsync(x => x.Id == id, deck);
         public async Task DeleteByIdAsync(string id) => await _deckListCollection.DeleteOneAsync(x => x.Id == id);
         public async Task<List<DeckList>> GetByUserIdAsync(string userId) => await _deckListCollection.Find(x => x.UserId == userId).ToListAsync();
 
-        // Add this to MongoDbService.cs
         public async Task<bool> DeleteUserDeckAsync(string deckId, string userId)
         {
             var filter = Builders<DeckList>.Filter.And(
@@ -187,6 +187,122 @@ namespace YuGiOhDeckApi.Data
             {
                 await _metaDeckCollection.InsertManyAsync(metaDecks);
             }
+        }
+
+        public async Task<List<CardAnalytics>> GetTrendingCardsAsync(string format, int limit = 18)
+        {
+            string safeFormat = Regex.Escape(format.Trim());
+            var filter = Builders<CardAnalytics>.Filter.Regex(
+                c => c.Format,
+                new BsonRegularExpression($"^{safeFormat}$", "i")
+            );
+
+            // 1. Fetch matching format cards from Cosmos DB (no database-side multi-sort)
+            var formatCards = await _cardAnalyticsCollection
+                .Find(filter)
+                .ToListAsync();
+
+            // 2. Sort in C# memory and take the top N
+            return formatCards
+                .OrderByDescending(c => c.DeckCount)
+                .ThenByDescending(c => c.TotalCopies)
+                .Take(limit)
+                .ToList();
+        }
+
+        public async Task RecomputeCardAnalyticsAsync()
+        {
+            var allDecks = await _metaDeckCollection.Find(_ => true).ToListAsync();
+
+            if (!allDecks.Any()) return;
+
+            // Group decks by Format (e.g., TCG, OCG, MASTER DUEL, GENESYS)
+            var groupedDecks = allDecks
+                .Where(d => !string.IsNullOrWhiteSpace(d.Format))
+                .GroupBy(d => d.Format.Trim().ToUpper());
+
+            var aggregatedAnalytics = new List<CardAnalytics>();
+
+            foreach (var group in groupedDecks)
+            {
+                string formatKey = group.Key;
+                var formatDecks = group.ToList();
+                int totalDecks = formatDecks.Count;
+
+                // Dictionary: CardId -> (Unique Deck Count, Total Copies across all decks)
+                var cardStats = new Dictionary<string, (int DeckCount, int TotalCopies)>();
+
+                foreach (var deck in formatDecks)
+                {
+                    var sample = deck.SampleDeck;
+                    if (sample == null) continue;
+
+                    var main = sample.MainDeck ?? new List<string>();
+                    var extra = sample.ExtraDeck ?? new List<string>();
+                    var side = sample.SideDeck ?? new List<string>();
+
+                    var allCards = main.Concat(extra).Concat(side).ToList();
+                    var uniqueCardsInDeck = new HashSet<string>(allCards);
+
+                    // Track unique deck inclusion
+                    foreach (var cardId in uniqueCardsInDeck)
+                    {
+                        if (string.IsNullOrWhiteSpace(cardId)) continue;
+                        if (!cardStats.ContainsKey(cardId))
+                        {
+                            cardStats[cardId] = (0, 0);
+                        }
+                        var current = cardStats[cardId];
+                        cardStats[cardId] = (current.DeckCount + 1, current.TotalCopies);
+                    }
+
+                    // Track total copies run
+                    foreach (var cardId in allCards)
+                    {
+                        if (string.IsNullOrWhiteSpace(cardId) || !cardStats.ContainsKey(cardId)) continue;
+                        var current = cardStats[cardId];
+                        cardStats[cardId] = (current.DeckCount, current.TotalCopies + 1);
+                    }
+                }
+
+                // Generate analytics documents for this format
+                foreach (var (cardId, stats) in cardStats)
+                {
+                    double inclusionRate = Math.Round(((double)stats.DeckCount / totalDecks) * 100, 1);
+                    double avgCopies = Math.Round((double)stats.TotalCopies / stats.DeckCount, 1);
+
+                    aggregatedAnalytics.Add(new CardAnalytics
+                    {
+                        CardId = cardId,
+                        Format = formatKey,
+                        DeckCount = stats.DeckCount,
+                        TotalDecksInFormat = totalDecks,
+                        InclusionRate = inclusionRate,
+                        TotalCopies = stats.TotalCopies,
+                        AvgCopies = avgCopies,
+                        LastUpdated = DateTime.UtcNow
+                    });
+                }
+            }
+
+            // Atomically replace collection contents with fresh aggregates
+            await _cardAnalyticsCollection.DeleteManyAsync(_ => true);
+            if (aggregatedAnalytics.Any())
+            {
+                await _cardAnalyticsCollection.InsertManyAsync(aggregatedAnalytics);
+            }
+        }
+
+        public async Task<List<DeckList>> GetRecentDecksAsync(int limit = 5)
+        {
+            // Fetch decks from MongoDB collection
+            var decks = await _deckListCollection.Find(_ => true).ToListAsync();
+
+            // Sort by Id descending (newest ObjectIds first) and take the limit
+            return decks
+                .OrderByDescending(d => d.Id)
+                .Take(limit)
+                .ToList();
         }
 
         // Internal helper classes for the YGOPro API JSON structure

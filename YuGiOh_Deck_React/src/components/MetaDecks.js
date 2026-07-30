@@ -78,7 +78,10 @@ export default function MetaDecks({ mdSound }) {
         <Card 
           style={{ 
             backgroundColor: 'rgba(8, 12, 20, 0.98)', 
-            backdropFilter: 'blur(10px)' 
+            backdropFilter: 'blur(10px)',
+            position: 'sticky',   // 👈 Enables sticky positioning
+            top: '70px',          // 👈 Offset from top (adjust if you have a fixed navbar above it)
+            zIndex: 1000          // 👈 Keeps it layered above cards scrolling underneath
           }} 
           text="white" 
           className="shadow-lg p-3 mb-4 md-panel border-info border-opacity-25"
@@ -94,7 +97,7 @@ export default function MetaDecks({ mdSound }) {
                   onMouseEnter={() => mdSound?.playHover?.()}
                   onClick={() => {
                     mdSound?.playClick?.();
-                    setActiveFormat(fmt.name); // 👈 Triggers state change & API fetch
+                    setActiveFormat(fmt.name);
                   }}
                 >
                   {fmt.name}
@@ -178,26 +181,42 @@ export default function MetaDecks({ mdSound }) {
                       className="bg-transparent border-bottom border-info border-opacity-25 pt-3 pb-2" 
                       style={{ minHeight: '85px' }}
                     >
-                      <div className="d-flex justify-content-between align-items-start gap-2">
-                        <h5 
-                          className="m-0 fw-bold text-white" 
-                          style={{ 
-                            fontFamily: 'Cascadia Mono, monospace', 
-                            letterSpacing: '0.5px', 
-                            fontSize: '1.05rem',
-                            display: '-webkit-box',
-                            WebkitLineClamp: '2',
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            lineHeight: '1.3'
-                          }}
-                          title={archetype}
-                        >
-                          {archetype}
-                        </h5>
-                        <Badge bg="warning" className="text-dark fw-bold text-uppercase fs-7 flex-shrink-0">
-                          {deck?.tier || deck?.Tier || 'TIER 1'}
-                        </Badge>
+                      <div>
+                        {/* --- TOP ROW: ARCHETYPE & TIER BADGE --- */}
+                        <div className="d-flex justify-content-between align-items-start gap-2">
+                          <h5 
+                            className="m-0 fw-bold text-white" 
+                            style={{ 
+                              fontFamily: 'Cascadia Mono, monospace', 
+                              letterSpacing: '0.5px', 
+                              fontSize: '1.05rem',
+                              display: '-webkit-box',
+                              WebkitLineClamp: '2',
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              lineHeight: '1.3'
+                            }}
+                            title={archetype}
+                          >
+                            {archetype}
+                          </h5>
+                          <Badge bg="warning" className="text-dark fw-bold text-uppercase fs-7 flex-shrink-0">
+                            {deck?.tier || deck?.Tier || 'TIER 1'}
+                          </Badge>
+                        </div>
+
+                        {/* --- BOTTOM ROW: PLACEMENT UNDERNEATH --- */}
+                        <div className="mt-2 d-flex align-items-center justify-content-between">
+                          <Badge bg="dark" className="text-light fw-bold px-3 py-2">
+                            🏆 {
+                                  (deck?.placement || deck?.Placement || 'Tournament Placement')
+                                    .replace(/Reached/gi, '')     // 1. Removes "Reached" (case-insensitive)
+                                    .replace(/\bat\b/gi, '@')      // 2. Swaps standalone "at" with "@"
+                                    .replace(/\s+/g, ' ')          // 3. Collapses double spaces
+                                    .trim()                        // 4. Trims leading/trailing whitespace
+                                }
+                          </Badge>
+                        </div>
                       </div>
                     </Card.Header>
 
@@ -221,8 +240,8 @@ export default function MetaDecks({ mdSound }) {
                         </div>
 
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                          <span className="badge bg-dark border border-secondary text-info">
-                            FORMAT: {deck?.format || deck?.Format || activeFormat}
+                          <span className="badge bg-dark border border-success text-warning fs-6">
+                            PILOT: {deck?.pilot || deck?.Author || activeFormat}
                           </span>
                         </div>
 

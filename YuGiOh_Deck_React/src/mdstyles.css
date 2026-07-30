@@ -1020,3 +1020,40 @@
 .rating-good { background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid #00ff88; }
 .rating-ok { background: rgba(255, 190, 0, 0.2); color: #ffbe00; border: 1px solid #ffbe00; }
 .rating-bad { background: rgba(255, 0, 85, 0.2); color: #ff0055; border: 1px solid #ff0055; }
+
+/* --- 3D COVERFLOW STAGE STYLES --- */
+.coverflow-stage {
+  transform-style: preserve-3d;
+  position: relative;
+  width: 100%;
+}
+
+.coverflow-item {
+  transform-origin: center center;
+  user-select: none;
+}
+
+.coverflow-item:hover {
+  will-change: transform, opacity;
+}
+
+/* Custom Cyberpunk Arrows */
+.coverflow-arrow {
+  font-size: 3rem;
+  font-weight: bold;
+  z-index: 200;
+  cursor: pointer;
+  padding: 0 1rem;
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
+  transition: transform 0.2s ease, text-shadow 0.2s ease, color 0.2s ease;
+}
+
+.coverflow-arrow:hover {
+  color: #ffffff !important;
+  transform: translateY(-50%) scale(1.25);
+  text-shadow: 0 0 25px rgba(0, 240, 255, 1);
+}
+
+.coverflow-arrow:active {
+  transform: translateY(-50%) scale(1.05);
+}

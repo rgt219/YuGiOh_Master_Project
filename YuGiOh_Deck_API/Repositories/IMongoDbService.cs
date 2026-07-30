@@ -16,5 +16,8 @@ namespace YuGiOhDeckApi.Repositories
         Task SaveMetaDeckAsync(MetaDeck metaDeck);
         Task<List<MetaDeck>> GetMetaDecksAsync(string? format = null);
         Task SaveMetaDecksBulkAsync(List<MetaDeck> metaDecks);
+        Task<List<CardAnalytics>> GetTrendingCardsAsync(string format, int limit = 18);
+        Task RecomputeCardAnalyticsAsync();
+        Task<List<DeckList>> GetRecentDecksAsync(int limit = 5);
     }
 }

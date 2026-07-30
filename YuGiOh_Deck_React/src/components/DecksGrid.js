@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DeckBoss from './DeckBoss';
 import '../mdstyles.css';
 import "../styles.css";
@@ -7,6 +7,9 @@ export default function DecksGrid({ decks = [], decklist = [], toggleDeckList })
     const [searchTerm, setSearchTerm] = useState("");
     const [extraDeckType, setExtraDeckType] = useState("All Extra Deck Types");
     const [rating, setRating] = useState("All");
+
+    // --- CAROUSEL STATE ---
+    const [activeIndex, setActiveIndex] = useState(0);
 
     const matchesSearchTerm = (deck) => deck.title.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -28,75 +31,137 @@ export default function DecksGrid({ decks = [], decklist = [], toggleDeckList })
         matchesExtraDeckType(deck) && matchesRating(deck) && matchesSearchTerm(deck)
     );
 
+    // Reset active index when filter results change
+    useEffect(() => {
+        setActiveIndex(0);
+    }, [searchTerm, extraDeckType, rating, decks.length]);
+
+    // Navigation Handlers
+    const handlePrev = useCallback(() => {
+        if (filteredDecks.length === 0) return;
+        setActiveIndex((prev) => (prev === 0 ? filteredDecks.length - 1 : prev - 1));
+    }, [filteredDecks.length]);
+
+    const handleNext = useCallback(() => {
+        if (filteredDecks.length === 0) return;
+        setActiveIndex((prev) => (prev === filteredDecks.length - 1 ? 0 : prev + 1));
+    }, [filteredDecks.length]);
+
+    // Keyboard Arrow Key Navigation
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'ArrowLeft') handlePrev();
+            if (e.key === 'ArrowRight') handleNext();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handlePrev, handleNext]);
+
     return (
         <div className="container-fluid px-4 py-3">
-            {/* Header Header */}
+            {/* Header */}
             <div className="d-flex align-items-center justify-content-between mb-3">
                 <h3 className="text-info terminal-font m-0" style={{ letterSpacing: '2px', fontFamily: 'Rajdhani, sans-serif' }}>
-                    FEATURED ARCHETYPES // TCG SELECTIONS
+                    MY FAVORITE TCG DECKS
                 </h3>
                 <span className="text-white-50 small" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
                     TOTAL INDEXED: [{filteredDecks.length}]
                 </span>
             </div>
 
-            {/* Cyber Filter Bar */}
-            <div className="md-filter-panel">
-                <div className="row g-3 align-items-center">
-                    {/* Search Input */}
-                    <div className="col-md-6">
-                        <input 
-                            type="text"
-                            className="form-control md-search-field"
-                            placeholder="SEARCH ARCHETYPE OR CARD..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+
+            {/* --- 3D COVER FLOW CAROUSEL STAGE --- */}
+            {filteredDecks.length === 0 ? (
+                <div className="text-center py-5 text-white-50 terminal-font">
+                    <h5>NO DECKS MATCH CURRENT FILTER CRITERIA</h5>
+                </div>
+            ) : (
+                <div className="coverflow-wrapper position-relative overflow-hidden py-4">
+                    {/* LEFT ARROW BUTTON */}
+                    <button 
+                        onClick={handlePrev}
+                        className="coverflow-arrow arrow-left position-absolute top-50 start-0 translate-middle-y border-0 bg-transparent text-info"
+                        aria-label="Previous Deck"
+                    >
+                        ❮
+                    </button>
+
+                    {/* RIGHT ARROW BUTTON */}
+                    <button 
+                        onClick={handleNext}
+                        className="coverflow-arrow arrow-right position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent text-info"
+                        aria-label="Next Deck"
+                    >
+                        ❯
+                    </button>
+
+                    {/* CAROUSEL CONTAINER */}
+                    <div 
+                        className="coverflow-stage d-flex align-items-center justify-content-center"
+                        style={{ height: '520px', perspective: '1000px' }}
+                    >
+                        {filteredDecks.map((deck, index) => {
+                            // Calculate distance relative to current active index
+                            const offset = index - activeIndex;
+                            const absOffset = Math.abs(offset);
+
+                            // Hide items further than 3 positions away to optimize DOM rendering
+                            if (absOffset > 3) return null;
+
+                            // 3D Math Calculations
+                            const translateX = offset * 260; // Horizontal offset spacing (px)
+                            const translateZ = -absOffset * 180; // Depth reduction (px)
+                            const rotateY = offset === 0 ? 0 : offset > 0 ? -25 : 25; // 3D Tilt Angle
+                            const scale = offset === 0 ? 1 : Math.max(0.7, 1 - absOffset * 0.15); // Scale multiplier
+                            const opacity = offset === 0 ? 1 : Math.max(0.3, 1 - absOffset * 0.35); // Opacity falloff
+                            const zIndex = 100 - absOffset; // Layer active card on top
+
+                            return (
+                                <div
+                                    key={deck.id}
+                                    onClick={() => setActiveIndex(index)}
+                                    className="coverflow-item position-absolute"
+                                    style={{
+                                        width: '310px',
+                                        transition: 'all 0.45s cubic-bezier(0.25, 1, 0.5, 1)',
+                                        transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+                                        opacity: opacity,
+                                        zIndex: zIndex,
+                                        cursor: offset === 0 ? 'default' : 'pointer',
+                                        filter: offset === 0 ? 'drop-shadow(0 0 20px rgba(0, 240, 255, 0.4))' : 'grayscale(35%)'
+                                    }}
+                                >
+                                    <DeckBoss
+                                        deck={deck}
+                                        toggleDeckList={toggleDeckList}
+                                        isDeckListed={decklist.includes(deck.id)}
+                                    />
+                                </div>
+                            );
+                        })}
                     </div>
 
-                    {/* Extra Deck Filter */}
-                    <div className="col-md-3">
-                        <select 
-                            className="form-select md-select-field" 
-                            value={extraDeckType} 
-                            onChange={(e) => setExtraDeckType(e.target.value)}
-                        >
-                            <option value="All Extra Deck Types">ALL EXTRA DECKS</option>
-                            <option value="Fusion">FUSION</option>
-                            <option value="Synchro">SYNCHRO</option>
-                            <option value="XYZ">XYZ</option>
-                            <option value="Link">LINK</option>
-                        </select>
-                    </div>
-
-                    {/* Rating Filter */}
-                    <div className="col-md-3">
-                        <select 
-                            className="form-select md-select-field" 
-                            value={rating} 
-                            onChange={(e) => setRating(e.target.value)}
-                        >
-                            <option value="All">ALL TIER RATINGS</option>
-                            <option value="Good">TIER 1 / GOOD (8+)</option>
-                            <option value="Ok">TIER 2 / OK (5-7)</option>
-                            <option value="Bad">ROGUE / CASUAL (&lt;5)</option>
-                        </select>
+                    {/* INDEX DOTS & PAGINATION INDICATOR */}
+                    <div className="d-flex justify-content-center align-items-center gap-2 mt-3">
+                        <span className="small text-info terminal-font me-2" style={{ letterSpacing: '1px' }}>
+                            [{activeIndex + 1} / {filteredDecks.length}]
+                        </span>
+                        {filteredDecks.map((_, dotIdx) => (
+                            <button
+                                key={dotIdx}
+                                onClick={() => setActiveIndex(dotIdx)}
+                                className={`border-0 rounded-circle transition-all ${dotIdx === activeIndex ? 'bg-info shadow-lg' : 'bg-secondary opacity-50'}`}
+                                style={{
+                                    width: dotIdx === activeIndex ? '12px' : '8px',
+                                    height: dotIdx === activeIndex ? '12px' : '8px',
+                                    padding: 0,
+                                    transition: 'all 0.2s ease'
+                                }}
+                            />
+                        ))}
                     </div>
                 </div>
-            </div>
-
-            {/* Decks Grid */}
-            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
-                {filteredDecks.map(deck => (
-                    <div className="col" key={deck.id}>
-                        <DeckBoss
-                            deck={deck}
-                            toggleDeckList={toggleDeckList}
-                            isDeckListed={decklist.includes(deck.id)}
-                        />
-                    </div>
-                ))}
-            </div>
+            )}
         </div>
     );
 }

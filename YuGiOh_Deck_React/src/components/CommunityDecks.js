@@ -187,7 +187,7 @@ export default function CommunityDecks() {
                                                 <h5 className="text-white terminal-font fw-bold text-truncate m-0">
                                                     {d.title || d.name || 'UNNAMED_DECK'}
                                                 </h5>
-                                                <small className="text-muted terminal-font d-block mt-1">
+                                                <small className="terminal-font d-block mt-1">
                                                     AUTHOR: {d.userId || d.user || 'ANONYMOUS'}
                                                 </small>
                                             </div>

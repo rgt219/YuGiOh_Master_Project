@@ -51,6 +51,9 @@ namespace YuGiOhDeckApi.BackgroundServices
                             // 🚀 2. Clear out older documents to prevent duplicates across runs
                             await mongoDbService.SaveMetaDecksBulkAsync(scrapedDecks);
 
+                            await mongoDbService.RecomputeCardAnalyticsAsync();
+                            _logger.LogInformation("Successfully recomputed CardAnalytics collection.");
+
                             _logger.LogInformation("Successfully updated MongoDB with fresh multi-format meta decks.");
                         }
                         else

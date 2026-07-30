@@ -1,9 +1,12 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
-import { useSignalR } from './SignalRContext.js';// Path to your context
+import { useSignalR } from './SignalRContext.js';
 
 const LiveTicker = () => {
-    const { activities } = useSignalR(); // Just grab the data from global state
+    const { activities } = useSignalR();
+
+    // Ensure we never render more than 5 items
+    const displayActivities = (activities || []).slice(0, 5);
 
     return (
         <Card className="master-duel-card">
@@ -12,8 +15,8 @@ const LiveTicker = () => {
             </Card.Header>
             <Card.Body className="p-2 bg-black-gradient">
                 <ul className="list-unstyled mb-0">
-                    {activities.length > 0 ? (
-                        activities.map((a, i) => (
+                    {displayActivities.length > 0 ? (
+                        displayActivities.map((a, i) => (
                             <li key={i} className="master-duel-ticker-item">
                                 <span style={{ color: '#00f2ff', fontWeight: 'bold' }}>{a.username || a.Username}</span> 
                                 <span className="text-white-50"> {a.action || a.Action || "published"} </span> 
