@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Spinner, Button, ProgressBar } from 'react-bootstrap';
 import '../mdstyles.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://localhost:8080/api';
+const API_BASE_URL = "https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api"
 
 export default function TrendingCards({ mdSound }) {
   const [activeFormat, setActiveFormat] = useState('TCG');
