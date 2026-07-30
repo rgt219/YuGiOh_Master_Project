@@ -8,6 +8,7 @@ using YuGiOhDeckApi.Services;
 using YuGiOhDeckApi.Repositories;
 using YuGiOhDeckApi.Hubs;
 using Azure.Storage.Blobs;
+using YuGiOhDeckApi.BackgroundServices;
 //Comment for pushing
 
 namespace YuGiOhDeckApi
@@ -82,7 +83,8 @@ namespace YuGiOhDeckApi
                     policy.WithOrigins(
                                 "http://localhost:3000",
                                 "https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io",
-                                "https://erregeteygo.com", "https://www.erregeteygo.com" // Replace with your ACTUAL frontend URL
+                                "https://erregeteygo.com", "https://www.erregeteygo.com",
+                                "https://localhost:3000"
                             )
                           .AllowAnyMethod()
                           .AllowAnyHeader()

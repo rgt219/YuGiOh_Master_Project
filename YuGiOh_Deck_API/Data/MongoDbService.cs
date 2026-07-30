@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -145,10 +146,35 @@ namespace YuGiOhDeckApi.Data
             );
         }
 
-        public async Task<List<MetaDeck>> GetMetaDecksAsync()
+        public async Task<List<MetaDeck>> GetMetaDecksAsync(string? format = null)
         {
-            // Fetches all documents from the MetaDecks collection
-            return await _metaDeckCollection.Find(_ => true).ToListAsync();
+            if (string.IsNullOrWhiteSpace(format))
+            {
+                return await _metaDeckCollection.Find(_ => true).ToListAsync();
+            }
+
+            // Regex.Escape ensures characters like '(' or ')' don't break the regex engine
+            string safeFormat = Regex.Escape(format.Trim());
+
+            var filter = Builders<MetaDeck>.Filter.Regex(
+                d => d.Format,
+                new BsonRegularExpression($"^{safeFormat}$", "i")
+            );
+
+            return await _metaDeckCollection.Find(filter).ToListAsync();
+        }
+
+        public async Task<MetaDeck?> GetMetaDeckByIdAsync(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) return null;
+
+            // Filter by Id property or Mongo's internal _id string
+            var filter = Builders<MetaDeck>.Filter.Or(
+                Builders<MetaDeck>.Filter.Eq(d => d.Id, id),
+                Builders<MetaDeck>.Filter.Eq("_id", id)
+            );
+
+            return await _metaDeckCollection.Find(filter).FirstOrDefaultAsync();
         }
 
         public async Task SaveMetaDecksBulkAsync(List<MetaDeck> metaDecks)

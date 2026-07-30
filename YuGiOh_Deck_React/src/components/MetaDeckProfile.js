@@ -5,6 +5,10 @@ import { Container, Row, Col, Card, Badge, Spinner, Button } from 'react-bootstr
 import '../mdstyles.css';
 import DeckPriceWidget from './DeckPriceWidget';
 
+// Centralized API Base URL (matches MetaDecks.js)
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api';
+
 // Helper function to map card attributes to Master Duel Bootstrap badge variants
 const getAttributeColor = (attribute) => {
   if (!attribute) return 'secondary';
@@ -39,8 +43,8 @@ export default function MetaDeckProfile() {
       return;
     }
 
-    // 1. Fetch Meta Deck Profile from .NET API
-    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/metadecks/${id}`)
+    // 1. Fetch Meta Deck Profile using dynamic API_BASE_URL
+    fetch(`${API_BASE_URL}/metadecks/${id}`)
       .then(async (res) => {
         if (!res.ok) {
           const errData = await res.json().catch(() => null);
@@ -193,9 +197,9 @@ export default function MetaDeckProfile() {
   const handleCardClick = (cardData) => {
     if (!cardData) return;
     if (pinnedCardData?.id === cardData.id) {
-      setPinnedCardData(null); // Unpin if clicking same card
+      setPinnedCardData(null);
     } else {
-      setPinnedCardData(cardData); // Pin new card
+      setPinnedCardData(cardData);
     }
   };
 
@@ -220,10 +224,10 @@ export default function MetaDeckProfile() {
                 <span className="small text-white-50">DECK ID: #{deckIdStr.substring(0, 8)}...</span>
               </div>
               <div className="d-flex gap-2">
-                <Badge bg="success" className="text-dark fw-bold px-3 py-2">PILOT: {pilot}</Badge>
-                <Badge bg="dark" className="text-light fw-bold px-3 py-2">PLACEMENT: {placement}</Badge>
-                <Badge bg="info" className="text-dark fw-bold px-3 py-2">FORMAT: {format}</Badge>
-                <Badge bg="warning" className="text-dark fw-bold px-3 py-2">{tier}</Badge>
+                <Badge bg="success" className="text-dark fw-bold px-3 py-2 fs-6">PILOT: {pilot}</Badge>
+                <Badge bg="dark" className="text-light fw-bold px-3 py-2 fs-6">PLACEMENT: {placement}</Badge>
+                <Badge bg="info" className="text-dark fw-bold px-3 py-2 fs-6">FORMAT: {format}</Badge>
+                <Badge bg="warning" className="text-dark fw-bold px-3 py-2 fs-6">{tier}</Badge>
               </div>
             </div>
           </Card.Header>
@@ -397,7 +401,7 @@ export default function MetaDeckProfile() {
                         </div>
                       )}
 
-                      {/* Card Effect Text Box (EXPANDED HEIGHT & SCROLLABLE) */}
+                      {/* Card Effect Text Box */}
                       <div className="text-start p-2 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
                         <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2">
                           Card Effect / Text
@@ -420,7 +424,7 @@ export default function MetaDeckProfile() {
                 </Card.Body>
               </Card>
 
-              {/* 2. DECK PRICE WIDGET (Placed Underneath Inspector) */}
+              {/* 2. DECK PRICE WIDGET */}
               <DeckPriceWidget 
                 mainDeck={mainDeckCards} 
                 extraDeck={extraDeckCards} 

@@ -14,7 +14,7 @@ namespace YuGiOhDeckApi.Repositories
         Task<bool> DeleteUserDeckAsync(string deckId, string userId);
         Task DeleteByTitleAsync(string title);
         Task SaveMetaDeckAsync(MetaDeck metaDeck);
-        Task<List<MetaDeck>> GetMetaDecksAsync();
+        Task<List<MetaDeck>> GetMetaDecksAsync(string? format = null);
         Task SaveMetaDecksBulkAsync(List<MetaDeck> metaDecks);
     }
 }

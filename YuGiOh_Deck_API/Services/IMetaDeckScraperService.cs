@@ -4,6 +4,6 @@ namespace YuGiOhDeckApi.Services
 {
     public interface IMetaDeckScraperService
     {
-        Task<List<MetaDeck>> ScrapeTcgMetaDecksAsync();
+        Task<List<MetaDeck>> ScrapeMetaDecksAsync();
     }
 }

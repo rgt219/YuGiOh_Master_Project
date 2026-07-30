@@ -22,7 +22,7 @@ namespace YuGiOhDeckApi.Controllers
         [HttpPost("scrape-meta-decks")]
         public async Task<IActionResult> ScrapeMetaDecks()
         {
-            var scrapedDecks = await _scraperService.ScrapeTcgMetaDecksAsync();
+            var scrapedDecks = await _scraperService.ScrapeMetaDecksAsync();
 
             foreach (var deck in scrapedDecks)
             {
