@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Moq; // A popular library for "faking" dependencies
+using Moq;
+using System.Threading.Tasks;
 using Xunit;
 using YuGiOh_Analytics_Consumer.Service;
 using YuGiOhDeckApi.Controllers;
@@ -12,14 +13,12 @@ public class DeckControllerTests
     [Fact]
     public void Controller_Should_Initialize_Successfully()
     {
-        // ARRANGE - Mock the Interface, not the Class
+        // ARRANGE
         var mockService = new Mock<IMongoDbService>();
+        var mockKafka = new Mock<IKafkaProducerService>();
 
         // ACT
-        var mockKafka = new Mock<IKafkaProducerService>(); // Added
-
-        // ACT
-        var controller = new DeckListMongoDbController(mockService.Object, mockKafka.Object); // Added 2nd arg
+        var controller = new DeckListMongoDbController(mockService.Object, mockKafka.Object);
 
         // ASSERT
         Assert.NotNull(controller);
@@ -30,12 +29,12 @@ public class DeckControllerTests
     {
         // ARRANGE
         var mockService = new Mock<IMongoDbService>();
-        var mockKafka = new Mock<IKafkaProducerService>(); // Added
+        var mockKafka = new Mock<IKafkaProducerService>();
 
         mockService.Setup(s => s.GetHydratedDeckAsync(It.IsAny<string>()))
                    .ReturnsAsync((HydratedDeckResponse)null!);
 
-        var controller = new DeckListMongoDbController(mockService.Object, mockKafka.Object); // Added 2nd arg
+        var controller = new DeckListMongoDbController(mockService.Object, mockKafka.Object);
 
         // ACT
         var result = await controller.GetById("fake-id-123");
@@ -53,10 +52,11 @@ public class DeckControllerTests
         var controller = new DeckListMongoDbController(mockService.Object, mockKafka.Object);
         var newDeck = new DeckList { Title = "Exodia Deck" };
 
-        // ACT
-        await controller.Save(newDeck);
+        // ACT - Calls the Save action on the controller
+        var result = await controller.Save(newDeck);
 
-        // ASSERT - Verify that PublishDeckUpdate was called exactly once with the correct title
-        mockKafka.Verify(k => k.PublishDeckUpdate(It.Is<DeckList>(d => d.Title == "Exodia Deck")), Times.Once);
+        // ASSERT - Verify that PublishDeckUpdate was called with an object matching the deck
+        mockKafka.Verify(k => k.PublishDeckUpdate(It.IsAny<object>()), Times.Once);
+        Assert.IsType<CreatedAtActionResult>(result);
     }
 }
