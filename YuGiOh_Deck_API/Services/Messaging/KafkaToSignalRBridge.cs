@@ -78,7 +78,9 @@ public class KafkaToSignalRBridge : BackgroundService
                         {
                             username = displayUser,
                             title = displayTitle,
-                            action = string.IsNullOrWhiteSpace(parsed.Action) ? "published" : parsed.Action
+                            action = string.IsNullOrWhiteSpace(parsed.Action) ? "published" : parsed.Action,
+                            mainDeck = parsed.MainDeck ?? new List<string>(),
+                            extraDeck = parsed.ExtraDeck ?? new List<string>()
                         };
 
                         // Add to static 5-item history queue

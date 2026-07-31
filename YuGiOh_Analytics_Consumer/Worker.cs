@@ -186,4 +186,10 @@ public class UserActivityDto
 
     [JsonPropertyName("action")]
     public string? Action { get; set; } = "published";
+
+    [JsonPropertyName("mainDeck")]
+    public List<string>? MainDeck { get; set; } = new();
+
+    [JsonPropertyName("extraDeck")]
+    public List<string>? ExtraDeck { get; set; } = new();
 }
