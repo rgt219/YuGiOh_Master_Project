@@ -172,6 +172,9 @@ namespace YuGiOh_Analytics_Consumer
 
 public class UserActivityDto
 {
+    [JsonPropertyName("id")]
+    public string Id { get; set; }
+
     [JsonPropertyName("userName")]
     public string? UserName { get; set; }
 
