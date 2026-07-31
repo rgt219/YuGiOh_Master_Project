@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,11 +18,16 @@ namespace YuGiOhDeckApi.Controllers
     {
         private readonly MongoDbService _mongoDbService;
         private readonly ILogger<AnalyticsController> _logger;
+        private readonly IMongoCollection<BsonDocument> _userActivityDtoCollection;
 
-        public AnalyticsController(MongoDbService mongoDbService, ILogger<AnalyticsController> logger)
+        public AnalyticsController(MongoDbService mongoDbService, ILogger<AnalyticsController> logger, IOptions<MongoDBSettings> mongoDBSettings)
         {
             _mongoDbService = mongoDbService;
             _logger = logger;
+
+            MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionURI);
+            IMongoDatabase database = client.GetDatabase("YugiohAnalytics");
+            _userActivityDtoCollection = database.GetCollection<BsonDocument>("DeckStats");
         }
 
         // GET: api/analytics/trending?format=TCG&limit=18
@@ -56,27 +64,39 @@ namespace YuGiOhDeckApi.Controllers
         }
 
         [HttpGet("recent-activity")]
+        [HttpGet("recent-activity")]
         public async Task<IActionResult> GetRecentActivity([FromQuery] int limit = 5)
         {
-            // 1. Check in-memory Kafka bridge buffer
-            var recent = KafkaToSignalRBridge.GetRecentActivities();
-
-            if (recent.Any())
+            try
             {
-                return Ok(recent.Take(limit));
+                // 🚀 Sort by timestamp descending to fetch the 5 most recent records
+                var recentDocs = await _userActivityDtoCollection
+                    .Find(FilterDefinition<BsonDocument>.Empty)
+                    .Sort(Builders<BsonDocument>.Sort.Descending("timestamp"))
+                    .Limit(limit)
+                    .ToListAsync();
+
+                var result = new List<object>();
+
+                foreach (var doc in recentDocs)
+                {
+                    result.Add(new
+                    {
+                        id = doc.Contains("_id") ? doc["_id"].ToString() : null,
+                        username = doc.Contains("userName") ? doc["userName"].AsString : "Duelist",
+                        action = doc.Contains("action") ? doc["action"].AsString : "published",
+                        title = doc.Contains("title") ? doc["title"].AsString : "New Deck",
+                        mainDeck = doc.Contains("mainDeck") ? doc["mainDeck"].AsBsonArray.Select(x => x.AsString).ToList() : new List<string>(),
+                        extraDeck = doc.Contains("extraDeck") ? doc["extraDeck"].AsBsonArray.Select(x => x.AsString).ToList() : new List<string>()
+                    });
+                }
+
+                return Ok(result);
             }
-
-            // 2. Fallback: Query 5 most recent public decks from MongoDB
-            var recentDecks = await _mongoDbService.GetRecentDecksAsync(limit); // Or query DeckListMongoDb sorted by _id desc
-
-            var fallbackActivities = recentDecks.Select(d => new UserActivityDto
+            catch (System.Exception ex)
             {
-                UserName = !string.IsNullOrWhiteSpace(d.UserId) ? d.UserId : "Anonymous",
-                Title = !string.IsNullOrWhiteSpace(d.Title) ? d.Title : "Unnamed Deck",
-                Action = "published"
-            }).ToList();
-
-            return Ok(fallbackActivities);
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
 

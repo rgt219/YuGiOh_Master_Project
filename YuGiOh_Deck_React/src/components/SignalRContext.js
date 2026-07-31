@@ -11,17 +11,24 @@ export const SignalRProvider = ({ children }) => {
     const [latestActivity, setLatestActivity] = useState(null);
 
     useEffect(() => {
-        // 1. Fetch initial 5 activity items from backend history
+        // 🚀 1. Fetch initial 5 most recent items from MongoDB on page load
         fetch(`${API_BASE_URL}/api/analytics/recent-activity?limit=5`)
             .then(res => res.ok ? res.json() : [])
             .then(data => {
-                if (Array.isArray(data)) {
-                    setActivities(data.slice(0, 5));
+                if (Array.isArray(data) && data.length > 0) {
+                    const mappedData = data.map(item => ({
+                        username: item.username || item.userName || "Duelist",
+                        action: item.action || "published",
+                        title: item.title || "New Deck",
+                        mainDeck: item.mainDeck || [],
+                        extraDeck: item.extraDeck || []
+                    }));
+                    setActivities(mappedData);
                 }
             })
-            .catch(err => console.warn('Could not load activity history:', err));
+            .catch(err => console.warn('Could not load activity history from DB:', err));
 
-        // 2. Setup SignalR Connection
+        // 🚀 2. Connect SignalR for incoming real-time broadcasts
         const newConnection = new signalR.HubConnectionBuilder()
             .withUrl(`${API_BASE_URL}/activityHub`)
             .withAutomaticReconnect()
@@ -34,16 +41,17 @@ export const SignalRProvider = ({ children }) => {
                 newConnection.on("ReceiveActivity", (activity) => {
                     if (!activity) return;
 
-                    console.log("Global Data Received:", activity);
+                    console.log("Global Realtime Event Received:", activity);
 
                     const newActivity = {
-                        username: activity.userName || activity.username || "Duelist",
-                        action: activity.action || activity.Action || "published",
-                        title: activity.title || activity.Title || "New Deck",
-                        mainDeck: activity.mainDeck || activity.MainDeck || [],
-                        extraDeck: activity.extraDeck || activity.ExtraDeck || []
+                        username: activity.username || activity.userName || "Duelist",
+                        action: activity.action || "published",
+                        title: activity.title || "New Deck",
+                        mainDeck: activity.mainDeck || [],
+                        extraDeck: activity.extraDeck || []
                     };
 
+                    // Prepend new activity and cap at top 5 items
                     setActivities(prev => [newActivity, ...prev].slice(0, 5));
                     setLatestActivity(newActivity);
                     setShowToast(true);
