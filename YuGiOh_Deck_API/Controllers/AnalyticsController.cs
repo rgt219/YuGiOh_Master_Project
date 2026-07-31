@@ -26,7 +26,7 @@ namespace YuGiOhDeckApi.Controllers
             _logger = logger;
 
             MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionURI);
-            IMongoDatabase database = client.GetDatabase("YugiohAnalytics");
+            IMongoDatabase database = client.GetDatabase("YuGiOhAnalytics");
             _userActivityDtoCollection = database.GetCollection<BsonDocument>("DeckStats");
         }
 
