@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using YuGiOh_Analytics_Consumer;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
 
