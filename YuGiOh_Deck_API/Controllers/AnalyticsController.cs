@@ -28,6 +28,16 @@ namespace YuGiOhDeckApi.Controllers
             MongoClient client = new MongoClient(mongoDBSettings.Value.ConnectionURI);
             IMongoDatabase database = client.GetDatabase("YuGiOhAnalytics");
             _userActivityDtoCollection = database.GetCollection<BsonDocument>("DeckStats");
+
+            try
+            {
+                var indexKeys = Builders<BsonDocument>.IndexKeys.Descending("timestamp");
+                _userActivityDtoCollection.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(indexKeys));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Index creation note: {ex.Message}");
+            }
         }
 
         // GET: api/analytics/trending?format=TCG&limit=18
