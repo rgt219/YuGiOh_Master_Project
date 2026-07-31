@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace YuGiOh_Analytics_Consumer.Service
@@ -41,25 +42,12 @@ namespace YuGiOh_Analytics_Consumer.Service
         {
             using var producer = new ProducerBuilder<string, string>(_producerConfig).Build();
 
-            // Cast to dynamic so we can read Title, MainDeck, etc., 
-            // even if this project doesn't 'know' what a DeckList is.
-            dynamic d = deck;
-
-            var payload = new
-            {
-                username = d.UserId ?? "erregete",
-                title = d.Title,
-                mainDeck = d.MainDeck ?? new List<string>(),
-                extraDeck = d.ExtraDeck ?? new List<string>(),
-                sideDeck = d.SideDeck ?? new List<string>(),
-                timestamp = DateTime.UtcNow
-            };
-
-            var jsonValue = System.Text.Json.JsonSerializer.Serialize(payload);
+            // 🚀 Serialize the full payload directly to JSON string
+            var jsonValue = JsonSerializer.Serialize(deck);
 
             await producer.ProduceAsync("deck-updates", new Message<string, string>
             {
-                Key = d.Id?.ToString() ?? Guid.NewGuid().ToString(),
+                Key = Guid.NewGuid().ToString(),
                 Value = jsonValue
             });
         }
