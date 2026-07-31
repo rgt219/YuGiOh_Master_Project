@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io';
 const SignalRContext = createContext();
 
 export const SignalRProvider = ({ children }) => {
@@ -10,32 +11,42 @@ export const SignalRProvider = ({ children }) => {
     const [latestActivity, setLatestActivity] = useState(null);
 
     useEffect(() => {
+        // 1. Fetch initial 5 activity items from backend history
+        fetch(`${API_BASE_URL}/api/analytics/recent-activity?limit=5`)
+            .then(res => res.ok ? res.json() : [])
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setActivities(data.slice(0, 5));
+                }
+            })
+            .catch(err => console.warn('Could not load activity history:', err));
+
+        // 2. Setup SignalR Connection
         const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/activityHub")
+            .withUrl(`${API_BASE_URL}/activityHub`)
             .withAutomaticReconnect()
             .build();
 
         newConnection.start()
             .then(() => {
                 console.log("Global SignalR Connected!");
-                
+
                 newConnection.on("ReceiveActivity", (activity) => {
-                    if (!activity) return; 
-                    
+                    if (!activity) return;
+
                     console.log("Global Data Received:", activity);
-                    
+
                     const newActivity = {
-                        username: activity.userId || activity.UserId || "Duelist",
+                        username: activity.userName || activity.username || "Duelist",
                         action: activity.action || activity.Action || "published",
-                        title: activity.title || activity.Title || "New Deck"
+                        title: activity.title || activity.Title || "New Deck",
+                        mainDeck: activity.mainDeck || activity.MainDeck || [],
+                        extraDeck: activity.extraDeck || activity.ExtraDeck || []
                     };
 
-                    // Keep the activity list updated
-                    setActivities(prev => [newActivity, ...prev].slice(0, 10));
-
-                    // --- ADD THESE TWO LINES ---
-                    setLatestActivity(newActivity); // Set the specific data for the Toast
-                    setShowToast(true);             // Pop the Toast up
+                    setActivities(prev => [newActivity, ...prev].slice(0, 5));
+                    setLatestActivity(newActivity);
+                    setShowToast(true);
                 });
             })
             .catch(err => console.error("SignalR Connection Error: ", err));
@@ -48,12 +59,12 @@ export const SignalRProvider = ({ children }) => {
     }, []);
 
     return (
-        <SignalRContext.Provider value={{ 
-            activities, 
-            connection, 
-            showToast, 
-            setShowToast, 
-            latestActivity 
+        <SignalRContext.Provider value={{
+            activities,
+            connection,
+            showToast,
+            setShowToast,
+            latestActivity
         }}>
             {children}
         </SignalRContext.Provider>
