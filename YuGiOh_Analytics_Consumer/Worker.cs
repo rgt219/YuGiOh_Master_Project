@@ -172,7 +172,15 @@ namespace YuGiOh_Analytics_Consumer
 
 public class UserActivityDto
 {
-    public string Username { get; set; } = "Unknown";
-    public string Title { get; set; } = "New Deck";
-    public string Action { get; set; } = "published";
+    [JsonPropertyName("userName")]
+    public string? UserName { get; set; }
+
+    [JsonPropertyName("userId")]
+    public string? UserId { get; set; }
+
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    [JsonPropertyName("action")]
+    public string? Action { get; set; } = "published";
 }

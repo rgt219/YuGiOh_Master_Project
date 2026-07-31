@@ -19,5 +19,6 @@ namespace YuGiOhDeckApi.Repositories
         Task<List<CardAnalytics>> GetTrendingCardsAsync(string format, int limit = 18);
         Task RecomputeCardAnalyticsAsync();
         Task<List<DeckList>> GetRecentDecksAsync(int limit = 5);
+        Task<string> GetUsernameByUserIdAsync(string? userId);
     }
 }

@@ -50,9 +50,26 @@ namespace YuGiOhDeckApi.Controllers
 
             try
             {
+                // 1. Save deck to DecksDB as usual (DeckList.cs untouched!)
                 await _mongoDbService.CreateAsync(newDeck);
-                await _kafkaProducerService.PublishDeckUpdate(newDeck);
-                Console.WriteLine($"[API_TRACE] SUCCESS: Full deck data sent to Kafka.");
+
+                // 2. 🚀 Resolve username dynamically from UsersDB using newDeck.UserId
+                string resolvedUsername = await _mongoDbService.GetUsernameByUserIdAsync(newDeck.UserId);
+
+                // 3. 🚀 Construct Kafka payload containing the fetched username
+                var activityPayload = new
+                {
+                    id = newDeck.Id,
+                    title = string.IsNullOrWhiteSpace(newDeck.Title) ? "Unnamed Deck" : newDeck.Title,
+                    userId = newDeck.UserId,
+                    userName = resolvedUsername, // 👈 Fetched directly from UsersDB!
+                    action = "published"
+                };
+
+                // 4. Send full payload with username to Kafka
+                await _kafkaProducerService.PublishDeckUpdate(activityPayload);
+
+                Console.WriteLine($"[API_TRACE] SUCCESS: Deck published by user '{resolvedUsername}' sent to Kafka.");
             }
             catch (Exception ex)
             {

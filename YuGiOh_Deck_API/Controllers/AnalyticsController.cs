@@ -70,7 +70,7 @@ namespace YuGiOhDeckApi.Controllers
 
             var fallbackActivities = recentDecks.Select(d => new UserActivityDto
             {
-                Username = !string.IsNullOrWhiteSpace(d.UserId) ? d.UserId : "Anonymous",
+                UserName = !string.IsNullOrWhiteSpace(d.UserId) ? d.UserId : "Anonymous",
                 Title = !string.IsNullOrWhiteSpace(d.Title) ? d.Title : "Unnamed Deck",
                 Action = "published"
             }).ToList();

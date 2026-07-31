@@ -25,7 +25,7 @@ export const SignalRProvider = ({ children }) => {
                     console.log("Global Data Received:", activity);
                     
                     const newActivity = {
-                        username: activity.username || activity.Username || "Duelist",
+                        username: activity.userId || activity.UserId || "Duelist",
                         action: activity.action || activity.Action || "published",
                         title: activity.title || activity.Title || "New Deck"
                     };

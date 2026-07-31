@@ -18,6 +18,7 @@ namespace YuGiOhDeckApi.Data
         private readonly IMongoCollection<DeckList> _deckListCollection;
         private readonly IMongoCollection<MetaDeck> _metaDeckCollection;
         private readonly IMongoCollection<CardAnalytics> _cardAnalyticsCollection;
+        private readonly IMongoCollection<BsonDocument> _usersCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -28,6 +29,11 @@ namespace YuGiOhDeckApi.Data
             _deckListCollection = database.GetCollection<DeckList>(mongoDBSettings.Value.CollectionName);
             _metaDeckCollection = database.GetCollection<MetaDeck>("MetaDecks");
             _cardAnalyticsCollection = database.GetCollection<CardAnalytics>("CardAnalytics");
+
+            IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
+            _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");
+
+
 
             // Fire and forget the cache loader
             _ = InitializeCardCache();
@@ -303,6 +309,41 @@ namespace YuGiOhDeckApi.Data
                 .OrderByDescending(d => d.Id)
                 .Take(limit)
                 .ToList();
+        }
+
+        public async Task<string> GetUsernameByUserIdAsync(string? userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) return "Anonymous";
+
+            try
+            {
+                // Build filter matching _id (tries ObjectId first, falls back to string matching)
+                FilterDefinition<BsonDocument> filter;
+                if (ObjectId.TryParse(userId, out var objectId))
+                {
+                    filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
+                }
+                else
+                {
+                    filter = Builders<BsonDocument>.Filter.Eq("_id", userId);
+                }
+
+                var userDoc = await _usersCollection.Find(filter).FirstOrDefaultAsync();
+
+                if (userDoc != null)
+                {
+                    // Check possible case variations for username field in UserRegistration
+                    if (userDoc.Contains("username")) return userDoc["username"].AsString;
+                    if (userDoc.Contains("Username")) return userDoc["Username"].AsString;
+                    if (userDoc.Contains("userName")) return userDoc["userName"].AsString;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[USERS_DB_LOOKUP_ERROR]: {ex.Message}");
+            }
+
+            return "Anonymous";
         }
 
         // Internal helper classes for the YGOPro API JSON structure

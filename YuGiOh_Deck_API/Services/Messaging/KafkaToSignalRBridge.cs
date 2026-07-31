@@ -1,22 +1,21 @@
 using Confluent.Kafka;
 using Microsoft.AspNetCore.SignalR;
-using YuGiOhDeckApi.Hubs;
-using System.Text.Json;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using YuGiOhDeckApi.Hubs;
+using YuGiOh_Analytics_Consumer;
+
 
 public class KafkaToSignalRBridge : BackgroundService
 {
     private readonly IConfiguration _config;
     private readonly IHubContext<ActivityHub> _hubContext;
+    private static readonly ConcurrentQueue<object> _recentActivities = new();
 
-    // 🚀 Thread-safe buffer holding max 5 recent activities
-    private static readonly ConcurrentQueue<UserActivityDto> _recentActivities = new();
-
-    public static List<UserActivityDto> GetRecentActivities()
+    public static List<object> GetRecentActivities()
     {
-        return _recentActivities.Reverse().ToList(); // Newest first
+        return _recentActivities.Reverse().ToList();
     }
 
     public KafkaToSignalRBridge(IConfiguration config, IHubContext<ActivityHub> hubContext)
@@ -27,67 +26,74 @@ public class KafkaToSignalRBridge : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Console.WriteLine("=============CALLING EXECUTE ASYNC=============");
         await Task.Yield();
-
         var connString = _config["Kafka:ConnectionString"];
-        if (string.IsNullOrEmpty(connString))
+        if (string.IsNullOrEmpty(connString)) return;
+
+        var config = new ConsumerConfig
         {
-            Console.WriteLine("CRITICAL: Kafka ConnectionString is missing. Bridge skipping...");
-            return;
-        }
+            GroupId = "bridge-v" + Guid.NewGuid().ToString()[..4],
+            BootstrapServers = _config["Kafka:BootstrapServers"],
+            SecurityProtocol = SecurityProtocol.SaslSsl,
+            SaslMechanism = SaslMechanism.Plain,
+            SaslUsername = "$ConnectionString",
+            SaslPassword = connString,
+            AutoOffsetReset = AutoOffsetReset.Latest
+        };
 
-        try
+        using var consumer = new ConsumerBuilder<string, string>(config).Build();
+        consumer.Subscribe("deck-updates");
+
+        // 🚀 CRITICAL: Case-insensitive deserialization options
+        var jsonOptions = new JsonSerializerOptions
         {
-            var config = new ConsumerConfig
-            {
-                GroupId = "bridge-v" + Guid.NewGuid().ToString().Substring(0, 4),
-                BootstrapServers = _config["Kafka:BootstrapServers"],
-                SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslMechanism = SaslMechanism.Plain,
-                SaslUsername = "$ConnectionString",
-                SaslPassword = connString,
-                AutoOffsetReset = AutoOffsetReset.Latest
-            };
+            PropertyNameCaseInsensitive = true
+        };
 
-            using var consumer = new ConsumerBuilder<string, string>(config).Build();
-            consumer.Subscribe("deck-updates");
-
-            while (!stoppingToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
             {
-                try
+                var consumeResult = consumer.Consume(stoppingToken);
+                if (consumeResult?.Message?.Value != null)
                 {
-                    var consumeResult = consumer.Consume(stoppingToken);
-                    if (consumeResult?.Message?.Value != null)
+                    var rawJson = consumeResult.Message.Value;
+
+                    // Deserialize with case-insensitive option
+                    var parsed = JsonSerializer.Deserialize<UserActivityDto>(rawJson, jsonOptions);
+
+                    if (parsed != null)
                     {
-                        var activity = JsonSerializer.Deserialize<UserActivityDto>(consumeResult.Message.Value);
+                        // 🚀 Fallback chain to guarantee display names
+                        string displayUser = !string.IsNullOrWhiteSpace(parsed.UserName)
+                            ? parsed.UserName
+                            : (!string.IsNullOrWhiteSpace(parsed.UserId) ? parsed.UserId : "Anonymous");
 
-                        if (activity != null)
+                        string displayTitle = !string.IsNullOrWhiteSpace(parsed.Title)
+                            ? parsed.Title
+                            : "Unnamed Deck";
+
+                        var payload = new
                         {
-                            if (string.IsNullOrEmpty(activity.Action)) activity.Action = "published";
+                            username = displayUser,
+                            title = displayTitle,
+                            action = string.IsNullOrWhiteSpace(parsed.Action) ? "published" : parsed.Action
+                        };
 
-                            // 🚀 Add to static buffer & trim to max 5 items
-                            _recentActivities.Enqueue(activity);
-                            while (_recentActivities.Count > 5)
-                            {
-                                _recentActivities.TryDequeue(out _);
-                            }
+                        // Add to static 5-item history queue
+                        _recentActivities.Enqueue(payload);
+                        while (_recentActivities.Count > 5) _recentActivities.TryDequeue(out _);
 
-                            // Broadcast live to connected SignalR clients
-                            await _hubContext.Clients.All.SendAsync("ReceiveActivity", activity, stoppingToken);
-                        }
+                        // Broadcast via SignalR
+                        await _hubContext.Clients.All.SendAsync("ReceiveActivity", payload, stoppingToken);
                     }
                 }
-                catch (ConsumeException ex)
-                {
-                    Console.WriteLine($"Kafka temporarily unavailable: {ex.Error.Reason}");
-                    await Task.Delay(5000, stoppingToken);
-                }
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"FATAL Bridge Error: {ex.Message}");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Bridge Exception: {ex.Message}");
+                await Task.Delay(3000, stoppingToken);
+            }
         }
     }
 }
