@@ -64,7 +64,6 @@ namespace YuGiOhDeckApi.Controllers
         }
 
         [HttpGet("recent-activity")]
-        [HttpGet("recent-activity")]
         public async Task<IActionResult> GetRecentActivity([FromQuery] int limit = 5)
         {
             try
