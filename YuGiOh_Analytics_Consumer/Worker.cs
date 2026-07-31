@@ -1,6 +1,7 @@
 using Azure.Storage.Blobs; // Fixes BlobContainerClient
 using Confluent.Kafka;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System;             // Fixes BinaryData and Guid
 using System.Text.Json;
@@ -14,8 +15,9 @@ namespace YuGiOh_Analytics_Consumer
         private readonly IConfiguration _configuration;
         private readonly BlobContainerClient _dlqContainerClient;
         private readonly IMongoCollection<BsonDocument> _analyticsCollection;
-        private readonly IProducer<string, string> _uiProducer; // ADD THIS
-        private IConsumer<Ignore, string>? _consumer; // ADD THIS LINE
+        private readonly IMongoCollection<UserActivityDto> _activityCollection; // Added for strongly-typed DTO saving
+        private readonly IProducer<string, string> _uiProducer;
+        private IConsumer<Ignore, string>? _consumer;
 
         public Worker(ILogger<Worker> logger, IConfiguration configuration)
         {
@@ -30,7 +32,8 @@ namespace YuGiOh_Analytics_Consumer
             // --- NEW: MongoDB Setup ---
             var mongoClient = new MongoClient(_configuration["CosmosDb:ConnectionString"]);
             var database = mongoClient.GetDatabase("YuGiOhAnalytics");
-            _analyticsCollection = database.GetCollection<BsonDocument>("DeckStats");
+            _analyticsCollection = database.GetCollection<BsonDocument>("CardUsageStats");
+            _activityCollection = database.GetCollection<UserActivityDto>("DeckStats");
 
             var producerConfig = new ProducerConfig
             {
@@ -52,6 +55,7 @@ namespace YuGiOh_Analytics_Consumer
 
             var allCardIds = main.Concat(extra).Concat(side)
                                 .Select(x => x.AsString)
+                                .Where(id => !string.IsNullOrEmpty(id) && id != "0")
                                 .ToList();
 
             _logger.LogInformation($"Processing analytics for {allCardIds.Count} total cards.");
@@ -102,23 +106,31 @@ namespace YuGiOh_Analytics_Consumer
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    // FIX: Match the type to your Worker's specific Kafka Consumer
                     ConsumeResult<Ignore, string>? result = null;
 
                     try
                     {
-                        result = _consumer.Consume(stoppingToken);
+                        // FIX: Use active local consumer variable
+                        result = consumer.Consume(stoppingToken);
 
                         if (result?.Message?.Value != null)
                         {
-                            // We still deserialize to verify the data
                             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                             var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
 
-                            // LOG IT instead of trying to send to SignalR
-                            _logger.LogInformation($"Worker processed deck: {activity?.Title}");
+                            if (activity != null)
+                            {
+                                // 1. Save live activity log directly into YuGiOhAnalytics.DeckStats
+                                if (string.IsNullOrEmpty(activity.Id))
+                                {
+                                    activity.Id = Guid.NewGuid().ToString();
+                                }
+                                await _activityCollection.InsertOneAsync(activity, cancellationToken: stoppingToken);
+                                _logger.LogInformation($"[MONGO_SUCCESS] Activity saved for deck: {activity.Title} by {activity.UserName}");
 
-                            // ... Your Database Saving Logic Goes Here ...
+                                // 2. Aggregate card frequency stats into MongoDB
+                                await ProcessDeckUpdate(result.Message.Value);
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -167,29 +179,44 @@ namespace YuGiOh_Analytics_Consumer
             }
         }
     }
-}
 
+    public class UserActivityDto
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
-public class UserActivityDto
-{
-    [JsonPropertyName("id")]
-    public string Id { get; set; }
+        [BsonElement("userName")]
+        [JsonPropertyName("userName")]
+        public string? UserName { get; set; }
 
-    [JsonPropertyName("userName")]
-    public string? UserName { get; set; }
+        [BsonElement("userId")]
+        [JsonPropertyName("userId")]
+        public string? UserId { get; set; }
 
-    [JsonPropertyName("userId")]
-    public string? UserId { get; set; }
+        [BsonElement("title")]
+        [JsonPropertyName("title")]
+        public string? Title { get; set; }
 
-    [JsonPropertyName("title")]
-    public string? Title { get; set; }
+        [BsonElement("action")]
+        [JsonPropertyName("action")]
+        public string? Action { get; set; } = "published";
 
-    [JsonPropertyName("action")]
-    public string? Action { get; set; } = "published";
+        [BsonElement("mainDeck")]
+        [JsonPropertyName("mainDeck")]
+        public List<string>? MainDeck { get; set; } = new();
 
-    [JsonPropertyName("mainDeck")]
-    public List<string>? MainDeck { get; set; } = new();
+        [BsonElement("extraDeck")]
+        [JsonPropertyName("extraDeck")]
+        public List<string>? ExtraDeck { get; set; } = new();
 
-    [JsonPropertyName("extraDeck")]
-    public List<string>? ExtraDeck { get; set; } = new();
+        [BsonElement("sideDeck")]
+        [JsonPropertyName("sideDeck")]
+        public List<string>? SideDeck { get; set; } = new();
+
+        [BsonElement("timestamp")]
+        [JsonPropertyName("timestamp")]
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    }
 }

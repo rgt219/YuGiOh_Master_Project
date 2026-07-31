@@ -87,7 +87,6 @@ const LiveTicker = () => {
                 <h6 className="mb-0 fw-bold" style={{ letterSpacing: '1px' }}>
                     📡 LIVE DUELIST ACTIVITY
                 </h6>
-                <span className="small text-white-50">REALTIME</span>
             </Card.Header>
             <Card.Body className="p-2 bg-black-gradient">
                 {/* Vertical descending list */}

@@ -58,7 +58,7 @@ export default function Home({ user }) {
                             { path: "/contact", label: "Contact", img: "./images/lenatus_art.jpg" },
                             { path: "/deckbuilder", label: "Deck Builder", img: "./images/exodia.png" },
                             { path: "/community", label: "Community", img: "./images/yujo.png" },
-                            { path: "/community", label: "Meta Decks", img: "./images/dysonsphere.png" },
+                            { path: "/meta-decks", label: "Meta Decks", img: "./images/dysonsphere.png" },
                         ].map((link) => (
                             <Card 
                                 as={Link} 
