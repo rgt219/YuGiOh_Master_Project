@@ -65,6 +65,7 @@ public class KafkaToSignalRBridge : BackgroundService
                     if (parsed != null)
                     {
                         // 🚀 Fallback chain to guarantee display names
+
                         string displayUser = !string.IsNullOrWhiteSpace(parsed.UserName)
                             ? parsed.UserName
                             : (!string.IsNullOrWhiteSpace(parsed.UserId) ? parsed.UserId : "Anonymous");

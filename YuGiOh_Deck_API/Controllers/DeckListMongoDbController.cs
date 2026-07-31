@@ -55,6 +55,7 @@ namespace YuGiOhDeckApi.Controllers
 
                 // 2. 🚀 Resolve username dynamically from UsersDB using newDeck.UserId
                 string resolvedUsername = await _mongoDbService.GetUsernameByUserIdAsync(newDeck.UserId);
+                Console.WriteLine($"[TRACE] Input UserId: '{newDeck.UserId}' | Resolved Username: '{resolvedUsername}'");
 
                 // 3. 🚀 Construct Kafka payload containing the fetched username
                 var fullPayload = new

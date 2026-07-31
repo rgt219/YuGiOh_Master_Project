@@ -317,12 +317,19 @@ namespace YuGiOhDeckApi.Data
 
             try
             {
-                // Build filter matching _id (tries ObjectId first, falls back to string matching)
                 FilterDefinition<BsonDocument> filter;
-                if (ObjectId.TryParse(userId, out var objectId))
+
+                // 1. Try parsing as integer (matching UserRegistration.cs Id)
+                if (int.TryParse(userId, out var intId))
+                {
+                    filter = Builders<BsonDocument>.Filter.Eq("_id", intId);
+                }
+                // 2. Try parsing as ObjectId
+                else if (ObjectId.TryParse(userId, out var objectId))
                 {
                     filter = Builders<BsonDocument>.Filter.Eq("_id", objectId);
                 }
+                // 3. Fallback to raw string matching
                 else
                 {
                     filter = Builders<BsonDocument>.Filter.Eq("_id", userId);
@@ -332,10 +339,9 @@ namespace YuGiOhDeckApi.Data
 
                 if (userDoc != null)
                 {
-                    // Check possible case variations for username field in UserRegistration
+                    if (userDoc.Contains("userName")) return userDoc["userName"].AsString;
                     if (userDoc.Contains("username")) return userDoc["username"].AsString;
                     if (userDoc.Contains("Username")) return userDoc["Username"].AsString;
-                    if (userDoc.Contains("userName")) return userDoc["userName"].AsString;
                 }
             }
             catch (Exception ex)
