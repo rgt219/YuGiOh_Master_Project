@@ -7,7 +7,7 @@ import TrendingCards from "./TrendingCards";
 import Footer from "./Footer";
 import LiveTicker from "./LiveTicker";
 
-// 🚀 Dedicated Video Nav Card with Promise Exception Protection & Rewind Logic
+// 🚀 Dedicated Video Nav Card with Instant Hover & Fast Page Load
 function NavVideoCard({ link }) {
     const videoRef = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
@@ -60,7 +60,7 @@ function NavVideoCard({ link }) {
                     }} 
                 />
 
-                {/* LAYER 2: Overlay Video (Only visible when hovered) */}
+                {/* LAYER 2: Overlay Video (Instant Hover Playback via preload="metadata") */}
                 {link.video && (
                     <video
                         ref={videoRef}
@@ -68,7 +68,7 @@ function NavVideoCard({ link }) {
                         muted
                         loop
                         playsInline
-                        preload="auto"
+                        preload="metadata" // 👈 Prevents page stutter on load while keeping hover instant
                         style={{ 
                             position: 'absolute',
                             top: 0,
@@ -76,7 +76,7 @@ function NavVideoCard({ link }) {
                             width: '100%', 
                             height: '100%', 
                             objectFit: 'cover',
-                            opacity: isHovered ? 1 : 0, // 👈 Cross-fades between video and image
+                            opacity: isHovered ? 1 : 0, // Cross-fades between video and image
                             transition: 'opacity 0.25s ease-in-out',
                             pointerEvents: 'none'
                         }}
@@ -186,9 +186,9 @@ export default function Home({ user }) {
                         {/* LEFT COLUMN: Welcome + Pitch + Action Buttons */}
                         <div className="col-lg-7 text-start mb-4 mb-lg-0">
                             {/* Welcome Tagline */}
-                            <h5 className="text-info terminal-font fw-bold mb-2 fs-6 fs-md-5" style={{ letterSpacing: '1px' }}>
-                                👋 WELCOME TO ERREGETEYGO!
-                            </h5>
+                            <h1 className="text-info terminal-font fw-bold mb-2 fs-4 fs-md-3" style={{ letterSpacing: '1.5px', textShadow: '0 0 8px rgba(0,242,255,0.3)' }}>
+                                WELCOME TO ERREGETEYGO!
+                            </h1>
 
                             {/* Main Title - Responsive Scaling */}
                             <h1 className="fw-bold text-white mb-3 fs-2 fs-md-1 display-lg-5" style={{ letterSpacing: '0.5px' }}>
@@ -275,9 +275,9 @@ export default function Home({ user }) {
                             { path: "/deckbuilder", label: "Deck Builder", img: "./images/albaz.jpg", video: "./videos/albaz.mp4" },
                             { path: "/community", label: "Community", img: "./images/bystialLubellion.png", video: "./videos/bystialLubellion.mp4" },
                             { path: "/meta-decks", label: "Meta Decks", img: "./images/mirrorjade.jpg", video: "./videos/mirrorjade.mp4" },
-                            { path: "/meta-decks", label: "Card Search", img: "./images/darkdragon.jpg", video: "./videos/darkdragon.mp4" },
-                            { path: "/meta-decks", label: "Ban List", img: "./images/blazing.png", video: "./videos/blazing.mp4" },
-                            { path: "/meta-decks", label: "Forums", img: "./images/sanctifire.png", video: "./videos/sanctifire.mp4" },
+                            { path: "/comingsoon", label: "Card Search", img: "./images/darkdragon.jpg", video: "./videos/darkdragon.mp4" },
+                            { path: "/comingsoon", label: "Ban List", img: "./images/blazing.png", video: "./videos/blazing.mp4" },
+                            { path: "/comingsoon", label: "Forums", img: "./images/sanctifire.png", video: "./videos/sanctifire.mp4" },
                         ].map((link, idx) => (
                             <NavVideoCard key={idx} link={link} />
                         ))}

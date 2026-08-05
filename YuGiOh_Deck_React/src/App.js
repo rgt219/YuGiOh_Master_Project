@@ -28,6 +28,9 @@ import { whiteForestAzaminaCombo } from './components/WhiteForestAzaminaCombo.js
 import ComingSoon from './components/ComingSoon.js';
 // import ComboPlayerSandbox from './components/ComboPlayerSandbox.js';
 
+// ⚡ Import Master Duel Cyber Flickers Canvas Background
+import CyberFlickerCanvas from './components/CyberFlickerCanvas';
+
 function App() {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("user");
@@ -55,6 +58,9 @@ function App() {
     }>
       <QueryClientProvider client={queryClient}>
         <Router>
+          {/* ⚡ Master Duel Floating Cyber Particles Background */}
+          <CyberFlickerCanvas />
+          
           <SignalRProvider>
             <GlobalToast />
             <NavbarYGO user={user} onLogout={handleLogout} /> 
@@ -79,7 +85,6 @@ function App() {
 
                 <Route element={<ProtectedRoute user={user} />}>
                   <Route path="/profile" element={<UserProfile user={user}/>}/>
-                  
                 </Route>
               </Routes>
             </DecksProvider>
