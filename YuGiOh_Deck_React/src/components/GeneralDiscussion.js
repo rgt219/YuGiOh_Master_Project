@@ -26,7 +26,7 @@ export default function GeneralDiscussion() {
         setIsLoading(true);
         try {
             // Category "general" targets General Discussion
-            const response = await fetch(`${API_URLS.FORUMS || API_URLS.DECK}/api/forums/threads?category=general`);
+            const response = await fetch(`${API_URLS.FORUMS || API_URLS.DECK}/api/forum/threads?category=general`);
             if (response.ok) {
                 const data = await response.json();
                 setThreads(data);

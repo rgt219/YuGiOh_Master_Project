@@ -33,7 +33,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	collection := client.Database("YuGiOhForums").Collection("Threads")
+	collection := client.Database("YuGiOhForums").Collection("ForumThreads")
 
 	ticker := time.NewTicker(10 * time.Minute)
 	log.Println("⚡ Go Forum Hot-Ranking Worker Active...")
