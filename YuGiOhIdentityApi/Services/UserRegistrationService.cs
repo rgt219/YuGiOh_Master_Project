@@ -42,5 +42,18 @@ namespace YuGiOhIdentityApi.Services
 
             await _users.InsertOneAsync(newUser);
         }
+
+        // ⚡ NEW: Update method for Password Resets & Profile Updates
+        public async Task UpdateAsync(UserRegistration updatedUser)
+        {
+            // Automatically hash the new password if it's plain text (doesn't start with BCrypt salt prefix)
+            if (!string.IsNullOrEmpty(updatedUser.Password) && !updatedUser.Password.StartsWith("$2"))
+            {
+                updatedUser.Password = BCrypt.Net.BCrypt.HashPassword(updatedUser.Password);
+            }
+
+            // Replace the existing document in MongoDB by Email
+            await _users.ReplaceOneAsync(u => u.Email == updatedUser.Email, updatedUser);
+        }
     }
 }

@@ -185,14 +185,26 @@ namespace YuGiOhDeckApi.Data
 
         public async Task SaveMetaDecksBulkAsync(List<MetaDeck> metaDecks)
         {
-            // 1. Wipe out old stale meta deck records
-            await _metaDeckCollection.DeleteManyAsync(_ => true);
+            if (metaDecks == null || !metaDecks.Any()) return;
 
-            // 2. Insert the fresh batch
-            if (metaDecks != null && metaDecks.Any())
+            var updates = new List<WriteModel<MetaDeck>>();
+
+            foreach (var deck in metaDecks)
             {
-                await _metaDeckCollection.InsertManyAsync(metaDecks);
+                // 1. Match existing record by its unique Id (or DeckId / Name)
+                var filter = Builders<MetaDeck>.Filter.Eq(d => d.Id, deck.Id);
+
+                // 2. Create a ReplaceOneModel with IsUpsert = true
+                var upsertModel = new ReplaceOneModel<MetaDeck>(filter, deck)
+                {
+                    IsUpsert = true // 👈 If found: UPDATE. If missing: INSERT.
+                };
+
+                updates.Add(upsertModel);
             }
+
+            // 3. Execute bulk write safely
+            await _metaDeckCollection.BulkWriteAsync(updates);
         }
 
         public async Task<List<CardAnalytics>> GetTrendingCardsAsync(string format, int limit = 18)

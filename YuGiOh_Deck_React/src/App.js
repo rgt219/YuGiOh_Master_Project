@@ -27,6 +27,7 @@ import MetaDeckProfile from './components/MetaDeckProfile.js';
 import { whiteForestAzaminaCombo } from './components/WhiteForestAzaminaCombo.js';
 import ComingSoon from './components/ComingSoon.js';
 // import ComboPlayerSandbox from './components/ComboPlayerSandbox.js';
+import ResetPassword from './components/ResetPassword.js';
 
 // ⚡ Import Master Duel Cyber Flickers Canvas Background
 import CyberFlickerCanvas from './components/CyberFlickerCanvas';
@@ -77,6 +78,7 @@ function App() {
                 <Route path="/decklist" element={<DeckList/>} />
                 <Route path="/decks/:deckId" element={<DeckDetails />} />
                 <Route path="/register" element={<Register />}/>
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route path="/comingsoon" element={<ComingSoon />} />
                 

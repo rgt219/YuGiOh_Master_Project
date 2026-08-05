@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Form, Button, Spinner } from 'react-bootstrap';
+import { Form, Button, Spinner, Modal } from 'react-bootstrap';
 import { API_URLS } from "../config";
 import "../mdstyles.css";
 
@@ -9,9 +9,14 @@ export default function Login({ setUser }) {
     const [password, setPassword] = useState("");
     const [validated, setValidated] = useState(false);
     
-    // --- 1. NEW STATES FOR LOADING AND API ERRORS ---
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+
+    // Forgot Password Modal States
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const [resetEmail, setResetEmail] = useState("");
+    const [resetStatus, setResetStatus] = useState("");
+    const [isResetSending, setIsResetSending] = useState(false);
     
     const navigate = useNavigate();
 
@@ -26,10 +31,9 @@ export default function Login({ setUser }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrorMessage(""); // Reset previous error state
+        setErrorMessage("");
 
         const form = e.currentTarget;
-        
         if (form.checkValidity() === false) {
             e.stopPropagation();
             setValidated(true);
@@ -37,51 +41,59 @@ export default function Login({ setUser }) {
         }
 
         const credentials = { email, password };
-
-        // --- 2. TRIGGER LOADING STATE ---
         setIsLoading(true);
 
         try {
             const response = await fetch(`${API_URLS.IDENTITY}/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(credentials)
+                body: JSON.stringify(credentials),
             });
-            
-            const data = await response.json();
 
             if (response.ok) {
-                console.log("UPLINK_ESTABLISHED:", data.userName);
-                
+                const data = await response.json();
                 sessionStorage.setItem("token", data.token);
-                sessionStorage.setItem("user", JSON.stringify({
-                    userName: data.userName,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    email: data.email,
-                    id: data.id
-                }));
-
+                sessionStorage.setItem("user", JSON.stringify(data));
                 setUser(data);
                 navigate("/");
             } else {
-                // Handle 401 / Bad credentials
-                setErrorMessage(data.message || "! ERROR: AUTHENTICATION_REFUSED");
-                setIsLoading(false);
+                const errorData = await response.json();
+                setErrorMessage(errorData.message || "AUTHENTICATION_FAILED");
             }
-
         } catch (error) {
-            console.error("CONNECTION_FAILURE: ", error);
-            setErrorMessage("! ERROR: MAINFRAME_OFFLINE_OR_TIMEOUT");
+            setErrorMessage("SYSTEM_OFFLINE: UNABLE_TO_REACH_SERVER");
+        } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleForgotPasswordSubmit = async (e) => {
+        e.preventDefault();
+        setIsResetSending(true);
+        setResetStatus("");
+
+        try {
+            const response = await fetch(`${API_URLS.IDENTITY}/forgot-password`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: resetEmail }),
+            });
+
+            if (response.ok) {
+                setResetStatus("UPLINK_SENT: Check your inbox for reset instructions.");
+            } else {
+                setResetStatus("! ERROR: Unable to process reset request.");
+            }
+        } catch (err) {
+            setResetStatus("! ERROR: SYSTEM_OFFLINE");
+        } finally {
+            setIsResetSending(false);
         }
     };
 
     return (
         <div className="md-theme-bg d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
             <div className="login-terminal-panel">
-                
-                {/* Terminal Window Top Bar */}
                 <div className="terminal-header">
                     <div className="terminal-dot red"></div>
                     <div className="terminal-dot yellow"></div>
@@ -89,83 +101,105 @@ export default function Login({ setUser }) {
                     <span className="terminal-title">ENCRYPTED_SIGN_IN</span>
                 </div>
 
-                {/* Branding Title */}
-                <h2 className="login-branding text-center mt-3 mb-4">
-                    ErreGeTe <span className="text-info">YGO</span>
-                </h2>
+                <Form noValidate validated={validated} onSubmit={handleSubmit} className="login-form">
+                    <h2 className="login-branding">ErreGeTe <span className="text-info">YGO</span></h2>
 
-                {/* --- 3. CONDITIONAL RENDER: LOADING VS FORM --- */}
-                {isLoading ? (
-                    <div className="text-center py-5 my-3">
-                        <Spinner 
-                            animation="border" 
-                            variant="info" 
-                            style={{ width: "3rem", height: "3rem" }} 
-                            className="mb-4"
+                    {errorMessage && (
+                        <div className="alert alert-danger py-2 text-center terminal-font small" role="alert">
+                            ! ERROR: {errorMessage}
+                        </div>
+                    )}
+
+                    <Form.Group className="input-hud-group mb-4" controlId="validationEmail">
+                        <Form.Label className="hud-label">EMAIL IDENTIFIER</Form.Label>
+                        <Form.Control 
+                            required
+                            type="email" 
+                            placeholder="NAME@DOMAIN.COM"
+                            className="md-input-field"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
-                        <h5 className="text-info tracking-wider fw-bold">
-                            ESTABLISHING_SECURE_UPLINK...
-                        </h5>
-                        <p className="text-white-50 small fst-italic mt-2">
-                            AUTHENTICATING CREDENTIALS WITH AZURE IDENTITY GATEWAY
-                        </p>
+                    </Form.Group>
+
+                    <Form.Group className="input-hud-group mb-4" controlId="validationPassword">
+                        <Form.Label className="hud-label">PASSWORD</Form.Label>
+                        <Form.Control 
+                            required
+                            type="password" 
+                            placeholder="********"
+                            className="md-input-field"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            minLength={8}
+                        />
+                    </Form.Group>
+
+                    <Button type="submit" className="md-btn-primary mt-4 w-100" disabled={isLoading}>
+                        {isLoading ? <Spinner animation="border" size="sm" /> : "LOGIN"}
+                    </Button>
+
+                    <div className="login-footer mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <Link to="/" className="terminal-link">HOME PAGE</Link>
+                        <span className="terminal-divider">|</span>
+                        <Link to="/register" className="terminal-link">REGISTER</Link>
+                        <span className="terminal-divider">|</span>
+                        <button 
+                            type="button" 
+                            onClick={() => setShowForgotModal(true)} 
+                            className="terminal-link bg-transparent border-0 p-0 text-info"
+                        >
+                            FORGOT PASSWORD?
+                        </button>
                     </div>
-                ) : (
-                    <Form noValidate validated={validated} onSubmit={handleSubmit} className="login-form">
-                        
-                        {/* API Error Message Alert */}
-                        {errorMessage && (
-                            <div className="terminal-error mb-4 p-2 text-center border border-danger rounded" style={{ background: "rgba(255, 0, 0, 0.1)" }}>
-                                {errorMessage}
+                </Form>
+            </div>
+
+            {/* ⚡ Forgot Password Modal */}
+            <Modal 
+                show={showForgotModal} 
+                onHide={() => setShowForgotModal(false)} 
+                centered
+                contentClassName="bg-dark text-white border border-info shadow-lg"
+            >
+                <Modal.Header closeButton closeVariant="white" className="border-secondary bg-black bg-opacity-50">
+                    <Modal.Title className="text-info terminal-font fw-bold fs-6">
+                        RECOVERY_UPLINK
+                    </Modal.Title>
+                </Modal.Header>
+                <Form onSubmit={handleForgotPasswordSubmit}>
+                    <Modal.Body className="py-4">
+                        <p className="text-white-50 small mb-3">
+                            Enter your account email. We will send a secure link to reset your access code.
+                        </p>
+                        {resetStatus && (
+                            <div className="alert alert-info py-2 small terminal-font mb-3">
+                                {resetStatus}
                             </div>
                         )}
-
-                        {/* Identifier Field */}
-                        <Form.Group className="input-hud-group mb-4" controlId="validationEmail">
-                            <Form.Label className="hud-label">USER_IDENTIFIER</Form.Label>
+                        <Form.Group>
+                            <Form.Label className="hud-label">EMAIL ADDRESS</Form.Label>
                             <Form.Control 
                                 required
-                                type="email" 
+                                type="email"
                                 placeholder="NAME@DOMAIN.COM"
                                 className="md-input-field"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={resetEmail}
+                                onChange={(e) => setResetEmail(e.target.value)}
                             />
-                            <Form.Control.Feedback type="invalid" className="terminal-error">
-                                ! ERROR: INVALID_IDENTIFIER_FORMAT
-                            </Form.Control.Feedback>
                         </Form.Group>
-
-                        {/* Access Code Field */}
-                        <Form.Group className="input-hud-group mb-4" controlId="validationPassword">
-                            <Form.Label className="hud-label">ACCESS_CODE</Form.Label>
-                            <Form.Control 
-                                required
-                                type="password" 
-                                placeholder="********"
-                                className="md-input-field"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                minLength={8}
-                            />
-                            <Form.Control.Feedback type="invalid" className="terminal-error">
-                                ! ERROR: CODE_MIN_LENGTH_8
-                            </Form.Control.Feedback>
-                        </Form.Group>
-
-                        <Button type="submit" className="md-btn-primary mt-4 w-100">
-                            EXECUTE_LOGIN
+                    </Modal.Body>
+                    <Modal.Footer className="border-secondary bg-black bg-opacity-50">
+                        <Button 
+                            type="submit" 
+                            className="md-btn-primary px-4"
+                            disabled={isResetSending}
+                        >
+                            {isResetSending ? <Spinner animation="border" size="sm" /> : "SEND RESET LINK"}
                         </Button>
-
-                        <div className="login-footer mt-4">
-                            <Link to="/" className="terminal-link">RETURN_TO_BASE</Link>
-                            <span className="terminal-divider">|</span>
-                            <Link to="/register" className="terminal-link">NEW_USER_REG</Link>
-                        </div>
-                    </Form>
-                )}
-
-            </div>
+                    </Modal.Footer>
+                </Form>
+            </Modal>
         </div>
     );
 }

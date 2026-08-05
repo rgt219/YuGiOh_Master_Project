@@ -150,7 +150,15 @@ const techStackSlides = [
         cardName: "Accesscode Talker",
         cardId: "86066372",
         desc: "Dead Letter Queue storage isolating unprocessable event payloads to guarantee data integrity."
-    }
+    },
+    {
+        tech: "Go (Golang) Microservice",
+        badge: "CONCURRENCY",
+        badgeBg: "pink",
+        cardName: "Powercode Talker",
+        cardId: "15844566",
+        desc: "High-speed Goroutine worker pool executing streaming YDK deck scraping and parallel Azure Blob image syncs."
+    },
 ];
 
 export default function Home({ user }) {
@@ -243,7 +251,13 @@ export default function Home({ user }) {
                                                 />
                                                 <div className="d-flex justify-content-between align-items-center mb-1">
                                                     <span className="fw-bold text-white small">{slide.tech}</span>
-                                                    <span className={`badge bg-${slide.badgeBg} text-dark`} style={{ fontSize: '0.65rem' }}>
+                                                    <span 
+                                                        className={`badge ${slide.badgeBg === 'pink' ? 'text-dark' : `bg-${slide.badgeBg} text-dark`}`} 
+                                                        style={{ 
+                                                            fontSize: '0.65rem',
+                                                            backgroundColor: slide.badgeBg === 'pink' ? '#ff69b4' : undefined // Neon Cyber Pink
+                                                        }}
+                                                    >
                                                         {slide.badge}
                                                     </span>
                                                 </div>

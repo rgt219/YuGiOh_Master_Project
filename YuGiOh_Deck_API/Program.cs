@@ -26,16 +26,27 @@ namespace YuGiOhDeckApi
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
             builder.Services.AddSignalR();
             builder.Services.AddHttpClient();
+            // Register Meta Deck Scraper Service
             // Register HttpClient and Scraper Service
             // Register HTTP Client Adapters pointing to the Go microservice
-            builder.Services.AddHttpClient<IMetaDeckScraperService, GoMetaDeckScraperClient>(client =>
+            builder.Services.AddHttpClient<GoMetaDeckScraperClient>(client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["GoWorkerUrl"] ?? "http://go-worker:8080/");
+                var baseUrl = builder.Configuration["GoWorker:ConnectionString"] ?? "http://localhost:8080";
+                client.BaseAddress = new Uri(baseUrl);
             });
 
             builder.Services.AddHttpClient<ICardImageSyncService, GoCardImageSyncClient>(client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["GoWorkerUrl"] ?? "http://go-worker:8080/");
+                var baseUrl = builder.Configuration["GoWorker:ConnectionString"] ?? "http://localhost:8080";
+                client.BaseAddress = new Uri(baseUrl);
+            });
+
+            builder.Services.AddHttpClient<IMetaDeckScraperService, GoMetaDeckScraperClient>(client =>
+            {
+                var baseUrl = builder.Configuration["GoWorker:ConnectionString"]
+                        ?? builder.Configuration["GoWorker:BaseUrl"]
+                        ?? "http://localhost:8080";
+                client.BaseAddress = new Uri(baseUrl);
             });
 
             builder.Services.AddHostedService<KafkaToSignalRBridge>();

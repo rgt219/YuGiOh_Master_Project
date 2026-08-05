@@ -4,6 +4,7 @@ using Microsoft.ApplicationInsights.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using YuGiOhIdentityApi.Repositories;
 //Comment for pushing
 
 namespace YuGiOhIdentityApi
@@ -17,6 +18,7 @@ namespace YuGiOhIdentityApi
             // 1. SERVICES CONFIGURATION
             builder.Services.Configure<MongoDBUserSettings>(builder.Configuration.GetSection("MongoDBUsers"));
             builder.Services.AddSingleton<UserRegistrationService>();
+            builder.Services.AddTransient<IEmailService, EmailService>();
 
             builder.Services.AddCors(options =>
             {

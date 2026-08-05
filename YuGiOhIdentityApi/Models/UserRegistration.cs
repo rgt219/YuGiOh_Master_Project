@@ -30,5 +30,9 @@ namespace YuGiOhIdentityApi.Models
         [JsonPropertyName("password")]
         public string? Password { get; set; }
 
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
+
+
     }
 }
