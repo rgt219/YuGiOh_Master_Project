@@ -32,6 +32,8 @@ import ResetPassword from './components/ResetPassword.js';
 // ⚡ Import Master Duel Cyber Flickers Canvas Background
 import CyberFlickerCanvas from './components/CyberFlickerCanvas';
 
+import GeneralDiscussion from './components/GeneralDiscussion.js';
+
 function App() {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("user");
@@ -84,6 +86,8 @@ function App() {
                 
                 <Route path="/deckbuilder" element={<DeckBuilder user={user}/>} />
                 <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />
+
+                <Route path="/generaldiscussion" element={<GeneralDiscussion/>} />
 
                 <Route element={<ProtectedRoute user={user} />}>
                   <Route path="/profile" element={<UserProfile user={user}/>}/>

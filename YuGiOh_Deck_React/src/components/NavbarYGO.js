@@ -158,7 +158,7 @@ export default function NavbarYGO({ user, onLogout }) {
             >
               <NavDropdown.Item
                 as={Link} 
-                to="/comingsoon"
+                to="/generaldiscussion"
                 className="text-info fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >

@@ -46,9 +46,13 @@ jobs:
           docker build -f YuGiOh_Deck_API/Dockerfile -t yugiohapidocker.azurecr.io/api:${{ github.sha }} .
           docker push yugiohapidocker.azurecr.io/api:${{ github.sha }}
 
-          # Build Go Worker (Goroutines Scraper & Image Sync Engine) 👈 ADDED
+          # Build Go Worker (Goroutines Scraper & Image Sync Engine)
           docker build -t yugiohapidocker.azurecr.io/go-worker:${{ github.sha }} ./YuGiOh_Deck_API/go-services
           docker push yugiohapidocker.azurecr.io/go-worker:${{ github.sha }}
+
+          # Build Forum API
+          docker build -t yugiohapidocker.azurecr.io/forum-api:${{ github.sha }} ./YuGiOh_Forum_API
+          docker push yugiohapidocker.azurecr.io/forum-api:${{ github.sha }}
 
           # Build Identity API
           docker build -t yugiohapidocker.azurecr.io/identity:${{ github.sha }} ./YuGiOhIdentityApi
@@ -87,7 +91,19 @@ jobs:
           resourceGroup: ErreGeTe
           targetPort: 8080
 
-      # 7. Deploy Deck API (Blue-Green Logic)
+      # 7. Deploy Forum API
+      - name: Deploy Forum API
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: yugiohapidocker.azurecr.io/forum-api:${{ github.sha }}
+          containerAppName: forum-api
+          resourceGroup: ErreGeTe
+          targetPort: 8080
+          acrName: yugiohapidocker
+          acrUsername: ${{ secrets.ACR_USERNAME }}
+          acrPassword: ${{ secrets.ACR_PASSWORD }}
+
+      # 8. Deploy Deck API (Blue-Green Logic)
       - name: Update Deck API (0% Traffic)
         id: deploy_step
         uses: azure/container-apps-deploy-action@v1
@@ -106,7 +122,7 @@ jobs:
           resourceGroup: ErreGeTe
           targetPort: 80
 
-      # 8. Deploy Analytics Consumer (Background Worker)
+      # 9. Deploy Analytics Consumer (Background Worker)
       - name: Deploy Analytics Consumer
         uses: azure/container-apps-deploy-action@v1
         with:
