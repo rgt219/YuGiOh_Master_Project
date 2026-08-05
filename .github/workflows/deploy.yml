@@ -46,6 +46,10 @@ jobs:
           docker build -f YuGiOh_Deck_API/Dockerfile -t yugiohapidocker.azurecr.io/api:${{ github.sha }} .
           docker push yugiohapidocker.azurecr.io/api:${{ github.sha }}
 
+          # Build Go Worker (Goroutines Scraper & Image Sync Engine) 👈 ADDED
+          docker build -t yugiohapidocker.azurecr.io/go-worker:${{ github.sha }} ./YuGiOh_Deck_API/go-services
+          docker push yugiohapidocker.azurecr.io/go-worker:${{ github.sha }}
+
           # Build Identity API
           docker build -t yugiohapidocker.azurecr.io/identity:${{ github.sha }} ./YuGiOhIdentityApi
           docker push yugiohapidocker.azurecr.io/identity:${{ github.sha }}
@@ -62,16 +66,25 @@ jobs:
             -t yugiohapidocker.azurecr.io/frontend:${{ github.sha }} ./YuGiOh_Deck_React
           docker push yugiohapidocker.azurecr.io/frontend:${{ github.sha }}
 
-      # 5. Deploy Identity API (Direct Update)
+      # 5. Deploy Go Worker (Goroutines Background Microservice) 👈 ADDED
+      - name: Deploy Go Worker
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: yugiohapidocker.azurecr.io/go-worker:${{ github.sha }}
+          containerAppName: go-worker
+          resourceGroup: ErreGeTe
+          targetPort: 8080
+
+      # 6. Deploy Identity API (Direct Update)
       - name: Deploy Identity API
         uses: azure/container-apps-deploy-action@v1
         with:
           imageToDeploy: yugiohapidocker.azurecr.io/identity:${{ github.sha }}
-          containerAppName: identity # Ensure this matches your Azure resource name
+          containerAppName: identity
           resourceGroup: ErreGeTe
           targetPort: 8080
 
-      # 6. Deploy Deck API (Blue-Green Logic)
+      # 7. Deploy Deck API (Blue-Green Logic)
       - name: Update Deck API (0% Traffic)
         id: deploy_step
         uses: azure/container-apps-deploy-action@v1
@@ -90,7 +103,7 @@ jobs:
           resourceGroup: ErreGeTe
           targetPort: 80
 
-      # 7. Deploy Analytics Consumer (Background Worker)
+      # 8. Deploy Analytics Consumer (Background Worker)
       - name: Deploy Analytics Consumer
         uses: azure/container-apps-deploy-action@v1
         with:

@@ -4,5 +4,6 @@ namespace YuGiOhDeckApi.Services
     {
         Task SyncMissingCardImagesAsync();
         Task SyncSingleCardImageAsync(string cardId);
+        Task SyncMissingCardImagesAsync(List<string> cardIds);
     }
 }

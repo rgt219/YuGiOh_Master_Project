@@ -27,7 +27,16 @@ namespace YuGiOhDeckApi
             builder.Services.AddSignalR();
             builder.Services.AddHttpClient();
             // Register HttpClient and Scraper Service
-            builder.Services.AddHttpClient<IMetaDeckScraperService, MetaDeckScraperService>();
+            // Register HTTP Client Adapters pointing to the Go microservice
+            builder.Services.AddHttpClient<IMetaDeckScraperService, GoMetaDeckScraperClient>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["GoWorkerUrl"] ?? "http://go-worker:8080/");
+            });
+
+            builder.Services.AddHttpClient<ICardImageSyncService, GoCardImageSyncClient>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["GoWorkerUrl"] ?? "http://go-worker:8080/");
+            });
 
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
             // Register the background service
