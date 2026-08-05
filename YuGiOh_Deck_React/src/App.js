@@ -25,6 +25,7 @@ import MetaDecks from './components/MetaDecks.js';
 import MetaDeckProfile from './components/MetaDeckProfile.js';
 // import ComboDisplay from './components/ComboDisplay.js';
 import { whiteForestAzaminaCombo } from './components/WhiteForestAzaminaCombo.js';
+import ComingSoon from './components/ComingSoon.js';
 // import ComboPlayerSandbox from './components/ComboPlayerSandbox.js';
 
 function App() {
@@ -70,6 +71,8 @@ function App() {
                 <Route path="/decklist" element={<DeckList/>} />
                 <Route path="/decks/:deckId" element={<DeckDetails />} />
                 <Route path="/register" element={<Register />}/>
+
+                <Route path="/comingsoon" element={<ComingSoon />} />
                 
                 <Route path="/deckbuilder" element={<DeckBuilder user={user}/>} />
                 <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />

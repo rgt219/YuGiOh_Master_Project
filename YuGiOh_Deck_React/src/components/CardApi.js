@@ -160,7 +160,7 @@ export default function CardApi({ onAddCard, cardList = [], onInspectCard, onPin
                     <div 
                         style={{ 
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(4, 1fr)',
+                            gridTemplateColumns: 'repeat(6, 1fr)',
                             gap: '8px',
                             maxHeight: '480px', 
                             overflowY: 'auto', 

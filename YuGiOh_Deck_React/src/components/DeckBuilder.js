@@ -33,7 +33,7 @@ const getAttributeColor = (attribute) => {
 export default function DeckBuilder({ user }) {
     const mainDeck = useSelector((state) => state.deck.mainDeck || []);
     const extraDeck = useSelector((state) => state.deck.extraDeck || []);
-    const deckName = useSelector((state) => state.deck.deckName || 'NEW DECK');
+    const deckName = useSelector((state) => state.deck.deckName || '');
     const dispatch = useDispatch();
 
     const [showSaveModal, setShowSaveModal] = useState(false);
@@ -298,7 +298,8 @@ export default function DeckBuilder({ user }) {
                 onChange={handleImportYDK} 
             />
 
-            <Container fluid className="px-4">
+            {/* 🚀 CONSTRAINED CONTAINER: Prevents stretching on Ultrawide & 4K displays */}
+            <Container className="px-3 mx-auto" style={{ maxWidth: '1400px' }}>
                 {/* --- 1. TOP HEADER & CONTROL TOOLBAR --- */}
                 <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
                     <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2">
@@ -360,7 +361,7 @@ export default function DeckBuilder({ user }) {
 
                                 <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
 
-                                {/* 🔒 RESTORED: AUTH PROTECTED SAVE DECK BUTTON */}
+                                {/* AUTH PROTECTED SAVE DECK BUTTON */}
                                 {!user ? (
                                     <OverlayTrigger
                                         placement="top"
@@ -509,7 +510,7 @@ export default function DeckBuilder({ user }) {
 
                 {/* --- 3. MAIN WORKSPACE --- */}
                 <Row className="g-4">
-                    {/* LEFT COLUMN: CANVAS */}
+                    {/* LEFT COLUMN: CANVAS (CustomDeck) */}
                     <Col lg={7}>
                         <CustomDeck 
                             mainDeck={mainDeck} 
@@ -522,7 +523,7 @@ export default function DeckBuilder({ user }) {
                         />
                     </Col>
 
-                    {/* RIGHT COLUMN: SEARCH POOL */}
+                    {/* RIGHT COLUMN: SEARCH POOL (CardApi) */}
                     <Col lg={5}>
                         <CardApi 
                             onAddCard={handleAddCard} 

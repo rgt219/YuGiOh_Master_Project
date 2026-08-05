@@ -1057,3 +1057,32 @@
 .coverflow-arrow:active {
   transform: translateY(-50%) scale(1.05);
 }
+
+/* Custom Master Duel Cyber Button */
+.btn-cyber-outline {
+    color: #00f2ff !important;
+    border-color: #00f2ff !important;
+    background-color: transparent !important;
+    transition: all 0.25s ease-in-out;
+}
+
+.btn-cyber-outline:hover {
+    color: #0a0d14 !important;
+    background-color: #00f2ff !important;
+    border-color: #00f2ff !important;
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+}
+
+/* Master Duel Cyber Tile Hover Animations */
+.md-dock-tile:hover,
+.md-matrix-tile:hover {
+    transform: translateY(-4px);
+    border-color: #00f2ff !important;
+    box-shadow: 0 0 18px rgba(0, 242, 255, 0.45) !important;
+}
+
+.md-dock-tile:hover img,
+.md-matrix-tile:hover img {
+    opacity: 1 !important;
+    transform: scale(1.08);
+}

@@ -1,12 +1,9 @@
 import React from 'react';
 import { Container, Row, Col, Card, Badge } from 'react-bootstrap';
-import "../mdstyles.css"; // Reuse the master duel stylesheet
+import "../mdstyles.css";
 
 export default function About() {
-    const textStyleMutedPastel = { color: '#a69cb5' }; 
-
-    const textStyleSoftCyan = { color: '#8cdce6' };
-    // 1. Unified Cyber-Duelist Profile Data Structure [cite: 1]
+    // 1. Unified Cyber-Duelist Profile Data Structure
     const profileData = {
         userName: "ErreGeTe", 
         realName: "Ryan Thomas",
@@ -20,9 +17,18 @@ export default function About() {
         },
 
         skillsDeck: [
-            { category: "CORE_LANGUAGES", items: ["C# (.NET 9)", "C++", "Java", "Python", "JavaScript", "SQL", "PowerShell"] },
-            { category: "ENGINES_&_FRAMEWORKS", items: ["React", ".NET Core", "SpringBoot", "Qt", "VxWorks", "Unreal Engine 5", "Unity"] },
-            { category: "INFRASTRUCTURE_&_MESSAGING", items: ["Azure", "AWS", "Docker", "Kafka", "RabbitMQ", "Linux (Red Hat 9)", "Git", "Jenkins", "Bamboo", "TCP/IP"] }
+            { 
+                category: "CORE_LANGUAGES", 
+                items: ["C# (.NET 8/9)", "C++", "Java", "Python", "TypeScript", "JavaScript", "SQL", "HTML5/CSS3", "PowerShell", "JSON/BSON"] 
+            },
+            { 
+                category: "ENGINES_&_FRAMEWORKS", 
+                items: ["React 18", "ASP.NET Core Web API", "SignalR (WebSockets)", "Redux Toolkit", "React-Bootstrap", "SpringBoot", "Qt", "VxWorks", "Unreal Engine 5", "Unity"] 
+            },
+            { 
+                category: "INFRASTRUCTURE_&_MESSAGING", 
+                items: ["Apache Kafka", "Azure Event Hubs", "Azure Container Apps", "Azure Blob Storage (DLQ)", "Azure Cosmos DB", "MongoDB", "Docker", "RabbitMQ", "Linux (Red Hat 9)", "Envoy Ingress", "Git", "GitHub Actions CI/CD", "Jenkins", "Bamboo", "TCP/IP"] 
+            }
         ],
 
         deploymentHistory: [
@@ -57,24 +63,30 @@ export default function About() {
         ],
 
         platformSpecs: [
-            "Architected a multi-service Yu-Gi-Oh! Deck Builder platform using a React frontend and an asynchronous .NET API backend.",
-            "Engineered an event-driven data pipeline via Azure Event Hubs (Kafka API) to decouple data ingestion and drive background synergy calculations.",
-            "Executed a database migration from MongoDB to an Azure Cosmos DB vCore cluster, handling data hydration and secure networking policies.",
-            "Managed containerized infrastructure within Azure Container Apps utilizing custom domain routing for erregeteygo.com.",
-            "Implemented CI/CD automation using GitHub Actions pipelines to streamline builds and deployments to Azure Container Registry."
+            "Architected a multi-service Yu-Gi-Oh! Deck Builder platform using a React 18 + Redux Toolkit frontend and an asynchronous ASP.NET Core Web API backend.",
+            "Engineered an event-driven data pipeline via Azure Event Hubs (Apache Kafka API) to decouple high-throughput deck publication events from API request threads.",
+            "Integrated ASP.NET Core SignalR WebSockets to broadcast live community duelist activity to connected React clients with zero-latency push updates.",
+            "Configured C# BackgroundWorker consumer services to aggregate real-time card usage metrics into MongoDB / Azure Cosmos DB collections.",
+            "Implemented robust Dead Letter Queue (DLQ) failover mechanisms using Azure Blob Storage to isolate unprocessable event payloads.",
+            "Executed database schema migrations and indexing policy optimizations (indexing path setups on timestamp fields) across Azure Cosmos DB vCore clusters.",
+            "Managed containerized microservice infrastructure within Azure Container Apps utilizing Envoy proxy ingress routing, custom SSL certificates, and CORS security policies for erregeteygo.com.",
+            "Automated continuous integration and deployment (CI/CD) pipelines using GitHub Actions to build Docker images and deploy to Azure Container Registry (ACR)."
         ]
     };
 
-    // Master Duel Laser styles to force override default white card issues
+    // Master Duel Theme Styling Objects
     const masterDuelLaserCardStyle = {
-        background: 'linear-gradient(135deg, #150d22 0%, #1f1235 100%)',
-        border: '1px solid #00e5ff',
-        boxShadow: '0 0 15px rgba(0, 229, 255, 0.25), inset 0 0 10px rgba(0, 229, 255, 0.1)',
-        borderRadius: '4px',
-        overflow: 'hidden'
+        background: 'radial-gradient(circle at 50% 0%, rgba(31, 18, 53, 0.95) 0%, rgba(10, 13, 20, 0.98) 100%)',
+        border: '1px solid #00f2ff',
+        boxShadow: '0 0 20px rgba(0, 242, 255, 0.2), inset 0 0 15px rgba(0, 242, 255, 0.08)',
+        borderRadius: '8px',
+        backdropFilter: 'blur(10px)'
     };
 
-    // Explicitly overrides and resets any leaking flex layouts or column counts from mdstyles.css
+    const textStyleCyan = { color: '#00f2ff', textShadow: '0 0 8px rgba(0,242,255,0.4)' };
+    const textStylePurple = { color: '#bd72ff' };
+    const textStyleAmber = { color: '#ffaa00' };
+
     const forceVerticalListStyle = {
         display: 'block',
         columnCount: 'auto',
@@ -92,60 +104,102 @@ export default function About() {
         whiteSpace: 'normal'
     };
 
-    const textStyleCyan = { color: '#00e5ff' };
-    const textStylePurple = { color: '#bd72ff' };
-
     return (
-        <div style={{ backgroundColor: '#0b0614', minHeight: "100vh" }} className="p-4 p-md-5">
-            <Container fluid="xl">
+        <div style={{ backgroundColor: '#0a0d14', minHeight: "100vh" }} className="py-5 mt-4">
+            {/* 🚀 CONSTRAINED CONTAINER: Matches Home.js & DeckBuilder.js on Ultrawide Displays */}
+            <Container className="px-3 mx-auto" style={{ maxWidth: '1400px' }}>
                 
-                {/* --- MAIN HEADER PROFILE BLOCK --- */}
-                <Row className="mb-5 align-items-center p-4 rounded" style={masterDuelLaserCardStyle}>
-                    <Col xs={12} md={3} className="text-center mb-3 mb-md-0">
-                        <img 
-                            src={profileData.profileIcon} 
-                            alt="Avatar" 
-                            className="img-fluid border border-2"
-                            style={{ borderColor: '#00e5ff', width: '300px', height: '300px', objectFit: 'cover' }}
-                        />
-                    </Col>
-                    <Col xs={12} md={9}>
-                        <h1 className="fw-bold md-text-glitch" style={textStyleCyan}>{profileData.userName}</h1>
-                        <h5 className="fw-bold tracking-wider" style={textStylePurple}>SYSTEM ARCHITECT // {profileData.realName.toUpperCase()}</h5>
-                        <hr style={{ backgroundColor: '#00e5ff', height: '2px', opacity: 0.5 }} />
-                        <p className="text-white opacity-90 lead fs-6">{profileData.aboutText}</p>
-                        
-                        {/* Education Node */}
-                        <div className="mt-3 d-flex flex-wrap align-items-center text-white small">
-                            <span className="fs-5 me-2">{profileData.education.icon}</span>
-                            <span className="fw-semibold" style={textStylePurple}>{profileData.education.degree}</span>
-                            <span className="mx-2 text-muted d-none d-sm-inline">|</span>
-                            <span style={textStyleSoftCyan}>{profileData.education.institution}</span>
-                        </div>
-                    </Col>
-                </Row>
+                {/* --- 1. MASTER DUEL CARD HEADER --- */}
+                <div className="p-4 p-md-5 mb-5 rounded-3 position-relative overflow-hidden" style={masterDuelLaserCardStyle}>
+                    <Row className="align-items-center">
+                        {/* Profile Avatar Frame */}
+                        <Col xs={12} md={3} className="text-center mb-4 mb-md-0">
+                            <div className="position-relative d-inline-block">
+                                <img 
+                                    src={profileData.profileIcon} 
+                                    alt="Avatar" 
+                                    className="img-fluid rounded border border-2 shadow-lg"
+                                    style={{ 
+                                        borderColor: '#00f2ff', 
+                                        width: '260px', 
+                                        height: '260px', 
+                                        objectFit: 'cover',
+                                        boxShadow: '0 0 25px rgba(0, 242, 255, 0.35)'
+                                    }}
+                                />
+                                <Badge 
+                                    bg="dark" 
+                                    className="position-absolute bottom-0 start-50 translate-middle-x mb-2 border border-info text-info terminal-font px-3 py-1 shadow"
+                                    style={{ letterSpacing: '1px' }}
+                                >
+                                    SR ARCHITECT ★★★★★★★★
+                                </Badge>
+                            </div>
+                        </Col>
 
-                {/* --- 2-COLUMN MACRO MATRIX GRID --- */}
+                        {/* Bio & Cyber Stats Header */}
+                        <Col xs={12} md={9} className="text-start">
+                            <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                <Badge bg="dark" className="border border-info text-info terminal-font">
+                                    ATTRIBUTE: C# / REACT / CLOUD
+                                </Badge>
+                                <Badge bg="dark" className="border border-warning text-warning terminal-font">
+                                    EXP: 6+ YEARS
+                                </Badge>
+                            </div>
+
+                            <h1 className="display-5 fw-bold terminal-font mb-1" style={textStyleCyan}>
+                                {profileData.userName}
+                            </h1>
+                            <h5 className="fw-bold tracking-wider mb-3 terminal-font" style={textStylePurple}>
+                                SYSTEM ARCHITECT // {profileData.realName.toUpperCase()}
+                            </h5>
+
+                            <hr style={{ borderColor: '#00f2ff', opacity: 0.3 }} className="my-3" />
+
+                            <p className="lead text-white-50 fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                {profileData.aboutText}
+                            </p>
+                            
+                            {/* Education Node */}
+                            <div className="p-2 rounded bg-black bg-opacity-50 border border-secondary border-opacity-30 d-inline-flex align-items-center text-white small">
+                                <span className="fs-5 me-2">{profileData.education.icon}</span>
+                                <span className="fw-bold me-2" style={textStylePurple}>{profileData.education.degree}</span>
+                                <span className="text-white-50 me-2">|</span>
+                                <span className="text-info">{profileData.education.institution}</span>
+                            </div>
+                        </Col>
+                    </Row>
+                </div>
+
+                {/* --- 2. TWO-COLUMN MACRO MATRIX GRID --- */}
                 <Row className="g-4">
                     
-                    {/* LEFT SIDE COLUMN (Width: 4/12) -> Inventory Recipes & Platform Specifications */}
-                    <Col lg={4} xs={12}>
+                    {/* LEFT COLUMN: Tech Deck Recipe & Platform Specs */}
+                    <Col lg={5} xs={12}>
                         
                         {/* TECH DECK RECIPE */}
                         <Card className="mb-4" style={masterDuelLaserCardStyle}>
-                            <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
-                                <span className="fw-bold tracking-widest" style={textStylePurple}>TECH DECK RECIPE</span>
+                            <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
+                                <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStylePurple}>
+                                    ⚙️ TECH DECK RECIPE (SKILLS)
+                                </h6>
                             </Card.Header>
-                            <Card.Body>
+                            <Card.Body className="p-3">
                                 {profileData.skillsDeck.map((deck, idx) => (
-                                    <div key={idx} className="mb-3">
-                                        <small className="d-block mb-2 fw-bold text text-uppercase" style={{ fontSize: '0.75rem', color: '#a69cb5' }}>
+                                    <div key={idx} className="mb-3 text-start">
+                                        <small className="d-block mb-2 fw-bold text-uppercase terminal-font" style={{ fontSize: '0.72rem', color: '#a69cb5' }}>
                                             // {deck.category}
                                         </small>
                                         <div className="d-flex flex-wrap gap-1">
                                             {deck.items.map((skill, i) => (
-                                                <Badge key={i} bg="transparent" className="p-2 border fs-7" style={{ borderColor: 'rgba(0, 229, 255, 0.4)', color: '#00e5ff' }}>
-                                                    {skill}
+                                                <Badge 
+                                                    key={i} 
+                                                    bg="dark" 
+                                                    className="p-2 border fs-7 text-white shadow-sm" 
+                                                    style={{ borderColor: 'rgba(0, 242, 255, 0.4)', fontSize: '0.75rem' }}
+                                                >
+                                                    <span style={{ color: '#00f2ff' }}>{skill}</span>
                                                 </Badge>
                                             ))}
                                         </div>
@@ -156,15 +210,17 @@ export default function About() {
 
                         {/* PLATFORM SPECIFICATIONS */}
                         <Card style={masterDuelLaserCardStyle}>
-                            <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
-                                <span className="fw-bold tracking-widest" style={textStyleCyan}>PLATFORM SPECIFICATIONS</span>
+                            <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
+                                <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleCyan}>
+                                    🌐 PLATFORM SPECIFICATIONS (ERREGETEYGO.COM)
+                                </h6>
                             </Card.Header>
-                            <Card.Body className="text-white">
-                                <ul style={forceVerticalListStyle}>
+                            <Card.Body className="text-start p-3">
+                                <ul style={forceVerticalListStyle} className="text-white">
                                     {profileData.platformSpecs.map((spec, index) => (
                                         <li 
                                             key={index} 
-                                            className="mb-3 pb-2 border-bottom border-dark border-opacity-20 lh-base text-light" 
+                                            className="mb-3 pb-2 border-bottom border-secondary border-opacity-25 lh-base text-white-50" 
                                             style={{ ...forceVerticalLiStyle, listStyleType: 'square', fontSize: '0.85rem' }}
                                         >
                                             {spec}
@@ -175,33 +231,39 @@ export default function About() {
                         </Card>
                     </Col>
 
-                    {/* RIGHT SIDE COLUMN (Width: 8/12) -> Professional Deployment Logs */}
-                    <Col lg={8} xs={12}>
+                    {/* RIGHT COLUMN: Professional Deployment History */}
+                    <Col lg={7} xs={12}>
                         <Card style={masterDuelLaserCardStyle}>
-                            <Card.Header className="border-bottom border-dark py-3" style={{ background: 'rgba(0, 0, 0, 0.2)' }}>
-                                <span className="fw-bold tracking-widest" style={{ color: '#ffaa00' }}>PROFESSIONAL DEPLOYMENT HISTORY</span>
+                            <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
+                                <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleAmber}>
+                                    📜 PROFESSIONAL DEPLOYMENT HISTORY
+                                </h6>
                             </Card.Header>
-                            <Card.Body className="p-0">
+                            <Card.Body className="p-0 text-start">
                                 {profileData.deploymentHistory.map((job, index) => (
-                                    <div key={index} className="p-4 border-bottom border-dark text-white">
+                                    <div key={index} className="p-4 border-bottom border-secondary border-opacity-25 text-white">
                                         <Row className="align-items-start mb-2">
                                             <Col xs={12} md={8}>
                                                 <h4 className="fw-bold mb-1" style={textStyleCyan}>{job.company}</h4>
-                                                <h5 className="fw-semibold fs-6" style={{ color: '#ffaa00' }}>{job.role}</h5>
+                                                <h6 className="fw-semibold" style={textStyleAmber}>{job.role}</h6>
                                             </Col>
-                                            <Col xs={12} md={4} className="text-md-end small">
-                                                <div className="fw-bold" style={textStylePurple}>{job.duration}</div>
-                                                <div className="text-muted">{job.location}</div>
+                                            <Col xs={12} md={4} className="text-md-end small mt-1 mt-md-0">
+                                                <Badge bg="dark" className="border border-purple text-purple terminal-font px-2 py-1" style={{ color: '#bd72ff', borderColor: '#bd72ff' }}>
+                                                    {job.duration}
+                                                </Badge>
+                                                <div className="text-white-50 small mt-1">{job.location}</div>
                                             </Col>
                                         </Row>
                                         
-                                        <p className="text fst-italic mb-3" style={{ fontSize: '0.85rem', color: '#a69cb5' }}>{job.summary}</p>
+                                        <p className="fst-italic mb-3 text-white-50" style={{ fontSize: '0.88rem' }}>
+                                            {job.summary}
+                                        </p>
                                         
-                                        <ul style={{ ...forceVerticalListStyle, color: 'rgba(255, 255, 255, 0.75)' }}>
+                                        <ul style={{ ...forceVerticalListStyle, color: 'rgba(255, 255, 255, 0.82)' }}>
                                             {job.highlights.map((bullet, bIdx) => (
                                                 <li 
                                                     key={bIdx} 
-                                                    className="mb-2 text-light lh-base"
+                                                    className="mb-2 lh-base"
                                                     style={{ ...forceVerticalLiStyle, listStyleType: 'disc', fontSize: '0.85rem' }}
                                                 >
                                                     {bullet}

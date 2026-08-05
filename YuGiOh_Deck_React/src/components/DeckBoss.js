@@ -62,29 +62,7 @@ export default function DeckBoss({ deck, isDeckListed, toggleDeckList }) {
                                 {deck.title}
                             </Link>
                         </h5>
-
-                        {/* {deck.rating && (
-                            <span className={`rating-pill ${getRatingClass(deck.rating)}`}>
-                                {deck.rating} PT
-                            </span>
-                        )} */}
                     </div>
-
-                    {/* Deck Quick Actions / Status */}
-                    {/* {toggleDeckList && (
-                        <div className="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25">
-                            <span className="text-muted small" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                                STATUS // {isDeckListed ? "ACTIVE_LIST" : "STANDBY"}
-                            </span>
-                            <button 
-                                onClick={() => toggleDeckList(deck.id)}
-                                className={`btn btn-sm ${isDeckListed ? 'btn-outline-info' : 'btn-info'} text-uppercase`}
-                                style={{ fontSize: '0.7rem', fontWeight: 'bold' }}
-                            >
-                                {isDeckListed ? "REMOVE" : "+ DECKLIST"}
-                            </button>
-                        </div>
-                    )} */}
                 </div>
 
             </div>
