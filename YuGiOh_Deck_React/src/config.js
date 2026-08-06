@@ -8,5 +8,5 @@ export const API_URLS = {
         ? "https://localhost:5002/api/decks" 
         : "https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb",
     ANALYTICS: "https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Analytics",
-    FORUMS: "https://forum-api.happybush-e43d89b2.eastus.azurecontainerapps.io" // 👈 New Microservice
+    FORUMS: "https://forum-api.happybush-e43d89b2.eastus.azurecontainerapps.io" //
 };

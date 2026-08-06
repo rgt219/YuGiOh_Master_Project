@@ -163,7 +163,7 @@ namespace YuGiOhDeckApi
 
             app.MapHub<ActivityHub>("/activityHub");
 
-            app.MapGet("/", () => "Hello World!");
+            app.MapGet("/", () => "DECK API");
             app.MapControllers();
 
             app.Run();

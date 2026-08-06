@@ -38,7 +38,9 @@ namespace YuGiOh_Forum_API.Controllers
 
             thread.CreatedAt = DateTime.UtcNow;
             await _dbService.CreateThreadAsync(thread);
-            return CreatedAtAction(nameof(GetThreadById), new { id = thread.Id }, thread);
+
+            // Return direct 201 Created status with the saved thread
+            return StatusCode(201, thread);
         }
 
         [HttpPost("threads/{id}/upvote")]

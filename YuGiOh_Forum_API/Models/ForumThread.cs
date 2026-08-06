@@ -9,26 +9,49 @@ namespace YuGiOh_Forum_API.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
 
-        public string Category { get; set; } = "general"; // "general" or "competitive"
+        [BsonElement("category")] // ⚡ Required for Cosmos DB Shard Key matching!
+        public string Category { get; set; } = "general";
+
+        [BsonElement("tag")]
         public string Tag { get; set; } = "GENERAL";
+
+        [BsonElement("title")]
         public string Title { get; set; } = string.Empty;
+
+        [BsonElement("content")]
         public string Content { get; set; } = string.Empty;
+
+        [BsonElement("author")]
         public string Author { get; set; } = string.Empty;
 
+        [BsonElement("upvotes")]
         public int Upvotes { get; set; } = 1;
-        public int CommentCount { get; set; } = 0;
-        public double HotScore { get; set; } = 0.0; // Computed by Go worker
 
+        [BsonElement("commentCount")]
+        public int CommentCount { get; set; } = 0;
+
+        [BsonElement("hotScore")]
+        public double HotScore { get; set; } = 0.0;
+
+        [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [BsonElement("comments")]
         public List<ForumComment> Comments { get; set; } = new();
     }
 
     public class ForumComment
     {
+        [BsonElement("id")]
         public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        [BsonElement("author")]
         public string Author { get; set; } = string.Empty;
+
+        [BsonElement("text")]
         public string Text { get; set; } = string.Empty;
+
+        [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

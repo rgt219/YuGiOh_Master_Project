@@ -72,8 +72,8 @@ export default function GeneralDiscussion() {
                 const createdThread = await response.json();
                 setThreads([createdThread, ...threads]);
             } else {
-                // Local UI optimistic update fallback
-                setThreads([{ ...threadPayload, id: Date.now().toString(), upvotes: 1, commentCount: 0 }, ...threads]);
+                // ⚠️ THIS FALLBACK RUNS WHEN THE API FAILS!
+                setThreads([{ ...threadPayload, id: Date.now().toString() }, ...threads]);
             }
         } catch (err) {
             setThreads([{ ...threadPayload, id: Date.now().toString(), upvotes: 1, commentCount: 0 }, ...threads]);

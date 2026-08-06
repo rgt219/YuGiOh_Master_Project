@@ -46,6 +46,9 @@ app.UseRouting();
 app.UseCors("AllowFrontend");
 
 app.UseAuthorization();
+
+app.MapGet("/", () => "FORUM API!");
+
 app.MapControllers();
 
 app.Run();
