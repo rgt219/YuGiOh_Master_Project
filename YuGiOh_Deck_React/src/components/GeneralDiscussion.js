@@ -85,6 +85,21 @@ export default function GeneralDiscussion() {
         }
     };
 
+    // Helper function to check login status
+    const getLoggedInUser = () => {
+        const user = sessionStorage.getItem("user");
+        return user ? JSON.parse(user) : null;
+    };
+
+    const handleOpenCreateModal = () => {
+        const user = getLoggedInUser();
+        if (!user || !user.userName) {
+            alert("⚠️ ACCESS DENIED: You must be logged in to create a thread!");
+            return;
+        }
+        setShowModal(true);
+    };
+
     const handleUpvote = (threadId, e) => {
         e.preventDefault();
         setThreads(threads.map(t => t.id === threadId ? { ...t, upvotes: t.upvotes + 1 } : t));
@@ -119,7 +134,7 @@ export default function GeneralDiscussion() {
 
                         <Button 
                             className="btn-cyber-outline fw-bold px-4 py-2 align-self-start align-self-md-center"
-                            onClick={() => setShowModal(true)}
+                            onClick={handleOpenCreateModal}
                         >
                             ✍️ CREATE THREAD
                         </Button>

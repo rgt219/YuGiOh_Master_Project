@@ -59,5 +59,15 @@ namespace YuGiOh_Forum_API.Controllers
             await _dbService.AddCommentAsync(id, comment);
             return Ok(new { message = "COMMENT_ADDED" });
         }
+
+        [HttpPost("threads/{id}/vote")]
+        public async Task<IActionResult> Vote(string id, [FromBody] VoteRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Username))
+                return Unauthorized(new { message = "MUST_BE_LOGGED_IN" });
+
+            await _dbService.VoteThreadAsync(id, request.Username, request.VoteType);
+            return Ok(new { message = "VOTE_REGISTERED" });
+        }
     }
 }

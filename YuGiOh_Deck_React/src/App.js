@@ -33,6 +33,7 @@ import ResetPassword from './components/ResetPassword.js';
 import CyberFlickerCanvas from './components/CyberFlickerCanvas';
 
 import GeneralDiscussion from './components/GeneralDiscussion.js';
+import ThreadDetail from './components/ThreadDetail.js';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -88,6 +89,7 @@ function App() {
                 <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />
 
                 <Route path="/generaldiscussion" element={<GeneralDiscussion/>} />
+                <Route path="/forum/thread/:id" element={<ThreadDetail />} />
 
                 <Route element={<ProtectedRoute user={user} />}>
                   <Route path="/profile" element={<UserProfile user={user}/>}/>

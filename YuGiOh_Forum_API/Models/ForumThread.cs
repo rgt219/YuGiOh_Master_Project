@@ -27,6 +27,12 @@ namespace YuGiOh_Forum_API.Models
         [BsonElement("upvotes")]
         public int Upvotes { get; set; } = 1;
 
+        [BsonElement("upvotedBy")]
+        public List<string> UpvotedBy { get; set; } = new();
+
+        [BsonElement("downvotedBy")]
+        public List<string> DownvotedBy { get; set; } = new();
+
         [BsonElement("commentCount")]
         public int CommentCount { get; set; } = 0;
 
@@ -53,5 +59,11 @@ namespace YuGiOh_Forum_API.Models
 
         [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    public class VoteRequest
+    {
+        public string Username { get; set; } = string.Empty;
+        public string VoteType { get; set; } = "up"; // "up" or "down"
     }
 }

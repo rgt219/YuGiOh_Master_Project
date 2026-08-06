@@ -44,5 +44,64 @@ namespace YuGiOh_Forum_API.Services
 
             await _threads.UpdateOneAsync(t => t.Id == threadId, update);
         }
+
+        public async Task VoteThreadAsync(string threadId, string username, string voteType)
+        {
+            var thread = await GetThreadByIdAsync(threadId);
+            if (thread == null) return;
+
+            bool hasUpvoted = thread.UpvotedBy.Contains(username);
+            bool hasDownvoted = thread.DownvotedBy.Contains(username);
+
+            var updateBuilder = Builders<ForumThread>.Update;
+            var updates = new List<UpdateDefinition<ForumThread>>();
+
+            if (voteType == "up")
+            {
+                if (hasUpvoted)
+                {
+                    // Toggle OFF upvote
+                    updates.Add(updateBuilder.Pull(t => t.UpvotedBy, username));
+                    updates.Add(updateBuilder.Inc(t => t.Upvotes, -1));
+                }
+                else
+                {
+                    // Add upvote
+                    updates.Add(updateBuilder.AddToSet(t => t.UpvotedBy, username));
+                    updates.Add(updateBuilder.Inc(t => t.Upvotes, 1));
+
+                    // If user previously downvoted, remove from downvoted list
+                    if (hasDownvoted)
+                    {
+                        updates.Add(updateBuilder.Pull(t => t.DownvotedBy, username));
+                    }
+                }
+            }
+            else if (voteType == "down")
+            {
+                if (hasDownvoted)
+                {
+                    // Toggle OFF downvote
+                    updates.Add(updateBuilder.Pull(t => t.DownvotedBy, username));
+                }
+                else
+                {
+                    // Add downvote
+                    updates.Add(updateBuilder.AddToSet(t => t.DownvotedBy, username));
+
+                    // If user previously upvoted, remove upvote and decrease count
+                    if (hasUpvoted)
+                    {
+                        updates.Add(updateBuilder.Pull(t => t.UpvotedBy, username));
+                        updates.Add(updateBuilder.Inc(t => t.Upvotes, -1));
+                    }
+                }
+            }
+
+            if (updates.Count > 0)
+            {
+                await _threads.UpdateOneAsync(t => t.Id == threadId, updateBuilder.Combine(updates));
+            }
+        }
     }
 }
