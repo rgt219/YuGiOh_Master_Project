@@ -9,6 +9,7 @@ export default function GeneralDiscussion() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedTag, setSelectedTag] = useState("ALL");
+    const [mediaUrlInput, setMediaUrlInput] = useState("");
 
     // Modal state for creating new thread
     const [showModal, setShowModal] = useState(false);
@@ -55,6 +56,7 @@ export default function GeneralDiscussion() {
             title: newTitle,
             content: newContent,
             author: user.userName || "AnonymousDuelist",
+            mediaUrls: mediaUrlInput.trim() ? [mediaUrlInput.trim()] : [],
             createdAt: new Date().toISOString()
         };
 
@@ -288,6 +290,17 @@ export default function GeneralDiscussion() {
                                 className="md-input-field"
                                 value={newContent}
                                 onChange={(e) => setNewContent(e.target.value)}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label className="hud-label">MEDIA URL (IMAGE / GIF / YOUTUBE LINK)</Form.Label>
+                            <Form.Control 
+                                type="url"
+                                placeholder="https://i.imgur.com/example.png or YouTube link"
+                                className="md-input-field"
+                                value={mediaUrlInput}
+                                onChange={(e) => setMediaUrlInput(e.target.value)}
                             />
                         </Form.Group>
                     </Modal.Body>

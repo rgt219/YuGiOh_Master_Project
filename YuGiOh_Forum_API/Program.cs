@@ -13,7 +13,8 @@ builder.Services.AddCors(options =>
                 "http://localhost:3000",
                 "https://localhost:3000",
                 "https://erregeteygo.com",
-                "https://www.erregeteygo.com"
+                "https://www.erregeteygo.com",
+                "https://frontend.happybush-e43d89b2.eastus.azurecontainerapps.io"
               )
               .AllowAnyMethod()
               .AllowAnyHeader()

@@ -44,6 +44,9 @@ namespace YuGiOh_Forum_API.Models
 
         [BsonElement("comments")]
         public List<ForumComment> Comments { get; set; } = new();
+
+        [BsonElement("mediaUrls")]
+        public List<string> MediaUrls { get; set; } = new();
     }
 
     public class ForumComment
@@ -59,6 +62,9 @@ namespace YuGiOh_Forum_API.Models
 
         [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [BsonElement("mediaUrls")]
+        public List<string> MediaUrls { get; set; } = new();
     }
 
     public class VoteRequest
