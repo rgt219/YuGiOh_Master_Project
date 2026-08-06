@@ -82,3 +82,7 @@ desktop.ini
 *.log
 *.tmp
 *.temp
+YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj.lscache
+YuGiOh_Deck_API.Tests/YuGiOhDeckAPI.Tests.csproj.lscache
+.gitignore
+YuGiOhIdentityApi/YuGiOhIdentityApi.csproj.lscache

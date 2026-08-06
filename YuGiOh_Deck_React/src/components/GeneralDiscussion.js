@@ -17,11 +17,55 @@ export default function GeneralDiscussion() {
     const [newContent, setNewContent] = useState("");
     const [newTag, setNewTag] = useState("GENERAL");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Fetch General Discussion Threads
     useEffect(() => {
         fetchThreads();
     }, []);
+
+    // Extracts YouTube thumbnail or direct image for compact list preview
+    function ThreadThumbnail({ mediaUrls }) {
+        if (!mediaUrls || mediaUrls.length === 0) return null;
+        const firstUrl = mediaUrls[0];
+
+        // Helper to pull YouTube Video ID
+        const getYouTubeId = (url) => {
+            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            return (match && match[2].length === 11) ? match[2] : null;
+        };
+
+        const ytId = getYouTubeId(firstUrl);
+        const isVideo = ytId || firstUrl.match(/\.(mp4|webm|ogg)$/i);
+        const thumbSrc = ytId 
+            ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` 
+            : firstUrl;
+
+        return (
+            <div 
+                className="rounded overflow-hidden border border-info border-opacity-25 shadow-sm position-relative flex-shrink-0"
+                style={{ width: '90px', height: '60px', backgroundColor: '#0f172a' }}
+            >
+                {/* Play icon overlay for videos/YouTube */}
+                {isVideo && (
+                    <div 
+                        className="position-absolute top-50 start-50 translate-middle text-info bg-dark bg-opacity-75 rounded-circle d-flex align-items-center justify-content-center" 
+                        style={{ width: '22px', height: '22px', fontSize: '10px', zIndex: 2 }}
+                    >
+                        ▶
+                    </div>
+                )}
+                <img 
+                    src={thumbSrc} 
+                    alt="Media preview" 
+                    className="w-100 h-100" 
+                    style={{ objectFit: 'cover' }}
+                    onError={(e) => { e.target.parentElement.style.display = 'none'; }} 
+                />
+            </div>
+        );
+    }
 
     const fetchThreads = async () => {
         setIsLoading(true);
@@ -49,19 +93,56 @@ export default function GeneralDiscussion() {
 
         const token = sessionStorage.getItem("token");
         const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+        let uploadedMediaUrls = [];
 
+        // 1. If a local file was selected, upload it to Azure Blob via C# endpoint first
+        if (selectedFile) {
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            try {
+                const uploadRes = await fetch(`${API_URLS.FORUMS}/api/forums/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (uploadRes.ok) {
+                    const uploadData = await uploadRes.json();
+                    uploadedMediaUrls.push(uploadData.url); // Azure Blob Storage URL returned
+                } else {
+                    alert("⚠️ Failed to upload file to Azure Blob Storage.");
+                    setIsSubmitting(false);
+                    setIsUploading(false);
+                    return;
+                }
+            } catch (uploadErr) {
+                console.error("Upload error:", uploadErr);
+                alert("⚠️ Error uploading media file.");
+                setIsSubmitting(false);
+                setIsUploading(false);
+                return;
+            } finally {
+                setIsUploading(false);
+            }
+        } else if (mediaUrlInput.trim()) {
+            uploadedMediaUrls.push(mediaUrlInput.trim());
+        }
+
+        // 2. Build thread payload with resulting Blob URL
         const threadPayload = {
             category: "general",
             tag: newTag,
             title: newTitle,
             content: newContent,
             author: user.userName || "AnonymousDuelist",
-            mediaUrls: mediaUrlInput.trim() ? [mediaUrlInput.trim()] : [],
+            mediaUrls: uploadedMediaUrls,
             createdAt: new Date().toISOString()
         };
 
+        // 3. Post thread to C# Forum API
         try {
-            const response = await fetch(`${API_URLS.FORUMS || API_URLS.DECK}/api/forums/threads`, {
+            const response = await fetch(`${API_URLS.FORUMS}/api/forums/threads`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -73,17 +154,16 @@ export default function GeneralDiscussion() {
             if (response.ok) {
                 const createdThread = await response.json();
                 setThreads([createdThread, ...threads]);
-            } else {
-                // ⚠️ THIS FALLBACK RUNS WHEN THE API FAILS!
-                setThreads([{ ...threadPayload, id: Date.now().toString() }, ...threads]);
             }
         } catch (err) {
-            setThreads([{ ...threadPayload, id: Date.now().toString(), upvotes: 1, commentCount: 0 }, ...threads]);
+            console.error("Failed to publish thread:", err);
         } finally {
             setIsSubmitting(false);
             setShowModal(false);
             setNewTitle("");
             setNewContent("");
+            setMediaUrlInput("");
+            setSelectedFile(null);
         }
     };
 
@@ -122,10 +202,6 @@ export default function GeneralDiscussion() {
                 <div className="p-4 rounded-3 bg-dark border border-info border-opacity-25 shadow-lg mb-4 position-relative overflow-hidden">
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                         <div>
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                                <span className="text-info terminal-font small fw-bold">💬 COMMUNITY_TERMINAL</span>
-                                <Badge bg="info" className="text-dark">GENERAL</Badge>
-                            </div>
                             <h2 className="fw-bold text-white m-0" style={{ letterSpacing: '0.5px' }}>
                                 General <span className="text-info">Discussion</span>
                             </h2>
@@ -187,8 +263,9 @@ export default function GeneralDiscussion() {
                                 className="p-3 rounded-3 bg-dark border border-info border-opacity-10 shadow-sm hover-border-info transition-all"
                                 style={{ background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(6px)' }}
                             >
-                                <div className="row align-items-center">
-                                    {/* UPVOTE COLUMN */}
+                                <div className="row align-items-center g-2">
+                                    
+                                    {/* 1. UPVOTE COLUMN */}
                                     <div className="col-auto text-center pe-0">
                                         <button 
                                             onClick={(e) => handleUpvote(thread.id, e)}
@@ -200,8 +277,8 @@ export default function GeneralDiscussion() {
                                         </button>
                                     </div>
 
-                                    {/* THREAD DETAILS */}
-                                    <div className="col ms-2 ms-md-3">
+                                    {/* 2. THREAD DETAILS */}
+                                    <div className="col ms-2">
                                         <div className="d-flex align-items-center gap-2 mb-1">
                                             <Badge bg="secondary" className="terminal-font" style={{ fontSize: '0.65rem' }}>
                                                 {thread.tag || "GENERAL"}
@@ -214,25 +291,36 @@ export default function GeneralDiscussion() {
 
                                         <Link 
                                             to={`/forum/thread/${thread.id}`} 
-                                            className="text-white fw-bold text-decoration-none fs-5 d-block hover-text-info mb-1"
+                                            className="text-white fw-bold text-decoration-none fs-5 d-block hover-text-info mb-1 text-truncate"
+                                            style={{ maxWidth: '600px' }}
                                         >
                                             {thread.title}
                                         </Link>
 
-                                        <p className="text-white-50 small mb-0 text-truncate" style={{ maxWidth: '750px' }}>
+                                        <p className="text-white-50 small mb-0 text-truncate" style={{ maxWidth: '600px' }}>
                                             {thread.content}
                                         </p>
                                     </div>
 
-                                    {/* COMMENTS COUNT METRIC */}
-                                    <div className="col-auto text-end d-none d-sm-block ms-auto">
+                                    {/* 3. COMPACT RIGHT-ALIGNED MEDIA THUMBNAIL */}
+                                    {thread.mediaUrls && thread.mediaUrls.length > 0 && (
+                                        <div className="col-auto d-none d-sm-block ms-auto pe-2">
+                                            <Link to={`/forum/thread/${thread.id}`}>
+                                                <ThreadThumbnail mediaUrls={thread.mediaUrls} />
+                                            </Link>
+                                        </div>
+                                    )}
+
+                                    {/* 4. COMMENTS COUNT METRIC */}
+                                    <div className="col-auto text-end d-none d-md-block ps-0">
                                         <Link 
                                             to={`/forum/thread/${thread.id}`} 
                                             className="btn btn-sm btn-outline-secondary text-white-50 border-0 terminal-font"
                                         >
-                                            💬 {thread.commentCount || 0} Replies
+                                            💬 {thread.commentCount || 0}
                                         </Link>
                                     </div>
+
                                 </div>
                             </div>
                         ))}
@@ -290,6 +378,30 @@ export default function GeneralDiscussion() {
                                 className="md-input-field"
                                 value={newContent}
                                 onChange={(e) => setNewContent(e.target.value)}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label className="hud-label">UPLOAD PHOTO / VIDEO (MAX 20MB)</Form.Label>
+                            <Form.Control 
+                                type="file"
+                                accept="image/*,video/*"
+                                className="md-input-field"
+                                onChange={(e) => setSelectedFile(e.target.files[0])}
+                            />
+                            <Form.Text className="text-white-50 small">
+                                Or paste a YouTube/Imgur link below:
+                            </Form.Text>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Control 
+                                type="url"
+                                placeholder="https://i.imgur.com/example.png or YouTube link"
+                                className="md-input-field"
+                                value={mediaUrlInput}
+                                onChange={(e) => setMediaUrlInput(e.target.value)}
+                                disabled={!!selectedFile} // Disable text input if a file is selected
                             />
                         </Form.Group>
 
