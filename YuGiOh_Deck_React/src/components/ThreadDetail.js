@@ -5,6 +5,86 @@ import { API_URLS } from '../config';
 import MediaRenderer from './MediaRenderer';
 import '../mdstyles.css';
 
+// ⚡ MODAL LIGHTBOX PREVIEW FOR COMMENTS
+function CommentMediaPreview({ urls }) {
+    const [showMediaModal, setShowMediaModal] = useState(false);
+
+    if (!urls || urls.length === 0) return null;
+
+    // Helper to extract thumbnail source
+    const getThumbnailSrc = (url) => {
+        const ytIdMatch = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+        if (ytIdMatch && ytIdMatch[2].length === 11) {
+            return `https://img.youtube.com/vi/${ytIdMatch[2]}/hqdefault.jpg`;
+        }
+        return url; 
+    };
+
+    const thumbnailSrc = getThumbnailSrc(urls[0]);
+    const attachmentCount = urls.length;
+
+    return (
+        <div className="comment-media-preview-container mt-2 pt-2 border-top border-secondary border-opacity-10">
+            {/* COMPACT THUMBNAIL BAR */}
+            <div 
+                className="d-flex align-items-center gap-3 p-2 rounded bg-black bg-opacity-30 border border-info border-opacity-25 hover-glow cursor-pointer"
+                onClick={() => setShowMediaModal(true)}
+                style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                title="Click to expand media"
+            >
+                {/* BIGGER CLICKABLE THUMBNAIL WITH HOVER BADGE */}
+                <div className="position-relative flex-shrink-0">
+                    <img 
+                        src={thumbnailSrc} 
+                        alt="Attachment thumbnail" 
+                        className="rounded border border-info border-opacity-40"
+                        style={{ width: '90px', height: '60px', objectFit: 'cover', display: 'block' }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                    <span 
+                        className="position-absolute bottom-0 end-0 bg-black bg-opacity-75 text-info px-1 font-monospace"
+                        style={{ fontSize: '0.6rem', borderTopLeftRadius: '3px' }}
+                    >
+                        🔍 ENLARGE
+                    </span>
+                </div>
+
+                {/* ATTACHMENT TEXT LOG */}
+                <div className="flex-grow-1 overflow-hidden">
+                    <span className="text-info small terminal-font d-block fw-bold" style={{ fontSize: '0.75rem' }}>
+                        ATTACHMENT_LOG ({attachmentCount} File{attachmentCount > 1 ? 's' : ''})
+                    </span>
+                    <span className="text-white-50 small d-block text-truncate" style={{ maxWidth: '380px', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                        {urls[0]}
+                    </span>
+                    <span className="text-info-50 small terminal-font d-block mt-1" style={{ fontSize: '0.65rem', opacity: 0.8 }}>
+                        ⚡ CLICK_TO_VIEW_FULL_MEDIA
+                    </span>
+                </div>
+            </div>
+
+            {/* ⚡ MEDIA LIGHTBOX MODAL */}
+            <Modal 
+                show={showMediaModal} 
+                onHide={() => setShowMediaModal(false)} 
+                centered 
+                size="lg"
+                contentClassName="bg-dark text-white border border-info shadow-lg rounded-3"
+                style={{ backdropFilter: 'blur(6px)' }}
+            >
+                <Modal.Header closeButton closeVariant="white" className="border-secondary bg-black bg-opacity-50 py-2">
+                    <Modal.Title className="text-info terminal-font fw-bold fs-6">
+                        ATTACHMENT // {attachmentCount} FILE{attachmentCount > 1 ? 'S' : ''}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="p-3 bg-dark text-center">
+                    <MediaRenderer urls={urls} />
+                </Modal.Body>
+            </Modal>
+        </div>
+    );
+}
+
 export default function ThreadDetail() {
     const { id } = useParams();
     const [thread, setThread] = useState(null);
@@ -162,7 +242,7 @@ export default function ThreadDetail() {
         <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px' }}>
             <div className="container" style={{ maxWidth: '900px' }}>
                 <Link to="/generaldiscussion" className="text-info text-decoration-none terminal-font small mb-3 d-inline-block">
-                    ← RETURN_TO_FORUM
+                    ← RETURN TO FORUM
                 </Link>
 
                 {/* THREAD CARD */}
@@ -206,14 +286,14 @@ export default function ThreadDetail() {
                             className="terminal-font fw-bold d-flex align-items-center gap-2 px-3 py-1 rounded-pill"
                             onClick={handleOpenCommentModal}
                         >
-                            {username ? `💬 ${thread.commentCount || 0} Comments` : `🔒 Login to Comment`}
+                            {username ? `${thread.commentCount || 0} Comments` : `🔒 Login to Comment`}
                         </Button>
                     </div>
                 </div>
 
                 {/* COMMENTS LIST HEADER */}
                 <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h5 className="text-white terminal-font m-0">DISCUSSION_LOGS ({thread.comments?.length || 0})</h5>
+                    <h5 className="text-white terminal-font m-0">COMMENTS ({thread.comments?.length || 0})</h5>
                     
                     <Button
                         variant={username ? "info" : "warning"}
@@ -221,7 +301,7 @@ export default function ThreadDetail() {
                         className="text-dark fw-bold terminal-font px-3"
                         onClick={handleOpenCommentModal}
                     >
-                        {username ? "✍️ ADD COMMENT" : "🔒 LOG IN TO COMMENT"}
+                        {username ? "ADD COMMENT" : "LOG IN TO COMMENT"}
                     </Button>
                 </div>
 
@@ -244,8 +324,10 @@ export default function ThreadDetail() {
                                         {new Date(comment.createdAt).toLocaleString()}
                                     </span>
                                 </div>
-                                <p className="text-white-50 mb-2 small" style={{ whiteSpace: 'pre-line' }}>{comment.text}</p>
-                                <MediaRenderer urls={comment.mediaUrls} />
+                                <p className="text-white-50 mb-0 small" style={{ whiteSpace: 'pre-line' }}>{comment.text}</p>
+                                
+                                {/* ⚡ LIGHTBOX MEDIA PREVIEW */}
+                                <CommentMediaPreview urls={comment.mediaUrls} />
                             </div>
                         ))
                     )}

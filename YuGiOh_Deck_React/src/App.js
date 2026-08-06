@@ -35,6 +35,8 @@ import CyberFlickerCanvas from './components/CyberFlickerCanvas';
 import GeneralDiscussion from './components/GeneralDiscussion.js';
 import ThreadDetail from './components/ThreadDetail.js';
 
+import CardSearch from './components/CardSearch.js';
+
 function App() {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("user");
@@ -90,6 +92,8 @@ function App() {
 
                 <Route path="/generaldiscussion" element={<GeneralDiscussion/>} />
                 <Route path="/forum/thread/:id" element={<ThreadDetail />} />
+
+                <Route path="/cardsearch" element={<CardSearch />} />
 
                 <Route element={<ProtectedRoute user={user} />}>
                   <Route path="/profile" element={<UserProfile user={user}/>}/>

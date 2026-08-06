@@ -203,7 +203,7 @@ export default function GeneralDiscussion() {
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                         <div>
                             <h2 className="fw-bold text-white m-0" style={{ letterSpacing: '0.5px' }}>
-                                General <span className="text-info">Discussion</span>
+                                General Discussion
                             </h2>
                             <p className="text-white-50 small mb-0 mt-1">
                                 Share deck ideas, discuss game mechanics, news, and meta casual talk.
@@ -214,7 +214,7 @@ export default function GeneralDiscussion() {
                             className="btn-cyber-outline fw-bold px-4 py-2 align-self-start align-self-md-center"
                             onClick={handleOpenCreateModal}
                         >
-                            ✍️ CREATE THREAD
+                            CREATE THREAD
                         </Button>
                     </div>
                 </div>
