@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using YuGiOh_Forum_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:3000",
+                "https://localhost:3000",
                 "https://erregeteygo.com",
                 "https://www.erregeteygo.com"
               )
@@ -39,8 +41,10 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;
     });
 }
+app.UseRouting();
 
 app.UseCors("AllowFrontend");
+
 app.UseAuthorization();
 app.MapControllers();
 
