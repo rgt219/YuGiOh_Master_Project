@@ -13,9 +13,9 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
     <PackageReference Include="MongoDB.Driver" Version="3.7.0" />
     <ItemGroup>
-      <Content Update="appsettings.Development.json">
+      <None Update="appsettings.Development.json">
         <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-      </Content>
+      </None>
     </ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
