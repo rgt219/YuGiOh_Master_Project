@@ -28,6 +28,7 @@ import ComingSoon from './components/ComingSoon.js';
 import ResetPassword from './components/ResetPassword.js';
 import CyberFlickerCanvas from './components/CyberFlickerCanvas';
 import GeneralDiscussion from './components/GeneralDiscussion.js';
+import CompetitiveDiscussion from './components/CompetitiveDiscussion.js';
 import ThreadDetail from './components/ThreadDetail.js';
 import CardSearch from './components/CardSearch.js';
 import BanList from './components/BanList.js';
@@ -86,6 +87,7 @@ function App() {
                 <Route path="/deckprofiledetails/:deckId" element={<DeckProfileDetails />} />
 
                 <Route path="/generaldiscussion" element={<GeneralDiscussion/>} />
+                <Route path="/competitivediscussion" element={<CompetitiveDiscussion/>} />
                 <Route path="/forum/thread/:id" element={<ThreadDetail />} />
 
                 <Route path="/cardsearch" element={<CardSearch />} />
