@@ -110,7 +110,7 @@ export default function CustomDeck({
             <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 md-panel">
                 <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                     <h5 className="m-0 text-info terminal-font fw-bold">
-                        🃏 MAIN DECK ({mainDeck.length})
+                        MAIN DECK ({mainDeck.length})
                     </h5>
                     <span className="small text-white-50">Left-click: Lock View | Right-click: Remove</span>
                 </Card.Header>
@@ -123,7 +123,7 @@ export default function CustomDeck({
             <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-warning border-opacity-50 shadow-lg p-3 md-panel">
                 <Card.Header className="bg-transparent border-bottom border-warning border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                     <h5 className="m-0 text-warning terminal-font fw-bold">
-                        🔮 EXTRA DECK ({extraDeck.length})
+                        EXTRA DECK ({extraDeck.length})
                     </h5>
                     <span className="small text-white-50">Left-click: Lock View | Right-click: Remove</span>
                 </Card.Header>

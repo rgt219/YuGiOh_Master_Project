@@ -62,14 +62,6 @@ export default function MetaDecks({ mdSound }) {
                 </h3>
                 <span className="small text-white-50">Real-time competitive metagame profiles & decklists</span>
               </div>
-              <div className="d-flex gap-2">
-                <Badge bg="info" className="text-dark fw-bold text-uppercase px-3 py-2">
-                  {activeFormat} FORMAT
-                </Badge>
-                <Badge bg="warning" className="text-dark fw-bold text-uppercase px-3 py-2">
-                  LIVE ENGINE
-                </Badge>
-              </div>
             </div>
           </Card.Header>
         </Card>

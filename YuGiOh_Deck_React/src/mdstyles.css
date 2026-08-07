@@ -1222,3 +1222,90 @@
   border-color: #0dcaf0;
   box-shadow: 0 8px 20px rgba(13, 202, 240, 0.4);
 }
+
+/* ==========================================================
+   ⚡ DYNAMIC VRAINS HERO SHOWCASE ANIMATIONS
+   ========================================================== */
+
+/* Moving Cyber Grid Background Animation */
+@keyframes vrainsGridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+/* Pulsing Cyber Aura Effect */
+@keyframes cyberAuraPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.02); }
+}
+
+/* VRAINS Dynamic Background Container */
+.vrains-hero-container {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: background 0.6s ease-in-out, box-shadow 0.6s ease-in-out;
+}
+
+/* Moving Cyber Grid Overlay */
+.vrains-hero-grid-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+  animation: vrainsGridMove 8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Right Side Full Card Art Frame */
+.vrains-full-card-frame {
+  position: relative;
+  padding: 10px;
+  background: rgba(5, 10, 20, 0.85);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
+}
+
+/* Floating Card Glow Effect */
+.vrains-card-glow-wrapper {
+  position: relative;
+  display: inline-block;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.4s ease;
+}
+
+.vrains-card-glow-wrapper:hover {
+  transform: scale(1.03) translateY(-4px);
+}
+
+/* ==========================================================
+   ⚡ VRAINS HERO CROSS-FADE TRANSITIONS
+   ========================================================== */
+
+/* Stacked Background Layers for Silky Smooth Cross-Fading */
+.vrains-hero-bg-layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 2s ease-in-out;
+}
+
+/* Card Image Cross-Fade Layer */
+.vrains-card-crossfade-img {
+  position: absolute;
+  top: 0; 
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 2s ease-in-out;
+  pointer-events: none;
+}

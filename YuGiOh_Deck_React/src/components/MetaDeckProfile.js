@@ -439,7 +439,7 @@ export default function MetaDeckProfile() {
             <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
               <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                 <h5 className="m-0 text-info terminal-font fw-bold">
-                  🃏 MAIN DECK ({mainDeckIds.length})
+                  MAIN DECK ({mainDeckIds.length})
                 </h5>
                 <span className="small text-white-50">40 - 60 Cards</span>
               </Card.Header>
@@ -485,7 +485,7 @@ export default function MetaDeckProfile() {
               <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-warning border-opacity-50 shadow-lg p-3 mb-4 md-panel">
                 <Card.Header className="bg-transparent border-bottom border-warning border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                   <h5 className="m-0 text-warning terminal-font fw-bold">
-                    🔮 EXTRA DECK ({extraDeckIds.length})
+                    EXTRA DECK ({extraDeckIds.length})
                   </h5>
                   <span className="small text-white-50">0 - 15 Cards</span>
                 </Card.Header>
@@ -532,7 +532,7 @@ export default function MetaDeckProfile() {
               <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 md-panel">
                 <Card.Header className="bg-transparent border-bottom border-success border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                   <h5 className="m-0 text-success terminal-font fw-bold">
-                    ⚔️ SIDE DECK ({sideDeckIds.length})
+                    SIDE DECK ({sideDeckIds.length})
                   </h5>
                   <span className="small text-white-50">0 - 15 Cards</span>
                 </Card.Header>

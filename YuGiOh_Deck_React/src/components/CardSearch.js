@@ -513,18 +513,17 @@ export default function CardSearch() {
                 >
                     <Modal.Header closeButton closeVariant="white" className="border-secondary bg-black bg-opacity-60 py-2">
                         <Modal.Title className="text-info terminal-font fw-bold fs-6 d-flex align-items-center gap-2">
-                            <span>⚡ CARD INSPECTOR</span>
+                            <span>CARD INSPECTOR</span>
                             <span className="text-white-50">// #{inspectCard.id}</span>
                         </Modal.Title>
                     </Modal.Header>
 
                     <Modal.Body className="p-4 bg-dark">
                         <Row className="g-3 align-items-stretch">
-                            
                             {/* 👈 LEFT COLUMN: CARD ART + MARKET VALUATION */}
                             <Col md={5} className="d-flex flex-column justify-content-between">
                                 <div className="text-center">
-                                    <div className="vrains-card-art-container mx-auto mb-2" style={{ maxWidth: '240px' }}>
+                                    <div className="vrains-card-art-container mx-auto mb-2">
                                         <img 
                                             src={inspectCard.image} 
                                             alt={inspectCard.name} 
@@ -599,7 +598,7 @@ export default function CardSearch() {
                                         </Badge>
                                         {inspectCard.race && !inspectCard.type?.toUpperCase().includes(inspectCard.race.toUpperCase()) && (
                                             <Badge bg="dark" className="border border-secondary text-info terminal-font">
-                                                [{inspectCard.race.toUpperCase()}]
+                                                {inspectCard.race.toUpperCase()}
                                             </Badge>
                                         )}
                                     </div>
@@ -682,7 +681,7 @@ export default function CardSearch() {
                                     {/* ⚡ CARD EFFECT DESCRIPTION (STRETCHES FLUSH TO FILL ALL REMAINING SPACE) */}
                                     <div className="mt-1 flex-grow-1 d-flex flex-column">
                                         <label className="text-info small terminal-font mb-1 d-block" style={{ fontSize: '0.7rem' }}>
-                                            CARD_EFFECT_TEXT //
+                                            CARD EFFECT
                                         </label>
                                         <div 
                                             className="p-3 rounded bg-black bg-opacity-60 text-white-50 small border border-secondary border-opacity-30 flex-grow-1"
@@ -697,20 +696,6 @@ export default function CardSearch() {
 
                         </Row>
                     </Modal.Body>
-
-                    <Modal.Footer className="border-secondary bg-black bg-opacity-60 justify-content-between py-2">
-                        <span className="text-white-50 small terminal-font" style={{ fontSize: '0.7rem' }}>
-                            VRAINS_CARD_DATABASE
-                        </span>
-                        <Button 
-                            variant="outline-info" 
-                            size="sm" 
-                            className="terminal-font px-4 fw-bold"
-                            onClick={() => setInspectCard(null)}
-                        >
-                            CLOSE [ ✖ ]
-                        </Button>
-                    </Modal.Footer>
                 </Modal>
             )}
 

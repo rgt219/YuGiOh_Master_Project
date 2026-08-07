@@ -55,20 +55,9 @@ export default function NavbarYGO({ user, onLogout }) {
         <Navbar.Collapse id="basic-navbar-nav" className="mt-2 mt-lg-0">
           {/* LEFT NAVIGATION LINKS & DROPDOWNS */}
           <Nav className="me-auto gap-1 gap-lg-2 align-items-lg-center">
-            {/* HOME LINK */}
-            <Nav.Link 
-              as={Link} 
-              to="/"
-              className="text-primary fw-bold px-2"
-              onMouseEnter={() => mdSound.playHover()}
-              onClick={() => { mdSound.playClick(); closeNav(); }}
-            >
-              🏠 Home
-            </Nav.Link>
-
             {/* ℹ️ INFO SECTION */}
             <NavDropdown 
-              title={<span className="text-info fw-bold">ℹ️ Info</span>} 
+              title={<span className="fw-bold">Info</span>} 
               id="info-dropdown"
               onMouseEnter={() => mdSound.playHover()}
               className="px-2"
@@ -76,24 +65,24 @@ export default function NavbarYGO({ user, onLogout }) {
               <NavDropdown.Item 
                 as={Link} 
                 to="/about"
-                className="text-light fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                📰 About
+                About
               </NavDropdown.Item>
               <NavDropdown.Item 
                 as={Link} 
                 to="/contact"
-                className="text-secondary fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                📇 Contact
+                Contact
               </NavDropdown.Item>
             </NavDropdown>
 
             {/* 🎴 DECKS SECTION */}
             <NavDropdown 
-              title={<span className="text-warning fw-bold">🎴 Decks</span>} 
+              title={<span className="fw-bold">Decks</span>} 
               id="decks-dropdown"
               onMouseEnter={() => mdSound.playHover()}
               className="px-2"
@@ -101,32 +90,32 @@ export default function NavbarYGO({ user, onLogout }) {
               <NavDropdown.Item 
                 as={Link} 
                 to="/community"
-                className="text-info fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                🗪 Community Decks
+                Community Decks
               </NavDropdown.Item>
               <NavDropdown.Item 
                 as={Link} 
                 to="/meta-decks"
-                className="text-warning fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                🕋 Meta Decks
+                Meta Decks
               </NavDropdown.Item>
               <NavDropdown.Item
                 as={Link} 
                 to="/deckbuilder"
-                className="text-success fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                🧩 Deck Builder
+                Deck Builder
               </NavDropdown.Item>
             </NavDropdown>
 
             {/* 🛢 CARD DATABASE SECTION */}
             <NavDropdown 
-              title={<span className="text-white fw-bold">🛢 Card Database</span>} 
+              title={<span className="fw-bold">Card Database</span>} 
               id="card-database-dropdown"
               onMouseEnter={() => mdSound.playHover()}
               className="px-2"
@@ -134,24 +123,24 @@ export default function NavbarYGO({ user, onLogout }) {
               <NavDropdown.Item
                 as={Link} 
                 to="/cardsearch"
-                className="text-muted fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                🔎 Card Search
+                Card Search
               </NavDropdown.Item>
               <NavDropdown.Item
                 as={Link} 
                 to="/comingsoon"
-                className="text-danger fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                🚫 Ban List
+                Ban List
               </NavDropdown.Item>
             </NavDropdown>
 
             {/* 📰 FORUMS SECTION */}
             <NavDropdown 
-              title={<span className="text-success fw-bold">📰 Forums</span>} 
+              title={<span className="fw-bold">Forums</span>} 
               id="forums-dropdown"
               onMouseEnter={() => mdSound.playHover()}
               className="px-2"
@@ -159,18 +148,18 @@ export default function NavbarYGO({ user, onLogout }) {
               <NavDropdown.Item
                 as={Link} 
                 to="/generaldiscussion"
-                className="text-info fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                💬 General Discussion
+                General Discussion
               </NavDropdown.Item>
               <NavDropdown.Item
                 as={Link} 
                 to="/comingsoon"
-                className="text-warning fw-bold"
+                className="fw-bold"
                 onClick={() => { mdSound.playClick(); closeNav(); }}
               >
-                🗣️ Competitive Discussion
+                Competitive Discussion
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>

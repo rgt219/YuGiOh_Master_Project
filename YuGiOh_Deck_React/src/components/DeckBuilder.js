@@ -307,7 +307,7 @@ export default function DeckBuilder({ user }) {
                             
                             {/* Title & Deck Name Input */}
                             <div className="d-flex align-items-center gap-3 flex-grow-1">
-                                <h4 className="m-0 text-info terminal-font text-nowrap">DECK_EDITOR_V2</h4>
+                                <h4 className="m-0 text-info terminal-font text-nowrap">DECK BUILDER</h4>
                                 <Form.Control 
                                     className="bg-black text-info border-info terminal-font fw-bold fs-5 shadow-none flex-grow-1"
                                     placeholder={isImporting ? "SYNCHRONIZING..." : "ENTER_DECK_NAME..."}
@@ -406,7 +406,7 @@ export default function DeckBuilder({ user }) {
                     <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className={`shadow-lg p-3 md-panel ${pinnedCard ? 'border-warning' : 'border-info'}`}>
                         <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2 mb-3 d-flex justify-content-between align-items-center">
                             <h6 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
-                                🔍 CARD INSPECTOR
+                                CARD INSPECTOR
                             </h6>
                             
                             {pinnedCard ? (

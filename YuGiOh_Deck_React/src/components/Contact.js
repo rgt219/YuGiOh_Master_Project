@@ -8,11 +8,11 @@ export default function Contact() {
     const contactInfo = {
         name: "Ryan Thomas",
         title: "FULL-STACK DEVELOPER",
-        attribute: "LIGHT",
+        attribute: "",
         level: 8,
         email: "rgt219@outlook.com",
         phone: "239-595-5555",
-        resumeUrl: "/resume/resume.pdf", // Place your resume PDF in the /public folder
+        resumeUrl: "/resume/erregeteresume.pdf", // Place your resume PDF in the /public folder
         atk: 3000,
         def: 2500,
         avatarUrl: "./images/headshot.jpg" // Or any avatar image path
@@ -36,9 +36,6 @@ export default function Contact() {
                             <h3 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px' }}>
                                 DUELIST PROFILE
                             </h3>
-                            <Badge bg="info" className="text-dark fw-bold text-uppercase px-3 py-2">
-                                VERIFIED DUELIST
-                            </Badge>
                         </div>
                     </Card.Header>
 
