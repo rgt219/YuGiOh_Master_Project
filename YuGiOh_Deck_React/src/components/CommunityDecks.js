@@ -71,14 +71,14 @@ export default function CommunityDecks() {
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <div>
                             <h2 className="text-info m-0 terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
-                                🎴 PUBLIC COMMUNITY ARCHIVE
+                                PUBLIC COMMUNITY ARCHIVE
                             </h2>
                             <p className="text-muted m-0 small terminal-font">
                                 ACCESSING PUBLIC DECK ARCHIVES // INDEXED_TOTAL: [{decks.length}]
                             </p>
                         </div>
                         <Button as={Link} to="/deckbuilder" variant="info" className="terminal-font fw-bold text-dark px-3 py-2">
-                            + CREATE NEW DECK
+                            CREATE NEW DECK
                         </Button>
                     </div>
                 </div>
@@ -206,7 +206,7 @@ export default function CommunityDecks() {
                                                 size="sm"
                                                 className="terminal-font fw-bold"
                                             >
-                                                VIEW_DECK ➔
+                                                VIEW DECK ➔
                                             </Button>
                                         </div>
                                     </Card>

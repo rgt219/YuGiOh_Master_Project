@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Form, Button, Badge, Spinner, Modal, Row, Col, InputGroup } from 'react-bootstrap';
-import '../mdstyles.css';
 
 // ⚡ Azure Blob Storage Container URL for card images
 const AZURE_BLOB_CONTAINER_URL = "https://yugiohforumstorage.blob.core.windows.net/forum-media";
@@ -39,6 +38,26 @@ const ALL_RACES_TYPES = [
         ...TRAP_TYPES.slice(1)
     ])).sort()
 ];
+
+// Helper to render Level / Rank stars
+const renderLevelStars = (level) => {
+    if (!level) return null;
+    return (
+        <div className="d-flex align-items-center gap-1">
+            <span className="text-warning fw-bold small">LEVEL / RANK {level}</span>
+            <span className="text-warning">{"★".repeat(Math.min(level, 12))}</span>
+        </div>
+    );
+};
+
+// Helper to render color-coded Banlist Status badges (Fixes "Banned" -> "FORBIDDEN" mapping)
+const renderBanBadge = (status) => {
+    const s = (status || "Unlimited").toUpperCase();
+    if (s === "FORBIDDEN" || s === "BANNED") return <Badge bg="danger" className="terminal-font shadow-sm px-2 py-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>FORBIDDEN</Badge>;
+    if (s === "LIMITED") return <Badge bg="warning" className="text-dark terminal-font shadow-sm px-2 py-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>LIMITED</Badge>;
+    if (s === "SEMI-LIMITED") return <Badge bg="info" className="text-dark terminal-font shadow-sm px-2 py-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>SEMI-LIMITED</Badge>;
+    return <Badge bg="success" className="terminal-font shadow-sm px-2 py-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>UNLIMITED</Badge>;
+};
 
 export default function CardSearch() {
     const [rawCards, setRawCards] = useState([]);
@@ -134,7 +153,7 @@ export default function CardSearch() {
 
                         // 🚫 Tri-Format Banlist Status
                         banlist: {
-                            masterduel: banObj.ban_masterduel || banObj.ban_tcg || "Unlimited",
+                            masterduel: banObj.ban_masterduel || "Unlimited",
                             tcg: banObj.ban_tcg || "Unlimited",
                             ocg: banObj.ban_ocg || "Unlimited"
                         },
@@ -209,28 +228,29 @@ export default function CardSearch() {
         return filteredCards.slice(startIndex, startIndex + CARDS_PER_PAGE);
     }, [filteredCards, currentPage]);
 
-    // Helper to render Level / Rank stars
-    const renderLevelStars = (level) => {
-        if (!level) return null;
-        return (
-            <div className="d-flex align-items-center gap-1">
-                <span className="text-warning fw-bold small">LEVEL / RANK {level}</span>
-                <span className="text-warning">{"★".repeat(Math.min(level, 12))}</span>
-            </div>
-        );
-    };
-
-    // Helper to render color-coded Banlist Status badges
-    const renderBanBadge = (status) => {
-        const s = (status || "Unlimited").toUpperCase();
-        if (s === "FORBIDDEN") return <Badge bg="danger" className="terminal-font" style={{ fontSize: '0.6rem' }}>FORBIDDEN</Badge>;
-        if (s === "LIMITED") return <Badge bg="warning" className="text-dark terminal-font" style={{ fontSize: '0.6rem' }}>LIMITED</Badge>;
-        if (s === "SEMI-LIMITED") return <Badge bg="info" className="text-dark terminal-font" style={{ fontSize: '0.6rem' }}>SEMI-LIMITED</Badge>;
-        return <Badge bg="success" className="terminal-font" style={{ fontSize: '0.6rem' }}>UNLIMITED</Badge>;
-    };
-
     return (
-        <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px' }}>
+        <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px', backgroundColor: '#0a0d14' }}>
+            {/* INJECTED EMBEDDED STYLES */}
+            <style>{`
+                .terminal-font { font-family: 'Courier New', Courier, monospace; }
+                .hud-label { letter-spacing: 1px; }
+                .attr-DARK { background-color: #0d6efd; color: #fff; }
+                .attr-LIGHT { background-color: #bfa136; color: #fff; }
+                .attr-EARTH { background-color: #7a5127; color: #fff; }
+                .attr-WATER { background-color: #2672b8; color: #fff; }
+                .attr-FIRE { background-color: #b83326; color: #fff; }
+                .attr-WIND { background-color: #28804a; color: #fff; }
+                .attr-DIVINE { background-color: #c98018; color: #fff; }
+                .vrains-corner { position: absolute; width: 8px; height: 8px; border-color: #00d2ff; border-style: solid; }
+                .vrains-corner-tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+                .vrains-corner-tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+                .vrains-corner-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+                .vrains-corner-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+                .vrains-stat-box { background: rgba(0,0,0,0.6); border: 1px solid rgba(0,210,255,0.3); border-radius: 4px; text-align: center; }
+                .md-card-tile { border: 1px solid #1e2638; transition: transform 0.2s, border-color 0.2s; cursor: pointer; }
+                .md-card-tile:hover { transform: translateY(-4px); border-color: #00d2ff !important; box-shadow: 0 0 15px rgba(0,210,255,0.3); }
+            `}</style>
+
             <div className="container-fluid px-4" style={{ maxWidth: '1400px' }}>
                 
                 {/* 🌐 VRAINS HEADER & CONTROL PANEL */}

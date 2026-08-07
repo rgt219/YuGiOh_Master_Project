@@ -367,7 +367,7 @@ export default function Home({ user }) {
                             { path: "/community", label: "Community", img: "./images/bystialLubellion.png", video: "./videos/bystialLubellion.mp4" },
                             { path: "/meta-decks", label: "Meta Decks", img: "./images/mirrorjade.jpg", video: "./videos/mirrorjade.mp4" },
                             { path: "/cardsearch", label: "Card Search", img: "./images/darkdragon.jpg", video: "./videos/darkdragon.mp4" },
-                            { path: "/comingsoon", label: "Ban List", img: "./images/blazing.png", video: "./videos/blazing.mp4" },
+                            { path: "/banlist", label: "Ban List", img: "./images/blazing.png", video: "./videos/blazing.mp4" },
                             { path: "/generaldiscussion", label: "Forums", img: "./images/sanctifire.png", video: "./videos/sanctifire.mp4" },
                         ].map((link, idx) => (
                             <NavVideoCard key={idx} link={link} />

@@ -23,19 +23,14 @@ import Contact from './components/Contact.js';
 import CommunityDecks from "./components/CommunityDecks";
 import MetaDecks from './components/MetaDecks.js';
 import MetaDeckProfile from './components/MetaDeckProfile.js';
-// import ComboDisplay from './components/ComboDisplay.js';
 import { whiteForestAzaminaCombo } from './components/WhiteForestAzaminaCombo.js';
 import ComingSoon from './components/ComingSoon.js';
-// import ComboPlayerSandbox from './components/ComboPlayerSandbox.js';
 import ResetPassword from './components/ResetPassword.js';
-
-// ⚡ Import Master Duel Cyber Flickers Canvas Background
 import CyberFlickerCanvas from './components/CyberFlickerCanvas';
-
 import GeneralDiscussion from './components/GeneralDiscussion.js';
 import ThreadDetail from './components/ThreadDetail.js';
-
 import CardSearch from './components/CardSearch.js';
+import BanList from './components/BanList.js';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -94,6 +89,7 @@ function App() {
                 <Route path="/forum/thread/:id" element={<ThreadDetail />} />
 
                 <Route path="/cardsearch" element={<CardSearch />} />
+                <Route path="/banlist" element={<BanList />} />
 
                 <Route element={<ProtectedRoute user={user} />}>
                   <Route path="/profile" element={<UserProfile user={user}/>}/>

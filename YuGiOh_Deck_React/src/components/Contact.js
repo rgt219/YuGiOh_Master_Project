@@ -9,9 +9,8 @@ export default function Contact() {
         name: "Ryan Thomas",
         title: "FULL-STACK DEVELOPER",
         attribute: "",
-        level: 8,
-        email: "rgt219@outlook.com",
-        phone: "239-595-5555",
+        level: 7,
+        email: "rgt@erregeteygo.com",
         resumeUrl: "/resume/erregeteresume.pdf", // Place your resume PDF in the /public folder
         atk: 3000,
         def: 2500,
@@ -80,7 +79,7 @@ export default function Contact() {
 
                                 <div className="mb-3 text-start">
                                     <span className="small text-white-50 fw-bold me-2">Level / Rank:</span>
-                                    <span className="text-info fw-bold">{contactInfo.level} ★★★★★★★★</span>
+                                    <span className="text-info fw-bold">{contactInfo.level} ★★★★★★★</span>
                                 </div>
 
                                 {/* ATK / DEF Stat Bar */}
@@ -100,15 +99,12 @@ export default function Contact() {
                                         Card Effect / Description
                                     </h6>
                                     <p className="text-white-50 mb-2" style={{ fontSize: '0.88rem', lineHeight: '1.5' }}>
-                                        When this card is Normal Summoned to your browser: You can target 1 [Email] or [Phone Number] below to initiate direct communication. Once per turn: You can activate <strong>[SPELL: RESUME]</strong> to inspect technical work history and credentials.
+                                        When this card is Normal Summoned to your browser: You can target 1 [Email] below to initiate direct communication.
                                     </p>
                                     <hr className="border-secondary opacity-25 my-2" />
                                     <div className="small text-white">
                                         <div className="mb-1">
                                             <strong className="text-info">EMAIL:</strong> {contactInfo.email}
-                                        </div>
-                                        <div>
-                                            <strong className="text-info">PHONE:</strong> {contactInfo.phone}
                                         </div>
                                     </div>
                                 </div>
@@ -121,28 +117,9 @@ export default function Contact() {
                                         variant="info"
                                         className="flex-fill fw-bold text-dark terminal-font text-nowrap py-2"
                                     >
-                                        ✉️ EMAIL
+                                        EMAIL
                                     </Button>
 
-                                    {/* CALL - GOLD/YELLOW (WARNING) */}
-                                    <Button 
-                                        href={`tel:${contactInfo.phone.replace(/[^0-9+]/g, '')}`} 
-                                        variant="warning"
-                                        className="flex-fill fw-bold text-dark terminal-font text-nowrap py-2"
-                                    >
-                                        📞 CALL
-                                    </Button>
-
-                                    {/* RESUME - GREEN (SUCCESS) */}
-                                    <Button 
-                                        href={contactInfo.resumeUrl} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer" 
-                                        variant="success" 
-                                        className="flex-fill fw-bold text-white terminal-font text-nowrap py-2"
-                                    >
-                                        📄 RESUME
-                                    </Button>
                                 </div>
                             </Col>
                         </Row>
