@@ -1,12 +1,14 @@
+'use client';
+
 import React, { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import { API_URLS } from '../config';
 import '../mdstyles.css';
 
 export default function ResetPassword() {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+    const searchParams = useSearchParams();
+    const router = useRouter(); 
 
     const email = searchParams.get("email") || "";
     const token = searchParams.get("token") || "";
@@ -29,7 +31,8 @@ export default function ResetPassword() {
         setStatusMessage("");
 
         try {
-            const response = await fetch(`${API_URLS.IDENTITY}/reset-password`, {
+            const baseUrl = API_URLS?.IDENTITY || "";
+            const response = await fetch(`${baseUrl}/reset-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, token, newPassword }),
@@ -38,7 +41,7 @@ export default function ResetPassword() {
             if (response.ok) {
                 setIsSuccess(true);
                 setStatusMessage("CREDENTIALS_SUCCESSFULLY_UPDATED. REDIRECTING...");
-                setTimeout(() => navigate("/login"), 2000);
+                setTimeout(() => router.push("/login"), 2000);
             } else {
                 const error = await response.json();
                 setStatusMessage(`! ERROR: ${error.message || "EXPIRED_OR_INVALID_TOKEN"}`);

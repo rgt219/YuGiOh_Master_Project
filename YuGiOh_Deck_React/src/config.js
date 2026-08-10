@@ -1,4 +1,4 @@
-const isLocal = window.location.hostname === "localhost";
+//const isLocal = window.location.hostname === "localhost";
 
 export const API_URLS = {
     IDENTITY: "https://identity.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Users",

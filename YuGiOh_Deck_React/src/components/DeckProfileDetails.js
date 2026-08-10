@@ -1,5 +1,8 @@
+'use client'; // 👈 Required for params, state, modals, & card inspector
+
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Spinner, Button } from 'react-bootstrap';
 import AiDeckCopywriter from "./AiDeckCopywriter";
@@ -7,7 +10,6 @@ import AiComboPlaybook from "./AiComboPlaybook";
 import '../mdstyles.css';
 import DeckPriceWidget from "./DeckPriceWidget";
 
-// Helper function to map card attributes to Master Duel Bootstrap badge variants
 const getAttributeColor = (attribute) => {
   if (!attribute) return 'secondary';
   switch (attribute.toUpperCase()) {
@@ -23,7 +25,9 @@ const getAttributeColor = (attribute) => {
 };
 
 export default function DeckProfileDetails() {
-    const { deckId } = useParams();
+    const params = useParams();
+    const deckId = params?.deckId;
+
     const [deck, setDeck] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,6 +42,8 @@ export default function DeckProfileDetails() {
     const [cardCounts, setCardCounts] = useState({ monsters: 0, spells: 0, traps: 0 });
 
     useEffect(() => {
+        if (!deckId) return;
+
         const loadDeckData = async () => {
             try {
                 const res = await fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb/${deckId}`);
@@ -45,7 +51,6 @@ export default function DeckProfileDetails() {
                 const hydratedData = await res.json();
                 setDeck(hydratedData);
 
-                // Calculate Monster, Spell, and Trap ratios from mainDeck
                 const mainDeck = hydratedData?.mainDeck || hydratedData?.MainDeck || [];
                 let monsters = 0;
                 let spells = 0;
@@ -60,7 +65,6 @@ export default function DeckProfileDetails() {
 
                 setCardCounts({ monsters, spells, traps });
 
-                // Default hovered card to the first card in Main Deck
                 if (mainDeck.length > 0) {
                     setHoveredCardData(mainDeck[0]);
                 }
@@ -132,7 +136,7 @@ export default function DeckProfileDetails() {
                 <Card.Body>
                     <h4 className="text-danger terminal-font fw-bold mb-3">⚠️ DECK NOT FOUND</h4>
                     <p className="text-white-50">{error || 'DECK_DATA_CORRUPTED_OR_MISSING'}</p>
-                    <Button as={Link} to="/profile" variant="outline-danger" className="terminal-font fw-bold">
+                    <Button as={Link} href="/profile" variant="outline-danger" className="terminal-font fw-bold">
                         RETURN TO PROFILE
                     </Button>
                 </Card.Body>
@@ -140,13 +144,11 @@ export default function DeckProfileDetails() {
         </div>
     );
 
-    // Normalize Deck Arrays & Properties
     const title = deck.title || deck.Title || "UNNAMED_DECK";
     const mainDeck = deck.mainDeck || deck.MainDeck || [];
     const extraDeck = deck.extraDeck || deck.ExtraDeck || [];
     const sideDeck = deck.sideDeck || deck.SideDeck || [];
 
-    // Pie Chart Mathematics
     const totalCards = cardCounts.monsters + cardCounts.spells + cardCounts.traps || mainDeck.length || 1;
     const monsterPct = Math.round((cardCounts.monsters / totalCards) * 100);
     const spellPct = Math.round((cardCounts.spells / totalCards) * 100);
@@ -155,9 +157,7 @@ export default function DeckProfileDetails() {
     const monsterDeg = (monsterPct / 100) * 360;
     const spellDeg = monsterDeg + (spellPct / 100) * 360;
 
-    // Active Card Inspector Data
     const activeCard = pinnedCardData || hoveredCardData || mainDeck[0] || {};
-    const activeCardId = typeof activeCard === 'object' ? (activeCard.id || activeCard.Id) : activeCard;
     const activeName = typeof activeCard === 'object' ? (activeCard.name || activeCard.Name || title) : title;
     const activeType = typeof activeCard === 'object' ? (activeCard.type || activeCard.Type) : '';
     const activeRace = typeof activeCard === 'object' ? (activeCard.race || activeCard.Race) : '';
@@ -167,7 +167,6 @@ export default function DeckProfileDetails() {
     const activeDef = typeof activeCard === 'object' ? (activeCard.def ?? activeCard.Def) : null;
     const activeDesc = typeof activeCard === 'object' ? (activeCard.desc || activeCard.Desc || 'Click or hover over any card thumbnail in the decklists below to view its full stats and effect text.') : 'Hover over a card to view details.';
 
-    // Image URL helper
     const getCardSmallImg = (card) => {
         if (!card) return 'https://images.ygoprodeck.com/images/cards/back_high.jpg';
         if (typeof card === 'object') {
@@ -194,7 +193,6 @@ export default function DeckProfileDetails() {
 
     const activeImageUrl = getCardLargeImg(activeCard);
 
-    // Hover & Click Handlers
     const handleCardHover = (card) => {
         if (!pinnedCardData && card) {
             setHoveredCardData(card);
@@ -207,9 +205,9 @@ export default function DeckProfileDetails() {
         const pinnedId = pinnedCardData ? (typeof pinnedCardData === 'object' ? (pinnedCardData.id || pinnedCardData.Id) : pinnedCardData) : null;
 
         if (pinnedId && pinnedId === cardId) {
-            setPinnedCardData(null); // Unpin
+            setPinnedCardData(null);
         } else {
-            setPinnedCardData(card); // Pin
+            setPinnedCardData(card);
         }
     };
 
@@ -254,7 +252,7 @@ export default function DeckProfileDetails() {
 
                                 <Button 
                                     as={Link} 
-                                    to="/profile" 
+                                    href="/profile" 
                                     variant="outline-info" 
                                     className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center"
                                 >
@@ -344,12 +342,10 @@ export default function DeckProfileDetails() {
                     </Card.Body>
                 </Card>
 
-                {/* --- TWO-COLUMN CONTENT AREA: INSPECTOR + PRICE WIDGET (LEFT), GRIDS (RIGHT) --- */}
+                {/* --- TWO-COLUMN CONTENT AREA --- */}
                 <Row className="g-4">
-                    {/* --- LEFT COLUMN: STICKY CARD INSPECTOR & DECK PRICE WIDGET --- */}
                     <Col lg={5} className="order-lg-1">
                         <div style={{ position: 'sticky', top: '90px' }}>
-                            {/* 1. CARD INSPECTOR */}
                             <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
                                 <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2 mb-3 d-flex justify-content-between align-items-center">
                                     <h6 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
@@ -374,7 +370,6 @@ export default function DeckProfileDetails() {
 
                                 <Card.Body className="p-2">
                                     <Row className="g-3 align-items-start">
-                                        {/* Card Preview Image */}
                                         <Col xs={12} sm={5} className="text-center">
                                             <img
                                                 src={activeImageUrl}
@@ -388,13 +383,11 @@ export default function DeckProfileDetails() {
                                             />
                                         </Col>
 
-                                        {/* --- Card Details (Right Side) --- */}
                                         <div className="col-12 col-sm-7">
                                             <h5 className="fw-bold mb-2 text-white" style={{ fontFamily: "Cascadia Mono, monospace", letterSpacing: '1px', fontSize: '1rem' }}>
                                                 {activeName}
                                             </h5>
 
-                                            {/* Badges Row */}
                                             <div className="d-flex align-items-center mb-2 flex-wrap gap-1">
                                                 {activeType && (
                                                     <Badge bg="dark" className="border border-secondary text-uppercase fs-7">
@@ -413,7 +406,6 @@ export default function DeckProfileDetails() {
                                                 )}
                                             </div>
 
-                                            {/* Level / Rank Stars */}
                                             {activeLevel && (
                                                 <div className="mb-2 text-start">
                                                     <span className="small text-white-50 fw-bold me-2">Level / Rank:</span>
@@ -421,7 +413,6 @@ export default function DeckProfileDetails() {
                                                 </div>
                                             )}
 
-                                            {/* ATK / DEF Stat Bar */}
                                             {typeof activeAtk === 'number' && (
                                                 <div className="d-flex align-items-center px-3 py-1 mb-2 rounded" style={{ backgroundColor: 'rgba(0, 240, 255, 0.08)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
                                                     <span className="small text-white-50 fw-bold me-2">ATK /</span>
@@ -432,7 +423,6 @@ export default function DeckProfileDetails() {
                                                 </div>
                                             )}
 
-                                            {/* Card Effect Text Box (EXPANDED SCROLL BOX) */}
                                             <div className="text-start p-2 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
                                                 <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2">
                                                     Card Effect / Text
@@ -446,7 +436,6 @@ export default function DeckProfileDetails() {
                                 </Card.Body>
                             </Card>
 
-                            {/* 2. DECK PRICE WIDGET */}
                             <DeckPriceWidget 
                                 mainDeck={mainDeck} 
                                 extraDeck={extraDeck} 
@@ -455,9 +444,7 @@ export default function DeckProfileDetails() {
                         </div>
                     </Col>
 
-                    {/* --- RIGHT COLUMN: FULL DECKLIST GRIDS (MAIN, EXTRA, SIDE) --- */}
                     <Col lg={7} className="order-lg-2">
-                        {/* 1. MAIN DECK GRID */}
                         <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
                             <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                                 <h5 className="m-0 text-info terminal-font fw-bold">
@@ -502,7 +489,6 @@ export default function DeckProfileDetails() {
                             </Card.Body>
                         </Card>
 
-                        {/* 2. EXTRA DECK GRID */}
                         {extraDeck.length > 0 && (
                             <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-warning border-opacity-50 shadow-lg p-3 mb-4 md-panel">
                                 <Card.Header className="bg-transparent border-bottom border-warning border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
@@ -549,9 +535,8 @@ export default function DeckProfileDetails() {
                             </Card>
                         )}
 
-                        {/* 3. SIDE DECK GRID */}
                         {sideDeck.length > 0 && (
-                            <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 md-panel">
+                            <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 mb-4 md-panel">
                                 <Card.Header className="bg-transparent border-bottom border-success border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                                     <h5 className="m-0 text-success terminal-font fw-bold">
                                         ⚔️ SIDE DECK ({sideDeck.length})

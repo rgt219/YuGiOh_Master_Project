@@ -1,3 +1,5 @@
+'use client'; // 👈 Required for format state, client fetch queries, and modal inspectors
+
 import React, { useState, useEffect } from 'react';
 import { Modal, Row, Col, Badge, Spinner } from 'react-bootstrap';
 
@@ -90,7 +92,6 @@ export default function BanList() {
             throw new Error("No cards returned from Master Duel scraper service.");
           }
 
-          // Build dynamic card status dictionary from scraper response
           const dynamicStatusMap = {};
           scrapedCards.forEach(item => {
             dynamicStatusMap[item.name] = item.status;
@@ -98,7 +99,6 @@ export default function BanList() {
 
           const mdCardNames = Object.keys(dynamicStatusMap);
 
-          // ⚡ Step 2: Batch query YGOPRODeck for card art, ATK/DEF stats, and vendor prices
           const chunkSize = 25;
           const chunks = [];
           for (let i = 0; i < mdCardNames.length; i += chunkSize) {
@@ -166,7 +166,6 @@ export default function BanList() {
         });
 
     } else {
-      // Process TCG and OCG formats directly via YGOPRODeck API
       fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?banlist=${format}&misc=yes`)
         .then((res) => {
           if (!res.ok) throw new Error("Failed to fetch ban list data");
@@ -226,7 +225,6 @@ export default function BanList() {
     }
   }, [format]);
 
-  // Synchronous filtering and sorting based on card type hierarchy and name
   const filteredCards = cards
     .filter(card => {
       const matchesSearch = card.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -243,14 +241,12 @@ export default function BanList() {
       return a.name.localeCompare(b.name);
     });
 
-  // Metric counters
   const forbiddenCount = cards.filter(c => c.status === "Forbidden").length;
   const limitedCount = cards.filter(c => c.status === "Limited").length;
   const semiLimitedCount = cards.filter(c => c.status === "Semi-Limited").length;
 
   return (
     <div style={styles.container}>
-      {/* INJECTED EMBEDDED STYLES */}
       <style>{`
         .terminal-font { font-family: 'Courier New', Courier, monospace; }
         .attr-DARK { background-color: #0d6efd; color: #fff; }
@@ -270,10 +266,8 @@ export default function BanList() {
         .md-card-tile:hover { transform: translateY(-4px); border-color: #00d2ff !important; box-shadow: 0 0 15px rgba(0,210,255,0.3); }
       `}</style>
 
-      {/* 🔒 MAX-WIDTH CONTAINER LOCK (1400px - Matches CardSearch.js) */}
       <div className="container-fluid px-4" style={{ maxWidth: '1400px', margin: '0 auto' }}>
 
-        {/* HEADER SECTION */}
         <header style={styles.header}>
           <div style={styles.titleGroup}>
             <span style={styles.subtitle}>OFFICIAL FORBIDDEN & LIMITED LIST</span>
@@ -282,7 +276,6 @@ export default function BanList() {
             </h1>
           </div>
 
-          {/* FORMAT TOGGLE BUTTONS */}
           <div style={styles.formatToggle}>
             <button
               onClick={() => setFormat('tcg')}
@@ -304,7 +297,6 @@ export default function BanList() {
             </button>
           </div>
 
-          {/* METRIC COUNTERS */}
           <div style={styles.counterRow}>
             <div style={{ ...styles.counterCard, borderColor: '#ff4d4d' }}>
               <span style={{ color: '#ff4d4d', fontSize: '20px', fontWeight: 'bold' }}>{forbiddenCount}</span>
@@ -321,7 +313,6 @@ export default function BanList() {
           </div>
         </header>
 
-        {/* CONTROLS & FILTER BAR */}
         <div style={styles.filterBar}>
           <div style={styles.searchWrapper}>
             <span style={styles.searchIcon}>🔍</span>
@@ -354,7 +345,6 @@ export default function BanList() {
           </div>
         </div>
 
-        {/* MAIN CONTENT AREA */}
         <main style={styles.mainLayout}>
           {isLoading ? (
             <div className="text-center my-5 py-5">
@@ -378,7 +368,6 @@ export default function BanList() {
                     onClick={() => setSelectedCard(card)}
                     style={{ cursor: 'pointer' }}
                   >
-                    {/* Cleaned Card Image Frame */}
                     <div className="overflow-hidden rounded mb-2">
                       <img 
                         src={card.image} 
@@ -395,7 +384,6 @@ export default function BanList() {
                       />
                     </div>
 
-                    {/* Footer Info Container with Ban Status Badge */}
                     <div className="text-center mt-auto pt-1">
                       <div className="mb-1">
                         {renderBanBadge(card.status)}
@@ -413,7 +401,6 @@ export default function BanList() {
             </Row>
           )}
 
-          {/* ⚡ VRAINS CYBER HUD INSPECT MODAL */}
           {selectedCard && (
             <Modal
               show={!!selectedCard}
@@ -432,7 +419,6 @@ export default function BanList() {
 
               <Modal.Body className="p-4 bg-dark">
                 <Row className="g-3 align-items-stretch">
-                  {/* 👈 LEFT COLUMN: CARD ART + MARKET VALUATION */}
                   <Col md={5} className="d-flex flex-column justify-content-between">
                     <div className="text-center">
                       <div className="vrains-card-art-container mx-auto mb-2">
@@ -451,7 +437,6 @@ export default function BanList() {
                       </div>
                     </div>
 
-                    {/* 💵 LIVE VENDOR MARKET PRICING WIDGET */}
                     <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-30">
                       <div className="text-info small terminal-font mb-1 d-flex align-items-center justify-content-between" style={{ fontSize: '0.7rem' }}>
                         <span>MARKET VALUATION</span>
@@ -486,17 +471,14 @@ export default function BanList() {
                     </div>
                   </Col>
 
-                  {/* 👉 RIGHT COLUMN: TAXONOMY, STATS, TELEMETRY BAR, & EFFECT TEXT */}
                   <Col md={7} className="d-flex flex-column">
                     <div className="p-3 rounded bg-black bg-opacity-50 border border-info border-opacity-30 position-relative flex-grow-1 d-flex flex-column">
                       
-                      {/* HUD Corner Brackets */}
                       <div className="vrains-corner vrains-corner-tl"></div>
                       <div className="vrains-corner vrains-corner-tr"></div>
                       <div className="vrains-corner vrains-corner-bl"></div>
                       <div className="vrains-corner vrains-corner-br"></div>
 
-                      {/* TITLE & TAXONOMY */}
                       <h3 className="fw-bold text-white mb-2" style={{ fontSize: '1.25rem' }}>{selectedCard.name}</h3>
 
                       <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
@@ -515,14 +497,12 @@ export default function BanList() {
                         )}
                       </div>
 
-                      {/* LEVEL / RANK STARS */}
                       {selectedCard.level && (
                         <div className="mb-2 p-2 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
                           {renderLevelStars(selectedCard.level)}
                         </div>
                       )}
 
-                      {/* ATK / DEF STAT BOXES */}
                       {(selectedCard.atk !== null || selectedCard.def !== null) && (
                         <Row className="g-2 mb-2">
                           <Col>
@@ -544,9 +524,7 @@ export default function BanList() {
                         </Row>
                       )}
 
-                      {/* ⚡ COMBINED SIDE-BY-SIDE TELEMETRY BAR */}
                       <Row className="g-2 mb-2">
-                        {/* BANLIST STATUS */}
                         <Col xs={8}>
                           <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-25 h-100">
                             <div className="text-info small terminal-font mb-1" style={{ fontSize: '0.62rem' }}>
@@ -569,7 +547,6 @@ export default function BanList() {
                           </div>
                         </Col>
 
-                        {/* GENESYS POINT COST */}
                         <Col xs={4}>
                           <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-25 h-100 d-flex flex-column justify-content-between text-center">
                             <span className="text-info small terminal-font d-block fw-bold" style={{ fontSize: '0.62rem' }}>
@@ -590,7 +567,6 @@ export default function BanList() {
                         </Col>
                       </Row>
 
-                      {/* ⚡ CARD EFFECT DESCRIPTION */}
                       <div className="mt-1 flex-grow-1 d-flex flex-column">
                         <label className="text-info small terminal-font mb-1 d-block" style={{ fontSize: '0.7rem' }}>
                           CARD EFFECT
@@ -616,7 +592,6 @@ export default function BanList() {
   );
 }
 
-// Styles
 const styles = {
   container: {
     backgroundColor: '#0a0d14',

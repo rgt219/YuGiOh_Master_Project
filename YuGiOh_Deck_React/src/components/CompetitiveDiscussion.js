@@ -1,8 +1,9 @@
+'use client'; // 👈 Required for state, client uploads, and interactive filters
+
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Modal, Badge, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { API_URLS } from '../config';
-
 
 export default function CompetitiveDiscussion() {
     const [threads, setThreads] = useState([]);
@@ -68,7 +69,7 @@ export default function CompetitiveDiscussion() {
     const fetchThreads = async () => {
         setIsLoading(true);
         try {
-            const baseUrl = API_URLS.FORUMS || API_URLS.DECK || '';
+            const baseUrl = API_URLS?.FORUMS || API_URLS?.DECK || '';
             const response = await fetch(`${baseUrl}/api/forums/threads?category=competitive`);
             if (response.ok) {
                 const data = await response.json();
@@ -92,9 +93,9 @@ export default function CompetitiveDiscussion() {
         const user = JSON.parse(sessionStorage.getItem("user") || "{}");
         let uploadedMediaUrls = [];
 
-        const baseUrl = API_URLS.FORUMS || API_URLS.DECK || '';
+        const baseUrl = API_URLS?.FORUMS || API_URLS?.DECK || '';
 
-        // 1. Upload local file to Azure Blob via existing C# endpoint
+        // 1. Upload local file to Azure Blob via C# endpoint
         if (selectedFile) {
             setIsUploading(true);
             const formData = new FormData();
@@ -139,7 +140,7 @@ export default function CompetitiveDiscussion() {
             createdAt: new Date().toISOString()
         };
 
-        // 3. Post to existing C# Forum API
+        // 3. Post to C# Forum API
         try {
             const response = await fetch(`${baseUrl}/api/forums/threads`, {
                 method: "POST",
@@ -167,6 +168,7 @@ export default function CompetitiveDiscussion() {
     };
 
     const getLoggedInUser = () => {
+        if (typeof window === 'undefined') return null;
         const user = sessionStorage.getItem("user");
         return user ? JSON.parse(user) : null;
     };
@@ -192,7 +194,6 @@ export default function CompetitiveDiscussion() {
         return matchesSearch && matchesTag;
     });
 
-    // Helper for rendering tag badges with competitive color hierarchy
     const renderTagBadge = (tag) => {
         const t = (tag || "META").toUpperCase();
         if (t === "META") return <Badge bg="danger" className="terminal-font shadow-sm px-2 py-1">META BREAKDOWN</Badge>;
@@ -205,7 +206,6 @@ export default function CompetitiveDiscussion() {
 
     return (
         <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px', backgroundColor: '#0a0d14' }}>
-            {/* Embedded styles for Cyber HUD esports aesthetic */}
             <style>{`
                 .terminal-font { font-family: 'Courier New', Courier, monospace; }
                 .hud-label { letter-spacing: 1px; font-size: 0.75rem; color: #ff4d4d; }
@@ -309,7 +309,7 @@ export default function CompetitiveDiscussion() {
                                         </div>
 
                                         <Link 
-                                            to={`/forum/thread/${thread.id}`} 
+                                            href={`/forum/thread/${thread.id}`} // ⚡ Updated to 'href'
                                             className="text-white fw-bold text-decoration-none fs-5 d-block hover-text-danger mb-1 text-truncate"
                                             style={{ maxWidth: '600px' }}
                                         >
@@ -324,7 +324,7 @@ export default function CompetitiveDiscussion() {
                                     {/* 3. COMPACT RIGHT-ALIGNED MEDIA THUMBNAIL */}
                                     {thread.mediaUrls && thread.mediaUrls.length > 0 && (
                                         <div className="col-auto d-none d-sm-block ms-auto pe-2">
-                                            <Link to={`/forum/thread/${thread.id}`}>
+                                            <Link href={`/forum/thread/${thread.id}`}>
                                                 <ThreadThumbnail mediaUrls={thread.mediaUrls} />
                                             </Link>
                                         </div>
@@ -333,7 +333,7 @@ export default function CompetitiveDiscussion() {
                                     {/* 4. COMMENTS COUNT METRIC */}
                                     <div className="col-auto text-end d-none d-md-block ps-0">
                                         <Link 
-                                            to={`/forum/thread/${thread.id}`} 
+                                            href={`/forum/thread/${thread.id}`} 
                                             className="btn btn-sm btn-outline-secondary text-white-50 border-0 terminal-font"
                                         >
                                             💬 {thread.commentCount || 0}
@@ -441,7 +441,6 @@ export default function CompetitiveDiscussion() {
     );
 }
 
-// Fallback Mock Data for Competitive Thread previews
 function getMockCompetitiveThreads() {
     return [
         {

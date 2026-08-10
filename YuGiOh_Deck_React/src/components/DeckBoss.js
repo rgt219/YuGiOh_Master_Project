@@ -1,6 +1,8 @@
+'use client'; // 👈 Required for client hover effects & Next.js links
+
 import React from 'react';
 import HoverVideoPlayer from 'react-hover-video-player';
-import { Link } from 'react-router-dom';
+import Link from 'next/link'; // ⚡ Swapped from react-router-dom
 import "../mdstyles.css";
 import "../styles.css";
 
@@ -42,7 +44,7 @@ export default function DeckBoss({ deck, isDeckListed, toggleDeckList }) {
                             <img 
                                 src={`images/${deck.image}`} 
                                 alt={deck.title} 
-                                onError={(e) => { e.target.src = "/YuGiOh_Deck_React/public/images/cardback.png"; }}
+                                onError={(e) => { e.target.src = "/images/cardback.png"; }}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         }
@@ -58,7 +60,7 @@ export default function DeckBoss({ deck, isDeckListed, toggleDeckList }) {
                 <div className="deck-info-overlay p-3" style={{ background: 'rgba(7, 11, 18, 0.95)' }}>
                     <div className="d-flex align-items-center justify-content-between mb-2">
                         <h5 className="deck-title m-0" style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, letterSpacing: '1px' }}>
-                            <Link to={`/decks/${deck.id}`} className="text-white text-decoration-none">
+                            <Link href={`/decks/${deck.id}`} className="text-white text-decoration-none"> {/* ⚡ Updated 'to' to 'href' */}
                                 {deck.title}
                             </Link>
                         </h5>

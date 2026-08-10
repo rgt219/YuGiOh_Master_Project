@@ -1,18 +1,30 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+'use client';
 
-const ProtectedRoute = ({ user }) => {
-    // Check if the user state exists OR if a token is in storage
-    const token = localStorage.getItem("token");
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function ProtectedRoute({ children, user }) {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
 
     if (!user && !token) {
-        // No passport? Kick them back to the login screen
-        console.warn("ACCESS_DENIED: Redirecting to login terminal...");
-        return <Navigate to="/login" replace />;
+      console.warn("ACCESS_DENIED: Redirecting to login terminal...");
+      router.push("/login");
+    } else {
+      setIsAuthorized(true);
     }
+  }, [user, router]);
 
-    // Passport verified. Render the child components (the "Outlet")
-    return <Outlet />;
-};
+  if (!isAuthorized) {
+    return (
+      <div className="md-theme-bg min-vh-100 d-flex justify-content-center align-items-center text-info terminal-font">
+        VERIFYING_ACCESS_TOKEN...
+      </div>
+    );
+  }
 
-export default ProtectedRoute;
+  return children;
+}

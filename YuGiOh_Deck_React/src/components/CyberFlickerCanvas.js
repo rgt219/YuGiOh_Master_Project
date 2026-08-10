@@ -1,3 +1,5 @@
+'use client'; // 👈 Required for canvas rendering, useRef, & useEffect
+
 import React, { useEffect, useRef } from 'react';
 
 const CyberFlickersCanvas = () => {

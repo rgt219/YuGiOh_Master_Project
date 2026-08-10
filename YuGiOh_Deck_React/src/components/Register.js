@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation"; 
 import { Form, Button, Modal } from 'react-bootstrap';
 import { API_URLS } from "../config";
 import "../mdstyles.css";
@@ -13,10 +16,9 @@ export default function Register() {
     const [confirmedPassword, setConfirmedPassword] = useState("");
     const [validated, setValidated] = useState(false);
 
-    // Modal state for registration confirmation
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -40,10 +42,9 @@ export default function Register() {
             password: password
         };
 
-        console.log(`${API_URLS.IDENTITY}/register`);
-
         try {
-            const response = await fetch(`${API_URLS.IDENTITY}/register`, {
+            const baseUrl = API_URLS?.IDENTITY || "";
+            const response = await fetch(`${baseUrl}/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
@@ -51,7 +52,7 @@ export default function Register() {
 
             if (response.ok) {
                 console.log("DATABASE_UPLINK_SUCCESSFUL");
-                setShowSuccessModal(true); // 👈 Opens success modal on registration
+                setShowSuccessModal(true);
             } else {
                 const error = await response.json();
                 console.error("UPLINK_DENIED: ", error.message);
@@ -165,9 +166,9 @@ export default function Register() {
                     </Button>
 
                     <div className="login-footer mt-4">
-                        <Link to="/" className="terminal-link">HOME PAGE</Link>
+                        <Link href="/" className="terminal-link">HOME PAGE</Link>
                         <span className="terminal-divider">|</span>
-                        <Link to="/contact" className="terminal-link">CONTACT</Link>
+                        <Link href="/contact" className="terminal-link">CONTACT</Link>
                     </div>
                 </Form>
             </div>
@@ -175,7 +176,7 @@ export default function Register() {
             {/* ⚡ Registration Success Modal */}
             <Modal 
                 show={showSuccessModal} 
-                onHide={() => navigate("/login")} 
+                onHide={() => router.push("/login")} 
                 centered
                 backdrop="static"
                 contentClassName="bg-dark text-white border border-info shadow-lg"
@@ -197,7 +198,7 @@ export default function Register() {
                 <Modal.Footer className="border-secondary bg-black bg-opacity-50 justify-content-center">
                     <Button 
                         className="md-btn-primary px-4" 
-                        onClick={() => navigate("/login")}
+                        onClick={() => router.push("/login")}
                     >
                         PROCEED TO LOGIN
                     </Button>

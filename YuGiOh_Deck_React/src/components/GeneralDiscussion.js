@@ -1,6 +1,8 @@
+'use client'; // 👈 Required for hooks, state, modals, and file uploads
+
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Modal, Badge, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { API_URLS } from '../config';
 import '../mdstyles.css';
 
@@ -70,13 +72,12 @@ export default function GeneralDiscussion() {
     const fetchThreads = async () => {
         setIsLoading(true);
         try {
-            // Category "general" targets General Discussion
-            const response = await fetch(`${API_URLS.FORUMS || API_URLS.DECK}/api/forums/threads?category=general`);
+            const baseUrl = API_URLS?.FORUMS || API_URLS?.DECK || "";
+            const response = await fetch(`${baseUrl}/api/forums/threads?category=general`);
             if (response.ok) {
                 const data = await response.json();
                 setThreads(data);
             } else {
-                // Fallback Mock Data for UI Testing if API endpoint isn't deployed yet
                 setThreads(getMockThreads());
             }
         } catch (error) {
@@ -102,14 +103,15 @@ export default function GeneralDiscussion() {
             formData.append("file", selectedFile);
 
             try {
-                const uploadRes = await fetch(`${API_URLS.FORUMS}/api/forums/upload`, {
+                const baseUrl = API_URLS?.FORUMS || "";
+                const uploadRes = await fetch(`${baseUrl}/api/forums/upload`, {
                     method: "POST",
                     body: formData
                 });
 
                 if (uploadRes.ok) {
                     const uploadData = await uploadRes.json();
-                    uploadedMediaUrls.push(uploadData.url); // Azure Blob Storage URL returned
+                    uploadedMediaUrls.push(uploadData.url);
                 } else {
                     alert("⚠️ Failed to upload file to Azure Blob Storage.");
                     setIsSubmitting(false);
@@ -129,7 +131,7 @@ export default function GeneralDiscussion() {
             uploadedMediaUrls.push(mediaUrlInput.trim());
         }
 
-        // 2. Build thread payload with resulting Blob URL
+        // 2. Build thread payload
         const threadPayload = {
             category: "general",
             tag: newTag,
@@ -142,7 +144,8 @@ export default function GeneralDiscussion() {
 
         // 3. Post thread to C# Forum API
         try {
-            const response = await fetch(`${API_URLS.FORUMS}/api/forums/threads`, {
+            const baseUrl = API_URLS?.FORUMS || "";
+            const response = await fetch(`${baseUrl}/api/forums/threads`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -167,8 +170,8 @@ export default function GeneralDiscussion() {
         }
     };
 
-    // Helper function to check login status
     const getLoggedInUser = () => {
+        if (typeof window === 'undefined') return null;
         const user = sessionStorage.getItem("user");
         return user ? JSON.parse(user) : null;
     };
@@ -290,7 +293,7 @@ export default function GeneralDiscussion() {
                                         </div>
 
                                         <Link 
-                                            to={`/forum/thread/${thread.id}`} 
+                                            href={`/forum/thread/${thread.id}`} // ⚡ Updated to 'href'
                                             className="text-white fw-bold text-decoration-none fs-5 d-block hover-text-info mb-1 text-truncate"
                                             style={{ maxWidth: '600px' }}
                                         >
@@ -305,7 +308,7 @@ export default function GeneralDiscussion() {
                                     {/* 3. COMPACT RIGHT-ALIGNED MEDIA THUMBNAIL */}
                                     {thread.mediaUrls && thread.mediaUrls.length > 0 && (
                                         <div className="col-auto d-none d-sm-block ms-auto pe-2">
-                                            <Link to={`/forum/thread/${thread.id}`}>
+                                            <Link href={`/forum/thread/${thread.id}`}>
                                                 <ThreadThumbnail mediaUrls={thread.mediaUrls} />
                                             </Link>
                                         </div>
@@ -314,7 +317,7 @@ export default function GeneralDiscussion() {
                                     {/* 4. COMMENTS COUNT METRIC */}
                                     <div className="col-auto text-end d-none d-md-block ps-0">
                                         <Link 
-                                            to={`/forum/thread/${thread.id}`} 
+                                            href={`/forum/thread/${thread.id}`} 
                                             className="btn btn-sm btn-outline-secondary text-white-50 border-0 terminal-font"
                                         >
                                             💬 {thread.commentCount || 0}
@@ -401,18 +404,7 @@ export default function GeneralDiscussion() {
                                 className="md-input-field"
                                 value={mediaUrlInput}
                                 onChange={(e) => setMediaUrlInput(e.target.value)}
-                                disabled={!!selectedFile} // Disable text input if a file is selected
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3">
-                            <Form.Label className="hud-label">MEDIA URL (IMAGE / GIF / YOUTUBE LINK)</Form.Label>
-                            <Form.Control 
-                                type="url"
-                                placeholder="https://i.imgur.com/example.png or YouTube link"
-                                className="md-input-field"
-                                value={mediaUrlInput}
-                                onChange={(e) => setMediaUrlInput(e.target.value)}
+                                disabled={!!selectedFile}
                             />
                         </Form.Group>
                     </Modal.Body>
@@ -421,7 +413,7 @@ export default function GeneralDiscussion() {
                         <Button 
                             type="submit" 
                             className="md-btn-primary px-4"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isUploading}
                         >
                             {isSubmitting ? <Spinner animation="border" size="sm" /> : "PUBLISH THREAD"}
                         </Button>
@@ -432,7 +424,6 @@ export default function GeneralDiscussion() {
     );
 }
 
-// Fallback Mock Data for UI previews
 function getMockThreads() {
     return [
         {

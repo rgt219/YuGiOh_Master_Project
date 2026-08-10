@@ -1,3 +1,5 @@
+'use client'; // 👈 Required for client state, search inputs, pagination, and modals
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Form, Button, Badge, Spinner, Modal, Row, Col, InputGroup } from 'react-bootstrap';
 
@@ -50,7 +52,7 @@ const renderLevelStars = (level) => {
     );
 };
 
-// Helper to render color-coded Banlist Status badges (Fixes "Banned" -> "FORBIDDEN" mapping)
+// Helper to render color-coded Banlist Status badges
 const renderBanBadge = (status) => {
     const s = (status || "Unlimited").toUpperCase();
     if (s === "FORBIDDEN" || s === "BANNED") return <Badge bg="danger" className="terminal-font shadow-sm px-2 py-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>FORBIDDEN</Badge>;
@@ -101,7 +103,7 @@ export default function CardSearch() {
 
         try {
             const params = new URLSearchParams();
-            params.append("misc", "yes"); // Enables detailed banlist & misc metadata
+            params.append("misc", "yes");
             
             if (selectedAttribute !== "ALL") params.append("attribute", selectedAttribute.toLowerCase());
             
@@ -118,17 +120,14 @@ export default function CardSearch() {
             if (response.ok) {
                 const result = await response.json();
                 
-                // Map raw YGOProDeck objects to CardData schema + extra metadata
                 const normalized = (result.data || []).map(c => {
                     const priceObj = c.card_prices?.[0] || {};
                     const banObj = c.banlist_info || {};
                     const miscObj = c.misc_info?.[0] || {};
 
-                    // Check if card is a Link or Pendulum Monster (Banned in Genesys Format)
                     const isLinkOrPendulum = (c.type || "").toLowerCase().includes("link") || 
                                              (c.type || "").toLowerCase().includes("pendulum");
 
-                    // Read Genesys Points if present or calculate default
                     const genesysPts = isLinkOrPendulum ? "N/A" : (miscObj.genesys_points ?? 0);
 
                     return {
@@ -144,21 +143,18 @@ export default function CardSearch() {
                         image: `${AZURE_BLOB_CONTAINER_URL}/${c.id}.jpg`,
                         fallbackImage: c.card_images?.[0]?.image_url || "",
                         
-                        // 💵 Live Vendor Pricing
                         prices: {
                             tcgplayer: priceObj.tcgplayer_price ? `$${priceObj.tcgplayer_price}` : "N/A",
                             cardmarket: priceObj.cardmarket_price ? `€${priceObj.cardmarket_price}` : "N/A",
                             ebay: priceObj.ebay_price ? `$${priceObj.ebay_price}` : "N/A"
                         },
 
-                        // 🚫 Tri-Format Banlist Status
                         banlist: {
                             masterduel: banObj.ban_masterduel || "Unlimited",
                             tcg: banObj.ban_tcg || "Unlimited",
                             ocg: banObj.ban_ocg || "Unlimited"
                         },
 
-                        // 🔮 Genesys Points
                         isLinkOrPendulum,
                         genesysPoints: genesysPts
                     };
@@ -178,7 +174,6 @@ export default function CardSearch() {
         }
     }, [selectedMainType, selectedAttribute, selectedRace]);
 
-    // Re-fetch when API-level params change
     useEffect(() => {
         const timer = setTimeout(() => {
             fetchCards();
@@ -186,7 +181,7 @@ export default function CardSearch() {
         return () => clearTimeout(timer);
     }, [fetchCards]);
 
-    // ⚡ MULTI-CRITERIA FILTERING (Name, Description, Subtype, Ability)
+    // ⚡ MULTI-CRITERIA FILTERING
     const filteredCards = useMemo(() => {
         const queryLower = searchQuery.trim().toLowerCase();
 
@@ -215,12 +210,10 @@ export default function CardSearch() {
         });
     }, [rawCards, searchQuery, selectedMainType, selectedAbility, selectedRace]);
 
-    // Reset pagination to page 1 on filter changes
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery, selectedMainType, selectedAttribute, selectedAbility, selectedRace]);
 
-    // Pagination Calculations
     const totalPages = Math.ceil(filteredCards.length / CARDS_PER_PAGE) || 1;
 
     const paginatedCards = useMemo(() => {
@@ -230,7 +223,6 @@ export default function CardSearch() {
 
     return (
         <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px', backgroundColor: '#0a0d14' }}>
-            {/* INJECTED EMBEDDED STYLES */}
             <style>{`
                 .terminal-font { font-family: 'Courier New', Courier, monospace; }
                 .hud-label { letter-spacing: 1px; }
@@ -269,10 +261,7 @@ export default function CardSearch() {
                         </Badge>
                     </div>
 
-                    {/* CONTROL FILTERS BAR */}
                     <Row className="g-3">
-                        
-                        {/* SEARCH INPUT */}
                         <Col lg={4} md={6}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
                                 NAME OR EFFECT TEXT SEARCH
@@ -298,7 +287,6 @@ export default function CardSearch() {
                             </InputGroup>
                         </Col>
 
-                        {/* MAIN CARD CATEGORY */}
                         <Col lg={3} md={6}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
                                 CARD CATEGORY
@@ -318,7 +306,6 @@ export default function CardSearch() {
                             </div>
                         </Col>
 
-                        {/* MONSTER SPECIAL ABILITY */}
                         <Col lg={2} md={6}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
                                 ABILITY / TYPE
@@ -338,7 +325,6 @@ export default function CardSearch() {
                             </Form.Select>
                         </Col>
 
-                        {/* DYNAMIC CATEGORY-AWARE TYPE / RACE DROPDOWN */}
                         <Col lg={3} md={6}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
                                 {selectedMainType === "SPELL" ? "SPELL TYPE" : selectedMainType === "TRAP" ? "TRAP TYPE" : "MONSTER TYPE / RACE"}
@@ -355,7 +341,6 @@ export default function CardSearch() {
                             </Form.Select>
                         </Col>
 
-                        {/* ATTRIBUTE ROW SELECTOR */}
                         <Col lg={12} className="d-flex align-items-center gap-2 pt-2 border-top border-secondary border-opacity-25">
                             <span className="text-white-50 small terminal-font me-2">ATTRIBUTE:</span>
                             {ATTRIBUTES.map(attr => (
@@ -540,7 +525,6 @@ export default function CardSearch() {
 
                     <Modal.Body className="p-4 bg-dark">
                         <Row className="g-3 align-items-stretch">
-                            {/* 👈 LEFT COLUMN: CARD ART + MARKET VALUATION */}
                             <Col md={5} className="d-flex flex-column justify-content-between">
                                 <div className="text-center">
                                     <div className="vrains-card-art-container mx-auto mb-2">
@@ -559,7 +543,6 @@ export default function CardSearch() {
                                     </div>
                                 </div>
 
-                                {/* 💵 LIVE VENDOR MARKET PRICING WIDGET (LEFT SIDE) */}
                                 <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-30">
                                     <div className="text-info small terminal-font mb-1 d-flex align-items-center justify-content-between" style={{ fontSize: '0.7rem' }}>
                                         <span>MARKET VALUATION</span>
@@ -594,17 +577,14 @@ export default function CardSearch() {
                                 </div>
                             </Col>
 
-                            {/* 👉 RIGHT COLUMN: TAXONOMY, STATS, TELEMETRY BAR, & DYNAMIC FLUSH EFFECT TEXT */}
                             <Col md={7} className="d-flex flex-column">
                                 <div className="p-3 rounded bg-black bg-opacity-50 border border-info border-opacity-30 position-relative flex-grow-1 d-flex flex-column">
                                     
-                                    {/* HUD Corner Brackets */}
                                     <div className="vrains-corner vrains-corner-tl"></div>
                                     <div className="vrains-corner vrains-corner-tr"></div>
                                     <div className="vrains-corner vrains-corner-bl"></div>
                                     <div className="vrains-corner vrains-corner-br"></div>
 
-                                    {/* TITLE & TAXONOMY */}
                                     <h3 className="fw-bold text-white mb-2" style={{ fontSize: '1.25rem' }}>{inspectCard.name}</h3>
 
                                     <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
@@ -623,14 +603,12 @@ export default function CardSearch() {
                                         )}
                                     </div>
 
-                                    {/* LEVEL / RANK STARS */}
                                     {inspectCard.level && (
                                         <div className="mb-2 p-2 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25">
                                             {renderLevelStars(inspectCard.level)}
                                         </div>
                                     )}
 
-                                    {/* ATK / DEF STAT BOXES */}
                                     {(inspectCard.atk !== null || inspectCard.def !== null) && (
                                         <Row className="g-2 mb-2">
                                             <Col>
@@ -652,9 +630,7 @@ export default function CardSearch() {
                                         </Row>
                                     )}
 
-                                    {/* ⚡ COMBINED SIDE-BY-SIDE TELEMETRY BAR: BANLIST + GENESYS POINTS */}
                                     <Row className="g-2 mb-2">
-                                        {/* BANLIST STATUS */}
                                         <Col xs={8}>
                                             <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-25 h-100">
                                                 <div className="text-info small terminal-font mb-1" style={{ fontSize: '0.62rem' }}>
@@ -677,7 +653,6 @@ export default function CardSearch() {
                                             </div>
                                         </Col>
 
-                                        {/* GENESYS POINT COST */}
                                         <Col xs={4}>
                                             <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-25 h-100 d-flex flex-column justify-content-between text-center">
                                                 <span className="text-info small terminal-font d-block fw-bold" style={{ fontSize: '0.62rem' }}>
@@ -698,7 +673,6 @@ export default function CardSearch() {
                                         </Col>
                                     </Row>
 
-                                    {/* ⚡ CARD EFFECT DESCRIPTION (STRETCHES FLUSH TO FILL ALL REMAINING SPACE) */}
                                     <div className="mt-1 flex-grow-1 d-flex flex-column">
                                         <label className="text-info small terminal-font mb-1 d-block" style={{ fontSize: '0.7rem' }}>
                                             CARD EFFECT

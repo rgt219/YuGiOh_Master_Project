@@ -1,3 +1,5 @@
+'use client'; // 👈 Required for carousel state, keyboard listeners, & client events
+
 import React, { useState, useEffect, useCallback } from 'react';
 import DeckBoss from './DeckBoss';
 import '../mdstyles.css';
@@ -69,7 +71,6 @@ export default function DecksGrid({ decks = [], decklist = [], toggleDeckList })
                 </span>
             </div>
 
-
             {/* --- 3D COVER FLOW CAROUSEL STAGE --- */}
             {filteredDecks.length === 0 ? (
                 <div className="text-center py-5 text-white-50 terminal-font">
@@ -101,20 +102,17 @@ export default function DecksGrid({ decks = [], decklist = [], toggleDeckList })
                         style={{ height: '520px', perspective: '1000px' }}
                     >
                         {filteredDecks.map((deck, index) => {
-                            // Calculate distance relative to current active index
                             const offset = index - activeIndex;
                             const absOffset = Math.abs(offset);
 
-                            // Hide items further than 3 positions away to optimize DOM rendering
                             if (absOffset > 3) return null;
 
-                            // 3D Math Calculations
-                            const translateX = offset * 260; // Horizontal offset spacing (px)
-                            const translateZ = -absOffset * 180; // Depth reduction (px)
-                            const rotateY = offset === 0 ? 0 : offset > 0 ? -25 : 25; // 3D Tilt Angle
-                            const scale = offset === 0 ? 1 : Math.max(0.7, 1 - absOffset * 0.15); // Scale multiplier
-                            const opacity = offset === 0 ? 1 : Math.max(0.3, 1 - absOffset * 0.35); // Opacity falloff
-                            const zIndex = 100 - absOffset; // Layer active card on top
+                            const translateX = offset * 260;
+                            const translateZ = -absOffset * 180;
+                            const rotateY = offset === 0 ? 0 : offset > 0 ? -25 : 25;
+                            const scale = offset === 0 ? 1 : Math.max(0.7, 1 - absOffset * 0.15);
+                            const opacity = offset === 0 ? 1 : Math.max(0.3, 1 - absOffset * 0.35);
+                            const zIndex = 100 - absOffset;
 
                             return (
                                 <div

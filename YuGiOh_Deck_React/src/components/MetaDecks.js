@@ -1,20 +1,21 @@
+'use client'; // 👈 Required for hooks, state, and client audio/clicks
+
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Spinner, Button } from 'react-bootstrap';
 import '../mdstyles.css';
 
-// Base API URL configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
+// Base API URL configuration (Supports Next.js & React App env vars)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.REACT_APP_API_URL || 
   'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api';
 
 export default function MetaDecks({ mdSound }) {
   const [metaDecks, setMetaDecks] = useState([]);
-  const [activeFormat, setActiveFormat] = useState('TCG'); // 👈 Active format state
+  const [activeFormat, setActiveFormat] = useState('TCG'); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Define format buttons with matching Bootstrap colors
   const formats = [
     { name: 'TCG', variant: 'info' },
     { name: 'OCG', variant: 'warning' },
@@ -22,7 +23,6 @@ export default function MetaDecks({ mdSound }) {
     { name: 'GENESYS', variant: 'danger' }
   ];
 
-  // 🚀 Re-fetches decks from MongoDB whenever activeFormat changes!
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -71,9 +71,9 @@ export default function MetaDecks({ mdSound }) {
           style={{ 
             backgroundColor: 'rgba(8, 12, 20, 0.98)', 
             backdropFilter: 'blur(10px)',
-            position: 'sticky',   // 👈 Enables sticky positioning
-            top: '70px',          // 👈 Offset from top (adjust if you have a fixed navbar above it)
-            zIndex: 1000          // 👈 Keeps it layered above cards scrolling underneath
+            position: 'sticky',
+            top: '70px',
+            zIndex: 1000
           }} 
           text="white" 
           className="shadow-lg p-3 mb-4 md-panel border-info border-opacity-25"
@@ -116,7 +116,6 @@ export default function MetaDecks({ mdSound }) {
             </Card>
           </div>
         ) : error ? (
-          /* --- ERROR SCREEN --- */
           <div className="d-flex justify-content-center align-items-center mt-5">
             <Card 
               style={{ backgroundColor: 'rgba(20, 8, 8, 0.95)', backdropFilter: 'blur(10px)', maxWidth: '32rem' }} 
@@ -138,12 +137,10 @@ export default function MetaDecks({ mdSound }) {
             </Card>
           </div>
         ) : metaDecks.length === 0 ? (
-          /* --- EMPTY STATE --- */
           <div className="text-center py-5 text-white-50 terminal-font">
             <h5>NO DECKS ARCHIVED FOR {activeFormat} FORMAT YET</h5>
           </div>
         ) : (
-          /* --- META DECKS GRID --- */
           <Row xs={1} md={2} lg={3} className="g-4">
             {metaDecks.map((deck) => {
               const deckId = deck?.Id || deck?.['_id'] || deck?.['id'];
@@ -174,7 +171,6 @@ export default function MetaDecks({ mdSound }) {
                       style={{ minHeight: '85px' }}
                     >
                       <div>
-                        {/* --- TOP ROW: ARCHETYPE & TIER BADGE --- */}
                         <div className="d-flex justify-content-between align-items-start gap-2">
                           <h5 
                             className="m-0 fw-bold text-white" 
@@ -197,15 +193,14 @@ export default function MetaDecks({ mdSound }) {
                           </Badge>
                         </div>
 
-                        {/* --- BOTTOM ROW: PLACEMENT UNDERNEATH --- */}
                         <div className="mt-2 d-flex align-items-center justify-content-between">
                           <Badge bg="dark" className="text-light fw-bold px-3 py-2">
                             🏆 {
                                   (deck?.placement || deck?.Placement || 'Tournament Placement')
-                                    .replace(/Reached/gi, '')     // 1. Removes "Reached" (case-insensitive)
-                                    .replace(/\bat\b/gi, '@')      // 2. Swaps standalone "at" with "@"
-                                    .replace(/\s+/g, ' ')          // 3. Collapses double spaces
-                                    .trim()                        // 4. Trims leading/trailing whitespace
+                                    .replace(/Reached/gi, '')
+                                    .replace(/\bat\b/gi, '@')
+                                    .replace(/\s+/g, ' ')
+                                    .trim()
                                 }
                           </Badge>
                         </div>
@@ -279,7 +274,7 @@ export default function MetaDecks({ mdSound }) {
 
                         <Button
                           as={Link}
-                          to={`/meta-decks/${deckId}`}
+                          href={`/meta-decks/${deckId}`} // ⚡ Updated from 'to' to 'href'
                           variant="outline-info"
                           className="w-100 fw-bold terminal-font text-nowrap py-2 mt-2"
                           onMouseEnter={() => mdSound?.playHover?.()}

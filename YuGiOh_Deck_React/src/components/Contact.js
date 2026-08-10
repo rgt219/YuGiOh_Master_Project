@@ -1,20 +1,21 @@
+'use client'; // 👈 Added for React-Bootstrap component hydration & image error fallback
+
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Button } from 'react-bootstrap';
 import '../mdstyles.css';
 
 export default function Contact() {
-    // ⚙️ Replace these details with your actual info
     const contactInfo = {
         name: "Ryan Thomas",
         title: "FULL-STACK DEVELOPER",
         attribute: "",
         level: 7,
         email: "rgt@erregeteygo.com",
-        resumeUrl: "/resume/erregeteresume.pdf", // Place your resume PDF in the /public folder
+        resumeUrl: "/resume/erregeteresume.pdf", 
         atk: 3000,
         def: 2500,
-        avatarUrl: "./images/headshot.jpg" // Or any avatar image path
+        avatarUrl: "/images/headshot.jpg" // ⚡ Next.js resolves static images from root /public/
     };
 
     return (
@@ -111,7 +112,6 @@ export default function Contact() {
 
                                 {/* Action Buttons */}
                                 <div className="d-flex flex-row flex-wrap gap-2 w-100">
-                                    {/* EMAIL - CYAN (INFO) */}
                                     <Button 
                                         href={`mailto:${contactInfo.email}`} 
                                         variant="info"
@@ -119,7 +119,6 @@ export default function Contact() {
                                     >
                                         EMAIL
                                     </Button>
-
                                 </div>
                             </Col>
                         </Row>

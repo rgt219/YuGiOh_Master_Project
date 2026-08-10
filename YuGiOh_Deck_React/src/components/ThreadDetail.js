@@ -1,5 +1,8 @@
+'use client'; // 👈 Required for client state, modals, upvoting, & file upload
+
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { Form, Button, Badge, Spinner, Modal } from 'react-bootstrap';
 import { API_URLS } from '../config';
 import MediaRenderer from './MediaRenderer';
@@ -11,7 +14,6 @@ function CommentMediaPreview({ urls }) {
 
     if (!urls || urls.length === 0) return null;
 
-    // Helper to extract thumbnail source
     const getThumbnailSrc = (url) => {
         const ytIdMatch = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
         if (ytIdMatch && ytIdMatch[2].length === 11) {
@@ -25,14 +27,12 @@ function CommentMediaPreview({ urls }) {
 
     return (
         <div className="comment-media-preview-container mt-2 pt-2 border-top border-secondary border-opacity-10">
-            {/* COMPACT THUMBNAIL BAR */}
             <div 
                 className="d-flex align-items-center gap-3 p-2 rounded bg-black bg-opacity-30 border border-info border-opacity-25 hover-glow cursor-pointer"
                 onClick={() => setShowMediaModal(true)}
                 style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
                 title="Click to expand media"
             >
-                {/* BIGGER CLICKABLE THUMBNAIL WITH HOVER BADGE */}
                 <div className="position-relative flex-shrink-0">
                     <img 
                         src={thumbnailSrc} 
@@ -49,7 +49,6 @@ function CommentMediaPreview({ urls }) {
                     </span>
                 </div>
 
-                {/* ATTACHMENT TEXT LOG */}
                 <div className="flex-grow-1 overflow-hidden">
                     <span className="text-info small terminal-font d-block fw-bold" style={{ fontSize: '0.75rem' }}>
                         ATTACHMENT_LOG ({attachmentCount} File{attachmentCount > 1 ? 's' : ''})
@@ -63,7 +62,6 @@ function CommentMediaPreview({ urls }) {
                 </div>
             </div>
 
-            {/* ⚡ MEDIA LIGHTBOX MODAL */}
             <Modal 
                 show={showMediaModal} 
                 onHide={() => setShowMediaModal(false)} 
@@ -86,11 +84,12 @@ function CommentMediaPreview({ urls }) {
 }
 
 export default function ThreadDetail() {
-    const { id } = useParams();
+    const params = useParams();
+    const id = params?.id;
+
     const [thread, setThread] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Modal & Comment state
     const [showCommentModal, setShowCommentModal] = useState(false);
     const [newComment, setNewComment] = useState("");
     const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -98,18 +97,18 @@ export default function ThreadDetail() {
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
-    // Get current user from session
-    const currentUser = JSON.parse(sessionStorage.getItem("user") || "{}");
+    const currentUser = typeof window !== 'undefined' ? JSON.parse(sessionStorage.getItem("user") || "{}") : {};
     const username = currentUser.userName;
 
     useEffect(() => {
-        fetchThreadDetails();
+        if (id) fetchThreadDetails();
     }, [id]);
 
     const fetchThreadDetails = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${API_URLS.FORUMS}/api/forums/threads/${id}`);
+            const baseUrl = API_URLS?.FORUMS || "";
+            const response = await fetch(`${baseUrl}/api/forums/threads/${id}`);
             if (response.ok) {
                 const data = await response.json();
                 setThread(data);
@@ -121,7 +120,6 @@ export default function ThreadDetail() {
         }
     };
 
-    // ⚡ Vote handler with Auth Guard
     const handleVote = async (voteType) => {
         if (!username) {
             alert("⚠️ ACCESS DENIED: You must be logged in to vote on threads!");
@@ -129,7 +127,8 @@ export default function ThreadDetail() {
         }
 
         try {
-            const response = await fetch(`${API_URLS.FORUMS}/api/forums/threads/${id}/vote`, {
+            const baseUrl = API_URLS?.FORUMS || "";
+            const response = await fetch(`${baseUrl}/api/forums/threads/${id}/vote`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, voteType })
@@ -143,7 +142,6 @@ export default function ThreadDetail() {
         }
     };
 
-    // 🔒 Guarded Comment Modal Opener
     const handleOpenCommentModal = () => {
         if (!username) {
             alert("⚠️ ACCESS DENIED: You must be logged in to post a comment!");
@@ -152,7 +150,6 @@ export default function ThreadDetail() {
         setShowCommentModal(true);
     };
 
-    // ⚡ Submit Comment Handler
     const handleAddComment = async (e) => {
         e.preventDefault();
 
@@ -166,14 +163,14 @@ export default function ThreadDetail() {
         setIsSubmittingComment(true);
         let uploadedMediaUrls = [];
 
-        // 1. Upload local file to Azure Blob via C# endpoint if selected
         if (selectedFile) {
             setIsUploading(true);
             const formData = new FormData();
             formData.append("file", selectedFile);
 
             try {
-                const uploadRes = await fetch(`${API_URLS.FORUMS}/api/forums/upload`, {
+                const baseUrl = API_URLS?.FORUMS || "";
+                const uploadRes = await fetch(`${baseUrl}/api/forums/upload`, {
                     method: "POST",
                     body: formData
                 });
@@ -198,21 +195,19 @@ export default function ThreadDetail() {
             }
         }
 
-        // 2. Add YouTube link if provided
         if (youtubeUrl.trim()) {
             uploadedMediaUrls.push(youtubeUrl.trim());
         }
 
-        // 3. Build comment payload
         const commentPayload = {
             author: username,
             text: newComment,
             mediaUrls: uploadedMediaUrls
         };
 
-        // 4. Post comment
         try {
-            const response = await fetch(`${API_URLS.FORUMS}/api/forums/threads/${id}/comments`, {
+            const baseUrl = API_URLS?.FORUMS || "";
+            const response = await fetch(`${baseUrl}/api/forums/threads/${id}/comments`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(commentPayload)
@@ -241,11 +236,10 @@ export default function ThreadDetail() {
     return (
         <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px' }}>
             <div className="container" style={{ maxWidth: '900px' }}>
-                <Link to="/generaldiscussion" className="text-info text-decoration-none terminal-font small mb-3 d-inline-block">
+                <Link href="/generaldiscussion" className="text-info text-decoration-none terminal-font small mb-3 d-inline-block">
                     ← RETURN TO FORUM
                 </Link>
 
-                {/* THREAD CARD */}
                 <div className="p-4 rounded-3 bg-dark border border-info border-opacity-25 shadow-lg mb-4" style={{ background: 'rgba(15, 23, 42, 0.9)' }}>
                     <div className="d-flex align-items-center gap-2 mb-2">
                         <Badge bg="info" className="text-dark terminal-font">{thread.tag || "GENERAL"}</Badge>
@@ -258,7 +252,6 @@ export default function ThreadDetail() {
 
                     <MediaRenderer urls={thread.mediaUrls} />
 
-                    {/* ACTION BAR (VOTES & REDDIT-STYLE COMMENT TRIGGER) */}
                     <div className="d-flex align-items-center justify-content-between pt-3 border-top border-secondary border-opacity-25 mt-3">
                         <div className="d-flex align-items-center gap-2">
                             <Button 
@@ -279,7 +272,6 @@ export default function ThreadDetail() {
                             </Button>
                         </div>
 
-                        {/* REDDIT-STYLE COMMENT TRIGGER BUTTON */}
                         <Button
                             variant={username ? "outline-info" : "outline-warning"}
                             size="sm"
@@ -291,7 +283,6 @@ export default function ThreadDetail() {
                     </div>
                 </div>
 
-                {/* COMMENTS LIST HEADER */}
                 <div className="d-flex align-items-center justify-content-between mb-3">
                     <h5 className="text-white terminal-font m-0">COMMENTS ({thread.comments?.length || 0})</h5>
                     
@@ -305,7 +296,6 @@ export default function ThreadDetail() {
                     </Button>
                 </div>
 
-                {/* COMMENTS LIST */}
                 <div className="d-flex flex-column gap-3">
                     {(!thread.comments || thread.comments.length === 0) ? (
                         <div className="p-4 rounded-3 bg-dark text-center border border-secondary border-opacity-25">
@@ -326,7 +316,6 @@ export default function ThreadDetail() {
                                 </div>
                                 <p className="text-white-50 mb-0 small" style={{ whiteSpace: 'pre-line' }}>{comment.text}</p>
                                 
-                                {/* ⚡ LIGHTBOX MEDIA PREVIEW */}
                                 <CommentMediaPreview urls={comment.mediaUrls} />
                             </div>
                         ))
@@ -335,7 +324,6 @@ export default function ThreadDetail() {
 
             </div>
 
-            {/* ⚡ MASTER DUEL CYBER-THEMED COMMENT MODAL */}
             <Modal 
                 show={showCommentModal} 
                 onHide={() => setShowCommentModal(false)} 
@@ -351,8 +339,6 @@ export default function ThreadDetail() {
 
                 <Form onSubmit={handleAddComment}>
                     <Modal.Body className="py-3 bg-dark text-white">
-                        
-                        {/* TEXT AREA */}
                         <Form.Group className="mb-3">
                             <Form.Control 
                                 as="textarea"
@@ -366,7 +352,6 @@ export default function ThreadDetail() {
                             />
                         </Form.Group>
 
-                        {/* ATTACHMENT TOOLS BAR */}
                         <div className="p-3 rounded bg-black bg-opacity-40 border border-secondary border-opacity-25 mb-3">
                             <div className="d-flex align-items-center justify-content-between mb-2">
                                 <Form.Label className="hud-label m-0 text-info small terminal-font">
@@ -384,7 +369,6 @@ export default function ThreadDetail() {
                                 )}
                             </div>
 
-                            {/* PAPERCLIP FILE UPLOAD TRIGGER */}
                             <div className="d-flex align-items-center gap-2 mb-3">
                                 <label 
                                     htmlFor="comment-file-upload" 
@@ -406,7 +390,6 @@ export default function ThreadDetail() {
                                 )}
                             </div>
 
-                            {/* YOUTUBE LINK BOX */}
                             <Form.Group>
                                 <Form.Label className="hud-label text-white-50 small terminal-font mb-1">
                                     🎥 YOUTUBE / MEDIA LINK

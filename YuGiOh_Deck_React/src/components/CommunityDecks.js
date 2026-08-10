@@ -1,6 +1,8 @@
+'use client'; // 👈 Required for Next.js client state & navigation
+
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, InputGroup, Card, Badge, Spinner, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import '../mdstyles.css';
 
 // 🚀 YOUR AZURE BLOB STORAGE CONTAINER
@@ -35,12 +37,10 @@ export default function CommunityDecks() {
         const previewCard = deck.mainDeck?.[0] || deck.extraDeck?.[0] || deck.sideDeck?.[0];
         if (!previewCard) return null;
 
-        // If previewCard is an object
         if (typeof previewCard === 'object' && previewCard !== null) {
             return previewCard.id || previewCard.Id || previewCard.cardId || previewCard._id || null;
         }
 
-        // If previewCard is stored directly as a primitive number or string ID
         if (typeof previewCard === 'number' || typeof previewCard === 'string') {
             return previewCard;
         }
@@ -77,7 +77,7 @@ export default function CommunityDecks() {
                                 ACCESSING PUBLIC DECK ARCHIVES // INDEXED_TOTAL: [{decks.length}]
                             </p>
                         </div>
-                        <Button as={Link} to="/deckbuilder" variant="info" className="terminal-font fw-bold text-dark px-3 py-2">
+                        <Button as={Link} href="/deckbuilder" variant="info" className="terminal-font fw-bold text-dark px-3 py-2">
                             CREATE NEW DECK
                         </Button>
                     </div>
@@ -144,13 +144,8 @@ export default function CommunityDecks() {
                             const mainCount = d.mainDeck?.length || 0;
                             const extraCount = d.extraDeck?.length || 0;
                             
-                            // 1. Safely extract ID using our new helper
                             const cardId = getPreviewCardId(d);
-
-                            // 2. Primary: Azure Blob CDN URL
                             const previewImg = cardId ? `${AZURE_BLOB_BASE_URL}/${cardId}.jpg` : null;
-
-                            // 3. Fallback: YGOProDeck CDN
                             const fallbackImg = cardId ? `https://images.ygoprodeck.com/images/cards/${cardId}.jpg` : null;
 
                             return (
@@ -162,12 +157,10 @@ export default function CommunityDecks() {
                                                     src={previewImg} 
                                                     alt={d.title || "Deck Preview"} 
                                                     style={{ width: '60px', height: '88px', borderRadius: '4px', objectFit: 'cover' }} 
-                                                    /* 🛡️ Fallback to YGOProDeck CDN if Azure Blob fails or 404s */
                                                     onError={(e) => {
                                                         if (fallbackImg && e.target.src !== fallbackImg) {
                                                             e.target.src = fallbackImg;
                                                         } else {
-                                                            // If both images fail, show placeholder div instead of broken image
                                                             e.target.style.display = 'none';
                                                         }
                                                     }}
@@ -201,7 +194,7 @@ export default function CommunityDecks() {
 
                                             <Button 
                                                 as={Link} 
-                                                to={`/deckprofiledetails/${d.id || d._id}`} 
+                                                href={`/deckprofiledetails/${d.id || d._id}`} 
                                                 variant="outline-info" 
                                                 size="sm"
                                                 className="terminal-font fw-bold"

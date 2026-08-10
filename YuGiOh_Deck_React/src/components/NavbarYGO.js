@@ -1,20 +1,32 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react'; // 👈 Added useEffect
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/Button';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { mdSound } from '../utils/mdSound';
 
 export default function NavbarYGO({ user, onLogout }) {
-  const [sfxActive, setSfxActive] = useState(mdSound.enabled);
+  // ⚡ 1. Initialize state to match server HTML (false)
+  const [sfxActive, setSfxActive] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
+  // ⚡ 2. Sync with localStorage ONLY on the client after hydration
+  useEffect(() => {
+    if (typeof window !== 'undefined' && mdSound) {
+      setSfxActive(mdSound.enabled);
+    }
+  }, []);
+
   const handleSfxToggle = () => {
-    const newState = mdSound.toggleSound();
-    setSfxActive(newState);
+    if (mdSound?.toggleSound) {
+      const newState = mdSound.toggleSound();
+      setSfxActive(newState);
+    }
   };
 
   const closeNav = () => setExpanded(false);
@@ -24,7 +36,7 @@ export default function NavbarYGO({ user, onLogout }) {
       bg="dark" 
       data-bs-theme="dark" 
       fixed="top" 
-      expand="lg" // 🚀 Fixes horizontal overflow & enables Hamburger Button on mobile
+      expand="lg"
       expanded={expanded}
       onToggle={(isExpanded) => setExpanded(isExpanded)}
       className="border-bottom border-info border-opacity-25 shadow-lg"
@@ -38,15 +50,15 @@ export default function NavbarYGO({ user, onLogout }) {
         {/* BRAND LOGO */}
         <Navbar.Brand 
           as={Link} 
-          to="/"
+          href="/" 
           className="fw-bold text-info me-3 d-flex align-items-center gap-2"
-          onMouseEnter={() => mdSound.playHover()}
-          onClick={() => { mdSound.playClick(); closeNav(); }}
+          onMouseEnter={() => mdSound?.playHover?.()}
+          onClick={() => { mdSound?.playClick?.(); closeNav(); }}
         >
           <span style={{ color: '#00f2ff', textShadow: '0 0 8px rgba(0,242,255,0.5)' }}>ErreGeTe YGO</span>
         </Navbar.Brand>
 
-        {/* 🍔 HAMBURGER BUTTON (Mobile / Tablet) */}
+        {/* 🍔 HAMBURGER BUTTON */}
         <Navbar.Toggle 
           aria-controls="basic-navbar-nav" 
           className="border-info border-opacity-50 text-info shadow-none" 
@@ -59,22 +71,22 @@ export default function NavbarYGO({ user, onLogout }) {
             <NavDropdown 
               title={<span className="fw-bold">Info</span>} 
               id="info-dropdown"
-              onMouseEnter={() => mdSound.playHover()}
+              onMouseEnter={() => mdSound?.playHover?.()}
               className="px-2"
             >
               <NavDropdown.Item 
                 as={Link} 
-                to="/about"
+                href="/about"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 About
               </NavDropdown.Item>
               <NavDropdown.Item 
                 as={Link} 
-                to="/contact"
+                href="/contact"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 Contact
               </NavDropdown.Item>
@@ -84,30 +96,30 @@ export default function NavbarYGO({ user, onLogout }) {
             <NavDropdown 
               title={<span className="fw-bold">Decks</span>} 
               id="decks-dropdown"
-              onMouseEnter={() => mdSound.playHover()}
+              onMouseEnter={() => mdSound?.playHover?.()}
               className="px-2"
             >
               <NavDropdown.Item 
                 as={Link} 
-                to="/community"
+                href="/community"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 Community Decks
               </NavDropdown.Item>
               <NavDropdown.Item 
                 as={Link} 
-                to="/meta-decks"
+                href="/meta-decks"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 Meta Decks
               </NavDropdown.Item>
               <NavDropdown.Item
                 as={Link} 
-                to="/deckbuilder"
+                href="/deckbuilder"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 Deck Builder
               </NavDropdown.Item>
@@ -117,22 +129,22 @@ export default function NavbarYGO({ user, onLogout }) {
             <NavDropdown 
               title={<span className="fw-bold">Card Database</span>} 
               id="card-database-dropdown"
-              onMouseEnter={() => mdSound.playHover()}
+              onMouseEnter={() => mdSound?.playHover?.()}
               className="px-2"
             >
               <NavDropdown.Item
                 as={Link} 
-                to="/cardsearch"
+                href="/cardsearch"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 Card Search
               </NavDropdown.Item>
               <NavDropdown.Item
                 as={Link} 
-                to="/banlist"
+                href="/banlist"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 Ban List
               </NavDropdown.Item>
@@ -142,22 +154,22 @@ export default function NavbarYGO({ user, onLogout }) {
             <NavDropdown 
               title={<span className="fw-bold">Forums</span>} 
               id="forums-dropdown"
-              onMouseEnter={() => mdSound.playHover()}
+              onMouseEnter={() => mdSound?.playHover?.()}
               className="px-2"
             >
               <NavDropdown.Item
                 as={Link} 
-                to="/generaldiscussion"
+                href="/generaldiscussion"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 General Discussion
               </NavDropdown.Item>
               <NavDropdown.Item
                 as={Link} 
-                to="/competitivediscussion"
+                href="/competitivediscussion"
                 className="fw-bold"
-                onClick={() => { mdSound.playClick(); closeNav(); }}
+                onClick={() => { mdSound?.playClick?.(); closeNav(); }}
               >
                 Competitive Discussion
               </NavDropdown.Item>
@@ -182,21 +194,21 @@ export default function NavbarYGO({ user, onLogout }) {
                   title={<span className="terminal-user-link fw-bold">{user.userName}</span>} 
                   id="user-dropdown" 
                   align="end"
-                  onMouseEnter={() => mdSound.playHover()}
+                  onMouseEnter={() => mdSound?.playHover?.()}
                 >
                   <NavDropdown.Item 
                     as={Link} 
-                    to="/profile"
-                    onClick={() => { mdSound.playClick(); closeNav(); }}
+                    href="/profile"
+                    onClick={() => { mdSound?.playClick?.(); closeNav(); }}
                   >
                     VIEW PROFILE
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
                   <NavDropdown.Item 
                     onClick={() => {
-                      mdSound.playClick();
+                      mdSound?.playClick?.();
                       closeNav();
-                      onLogout();
+                      if (onLogout) onLogout();
                     }}
                   >
                     LOGOUT
@@ -208,19 +220,19 @@ export default function NavbarYGO({ user, onLogout }) {
               <div className="d-flex align-items-center gap-2 w-100 w-lg-auto">
                 <Nav.Link 
                   as={Link} 
-                  to="/login"
+                  href="/login"
                   className="text-info fw-bold px-3 py-1 btn btn-outline-info btn-sm text-center w-100"
-                  onMouseEnter={() => mdSound.playHover()}
-                  onClick={() => { mdSound.playClick(); closeNav(); }}
+                  onMouseEnter={() => mdSound?.playHover?.()}
+                  onClick={() => { mdSound?.playClick?.(); closeNav(); }}
                 >
                   Login
                 </Nav.Link>
                 <Nav.Link 
                   as={Link} 
-                  to="/register"
+                  href="/register"
                   className="text-warning fw-bold px-3 py-1 btn btn-outline-warning btn-sm text-center w-100"
-                  onMouseEnter={() => mdSound.playHover()}
-                  onClick={() => { mdSound.playClick(); closeNav(); }}
+                  onMouseEnter={() => mdSound?.playHover?.()}
+                  onClick={() => { mdSound?.playClick?.(); closeNav(); }}
                 >
                   Register
                 </Nav.Link>

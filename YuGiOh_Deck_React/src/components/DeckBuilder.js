@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Button, Container, Row, Col, Modal, Form, Badge, Card, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';

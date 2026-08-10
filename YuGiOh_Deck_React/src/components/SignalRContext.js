@@ -1,7 +1,10 @@
+'use client'; // 👈 Must be Line 1 for React Context & WebSockets
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as signalR from '@microsoft/signalr';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io';
+// ⚡ Updated to Next.js env variable prefix
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io';
 const SignalRContext = createContext();
 
 export const SignalRProvider = ({ children }) => {
@@ -11,11 +14,13 @@ export const SignalRProvider = ({ children }) => {
     const [latestActivity, setLatestActivity] = useState(null);
 
     useEffect(() => {
+        let isMounted = true;
+
         // 🚀 1. Fetch initial 5 most recent items from MongoDB on page load
         fetch(`${API_BASE_URL}/api/analytics/recent-activity?limit=5`)
             .then(res => res.ok ? res.json() : [])
             .then(data => {
-                if (Array.isArray(data) && data.length > 0) {
+                if (isMounted && Array.isArray(data) && data.length > 0) {
                     const mappedData = data.map(item => ({
                         username: item.username || item.userName || "Duelist",
                         action: item.action || "published",
@@ -36,6 +41,11 @@ export const SignalRProvider = ({ children }) => {
 
         newConnection.start()
             .then(() => {
+                if (!isMounted) {
+                    newConnection.stop();
+                    return;
+                }
+
                 console.log("Global SignalR Connected!");
 
                 newConnection.on("ReceiveActivity", (activity) => {
@@ -51,18 +61,24 @@ export const SignalRProvider = ({ children }) => {
                         extraDeck: activity.extraDeck || []
                     };
 
-                    // Prepend new activity and cap at top 5 items
                     setActivities(prev => [newActivity, ...prev].slice(0, 5));
                     setLatestActivity(newActivity);
                     setShowToast(true);
                 });
-            })
-            .catch(err => console.error("SignalR Connection Error: ", err));
 
-        setConnection(newConnection);
+                setConnection(newConnection);
+            })
+            .catch(err => {
+                if (isMounted) {
+                    console.warn("SignalR Connection Warning: ", err);
+                }
+            });
 
         return () => {
-            if (newConnection) newConnection.stop();
+            isMounted = false;
+            if (newConnection) {
+                newConnection.stop().catch(() => {});
+            }
         };
     }, []);
 

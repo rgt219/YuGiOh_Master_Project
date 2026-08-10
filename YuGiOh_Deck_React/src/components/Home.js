@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from "react";
 import Card from 'react-bootstrap/Card';
 import Badge from 'react-bootstrap/Badge';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import DecksGrid from "./DecksGrid";
 import TrendingCards from "./TrendingCards";
 import Footer from "./Footer";
@@ -38,7 +40,7 @@ function NavVideoCard({ link }) {
     return (
         <Card 
             as={Link} 
-            to={link.path} 
+            href={link.path} // ⚡ Updated from 'to' to 'href' for Next.js Link
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             className="md-nav-card flex-grow-1 flex-sm-grow-0 overflow-hidden"
@@ -195,9 +197,10 @@ export default function Home({ user }) {
     const activeTech = techStackSlides[activeIndex];
 
     useEffect(() => {
-        fetch("decks.json")
+        fetch("/decks.json") // ⚡ Next.js resolves public files from root '/decks.json'
             .then(response => response.json())
-            .then(data => setDecks(data));
+            .then(data => setDecks(data))
+            .catch(err => console.warn("Could not load decks.json:", err));
     }, []);
 
     // ⚡ Auto-rotate slides every 5.5 seconds
@@ -361,14 +364,14 @@ export default function Home({ user }) {
                 <nav className="mb-4 mb-md-5">
                     <div className="d-flex justify-content-center flex-wrap gap-2 gap-md-3">
                         {[
-                            { path: "/about", label: "About", img: "./images/thunderbolt.png", video: "./videos/thunderbolt.mp4" },
-                            { path: "/contact", label: "Contact", img: "./images/aluber.png", video: "./videos/aluber.mp4" },
-                            { path: "/deckbuilder", label: "Deck Builder", img: "./images/albaz.jpg", video: "./videos/albaz.mp4" },
-                            { path: "/community", label: "Community", img: "./images/bystialLubellion.png", video: "./videos/bystialLubellion.mp4" },
-                            { path: "/meta-decks", label: "Meta Decks", img: "./images/mirrorjade.jpg", video: "./videos/mirrorjade.mp4" },
-                            { path: "/cardsearch", label: "Card Search", img: "./images/darkdragon.jpg", video: "./videos/darkdragon.mp4" },
-                            { path: "/banlist", label: "Ban List", img: "./images/blazing.png", video: "./videos/blazing.mp4" },
-                            { path: "/generaldiscussion", label: "Forums", img: "./images/sanctifire.png", video: "./videos/sanctifire.mp4" },
+                            { path: "/about", label: "About", img: "/images/thunderbolt.png", video: "/videos/thunderbolt.mp4" },
+                            { path: "/contact", label: "Contact", img: "/images/aluber.png", video: "/videos/aluber.mp4" },
+                            { path: "/deckbuilder", label: "Deck Builder", img: "/images/albaz.jpg", video: "/videos/albaz.mp4" },
+                            { path: "/community", label: "Community", img: "/images/bystialLubellion.png", video: "/videos/bystialLubellion.mp4" },
+                            { path: "/meta-decks", label: "Meta Decks", img: "/images/mirrorjade.jpg", video: "/videos/mirrorjade.mp4" },
+                            { path: "/cardsearch", label: "Card Search", img: "/images/darkdragon.jpg", video: "/videos/darkdragon.mp4" },
+                            { path: "/banlist", label: "Ban List", img: "/images/blazing.png", video: "/videos/blazing.mp4" },
+                            { path: "/generaldiscussion", label: "Forums", img: "/images/sanctifire.png", video: "/videos/sanctifire.mp4" },
                         ].map((link, idx) => (
                             <NavVideoCard key={idx} link={link} />
                         ))}

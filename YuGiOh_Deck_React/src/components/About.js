@@ -1,9 +1,10 @@
+'use client'; 
+
 import React from 'react';
 import { Container, Row, Col, Card, Badge } from 'react-bootstrap';
 import "../mdstyles.css";
 
 export default function About() {
-    // 1. Unified Cyber-Duelist Profile Data Structure
     const profileData = {
         userName: "ErreGeTe", 
         realName: "Ryan Thomas",
@@ -106,13 +107,11 @@ export default function About() {
 
     return (
         <div style={{ backgroundColor: '#0a0d14', minHeight: "100vh" }} className="py-5 mt-4">
-            {/* 🚀 CONSTRAINED CONTAINER: Matches Home.js & DeckBuilder.js on Ultrawide Displays */}
             <Container className="px-3 mx-auto" style={{ maxWidth: '1400px' }}>
                 
                 {/* --- 1. MASTER DUEL CARD HEADER --- */}
                 <div className="p-4 p-md-5 mb-5 rounded-3 position-relative overflow-hidden" style={masterDuelLaserCardStyle}>
                     <Row className="align-items-center">
-                        {/* Profile Avatar Frame */}
                         <Col xs={12} md={3} className="text-center mb-4 mb-md-0">
                             <div className="position-relative d-inline-block">
                                 <img 
@@ -137,7 +136,6 @@ export default function About() {
                             </div>
                         </Col>
 
-                        {/* Bio & Cyber Stats Header */}
                         <Col xs={12} md={9} className="text-start">
                             <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
                                 <Badge bg="dark" className="border border-info text-info terminal-font">
@@ -161,7 +159,6 @@ export default function About() {
                                 {profileData.aboutText}
                             </p>
                             
-                            {/* Education Node */}
                             <div className="p-2 rounded bg-black bg-opacity-50 border border-secondary border-opacity-30 d-inline-flex align-items-center text-white small">
                                 <span className="fs-5 me-2">{profileData.education.icon}</span>
                                 <span className="fw-bold me-2" style={textStylePurple}>{profileData.education.degree}</span>
@@ -174,11 +171,7 @@ export default function About() {
 
                 {/* --- 2. TWO-COLUMN MACRO MATRIX GRID --- */}
                 <Row className="g-4">
-                    
-                    {/* LEFT COLUMN: Tech Deck Recipe & Platform Specs */}
                     <Col lg={5} xs={12}>
-                        
-                        {/* TECH DECK RECIPE */}
                         <Card className="mb-4" style={masterDuelLaserCardStyle}>
                             <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
                                 <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStylePurple}>
@@ -208,7 +201,6 @@ export default function About() {
                             </Card.Body>
                         </Card>
 
-                        {/* PLATFORM SPECIFICATIONS */}
                         <Card style={masterDuelLaserCardStyle}>
                             <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
                                 <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleCyan}>
@@ -231,7 +223,6 @@ export default function About() {
                         </Card>
                     </Col>
 
-                    {/* RIGHT COLUMN: Professional Deployment History */}
                     <Col lg={7} xs={12}>
                         <Card style={masterDuelLaserCardStyle}>
                             <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
@@ -275,7 +266,6 @@ export default function About() {
                             </Card.Body>
                         </Card>
                     </Col>
-
                 </Row>
             </Container>
         </div>

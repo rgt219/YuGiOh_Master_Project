@@ -1,5 +1,8 @@
+'use client'; // 👈 Required for hooks, form state, and router navigation
+
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Form, Button, Spinner, Modal } from 'react-bootstrap';
 import { API_URLS } from "../config";
 import "../mdstyles.css";
@@ -18,16 +21,16 @@ export default function Login({ setUser }) {
     const [resetStatus, setResetStatus] = useState("");
     const [isResetSending, setIsResetSending] = useState(false);
     
-    const navigate = useNavigate();
+    const router = useRouter(); // ⚡ Next.js App Router Navigation
 
     useEffect(() => {
         const token = sessionStorage.getItem("token");
         const savedUser = sessionStorage.getItem("user");
 
         if (token && savedUser) {
-            navigate("/"); 
+            router.push("/"); 
         }
-    }, [navigate]);
+    }, [router]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -44,7 +47,8 @@ export default function Login({ setUser }) {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${API_URLS.IDENTITY}/login`, {
+            const baseUrl = API_URLS?.IDENTITY || "";
+            const response = await fetch(`${baseUrl}/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(credentials),
@@ -52,10 +56,11 @@ export default function Login({ setUser }) {
 
             if (response.ok) {
                 const data = await response.json();
+                sessionStorage.getItem("token");
                 sessionStorage.setItem("token", data.token);
                 sessionStorage.setItem("user", JSON.stringify(data));
-                setUser(data);
-                navigate("/");
+                if (setUser) setUser(data);
+                router.push("/");
             } else {
                 const errorData = await response.json();
                 setErrorMessage(errorData.message || "AUTHENTICATION_FAILED");
@@ -73,7 +78,8 @@ export default function Login({ setUser }) {
         setResetStatus("");
 
         try {
-            const response = await fetch(`${API_URLS.IDENTITY}/forgot-password`, {
+            const baseUrl = API_URLS?.IDENTITY || "";
+            const response = await fetch(`${baseUrl}/forgot-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: resetEmail }),
@@ -140,9 +146,9 @@ export default function Login({ setUser }) {
                     </Button>
 
                     <div className="login-footer mt-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <Link to="/" className="terminal-link">HOME PAGE</Link>
+                        <Link href="/" className="terminal-link">HOME PAGE</Link>
                         <span className="terminal-divider">|</span>
-                        <Link to="/register" className="terminal-link">REGISTER</Link>
+                        <Link href="/register" className="terminal-link">REGISTER</Link>
                         <span className="terminal-divider">|</span>
                         <button 
                             type="button" 

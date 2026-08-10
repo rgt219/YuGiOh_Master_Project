@@ -1,7 +1,10 @@
 // Master Duel Synthetic Web-Audio Engine
 class SoundEngine {
     constructor() {
-        this.enabled = localStorage.getItem('md_sfx_enabled') === 'true';
+        // ⚡ Server-Safe Check: Only access localStorage when running in the browser
+        this.enabled = typeof window !== 'undefined' 
+            ? localStorage.getItem('md_sfx_enabled') === 'true' 
+            : false;
         this.ctx = null;
     }
 
@@ -13,6 +16,8 @@ class SoundEngine {
     }
 
     toggleSound() {
+        if (typeof window === 'undefined') return false;
+        
         this.enabled = !this.enabled;
         localStorage.setItem('md_sfx_enabled', this.enabled ? 'true' : 'false');
         if (this.enabled) this.playClick();
@@ -21,7 +26,7 @@ class SoundEngine {
 
     // High-tech Master Duel Button Click Chime
     playClick() {
-        if (!this.enabled) return;
+        if (!this.enabled || typeof window === 'undefined') return;
         this.initContext();
         if (!this.ctx) return;
 
@@ -48,7 +53,7 @@ class SoundEngine {
 
     // Subtle Hover Tick
     playHover() {
-        if (!this.enabled) return;
+        if (!this.enabled || typeof window === 'undefined') return;
         this.initContext();
         if (!this.ctx) return;
 

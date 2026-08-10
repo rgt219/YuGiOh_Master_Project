@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap');
+
+
 .master-duel-theme {
     background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
     min-height: 100vh;
@@ -890,8 +893,6 @@
 .terminal-font {
     font-family: 'Cascadia Mono', monospace;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap');
 
 :root {
   --md-bg-dark: #090d14;
