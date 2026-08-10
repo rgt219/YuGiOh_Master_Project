@@ -1,14 +1,10 @@
-# Stage 1: Build the React App
+# Stage 1: Build the Next.js App
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# 1. Define ARGs for the URLs
-ARG REACT_APP_IDENTITY_URL
-ARG REACT_APP_DECK_API_URL
-
-# 2. Assign to ENV so the build process sees them
-ENV REACT_APP_IDENTITY_URL=$REACT_APP_IDENTITY_URL
-ENV REACT_APP_DECK_API_URL=$REACT_APP_DECK_API_URL
+# 1. Define ARGs for environment variables
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
@@ -19,14 +15,13 @@ RUN npm run build
 FROM nginx:stable-alpine
 WORKDIR /usr/share/nginx/html
 
-# 3. Clean out the default Nginx files
+# Clean out default Nginx files
 RUN rm -rf ./*
 
-# 4. Copy the build output from Stage 1
-COPY --from=build /app/build .
+# ⚡ Copy the static Next.js output from Stage 1 (/app/out instead of /app/build)
+COPY --from=build /app/out .
 
-# 5. Copy your custom Nginx configuration
-# This replaces the default config with your Cache-Control settings
+# Copy custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
