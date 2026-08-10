@@ -26,7 +26,7 @@ const getAttributeColor = (attribute) => {
 
 export default function DeckProfileDetails() {
     const params = useParams();
-    const deckId = params?.deckId;
+    const deckId = params?.deckid;
 
     const [deck, setDeck] = useState(null);
     const [loading, setLoading] = useState(true);

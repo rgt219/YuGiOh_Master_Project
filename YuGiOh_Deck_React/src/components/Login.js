@@ -56,10 +56,21 @@ export default function Login({ setUser }) {
 
             if (response.ok) {
                 const data = await response.json();
-                sessionStorage.getItem("token");
-                sessionStorage.setItem("token", data.token);
+                
+                // ⚡ THE FIX: Safely extract and validate the token 
+                const token = data.token || data.accessToken || data.jwt;
+                
+                if (!token) {
+                    setErrorMessage("AUTHENTICATION_FAILED: INVALID_TOKEN_RECEIVED");
+                    setIsLoading(false);
+                    return;
+                }
+
+                sessionStorage.setItem("token", token);
                 sessionStorage.setItem("user", JSON.stringify(data));
+                
                 if (setUser) setUser(data);
+                
                 router.push("/");
             } else {
                 const errorData = await response.json();

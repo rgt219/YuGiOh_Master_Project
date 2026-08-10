@@ -8,7 +8,8 @@ export default function ProtectedRoute({ children, user }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+    // ⚡ CHANGED TO sessionStorage to match your Login.js
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem("token") : null;
 
     if (!user && !token) {
       console.warn("ACCESS_DENIED: Redirecting to login terminal...");

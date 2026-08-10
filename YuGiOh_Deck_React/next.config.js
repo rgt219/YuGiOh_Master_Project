@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // ⚡ Forces Next.js to generate the /app/out folder during build
+  // output: 'export', // ❌ Remove this line if you want standard server-side/dynamic rendering
   images: {
-    unoptimized: true, // Required for static export when using Next <Image />
+    unoptimized: true,
   },
 };
 
