@@ -2,7 +2,7 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# 1. Define ARGs for environment variables
+# Define ARGs for environment variables
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
@@ -11,18 +11,22 @@ RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:stable-alpine
-WORKDIR /usr/share/nginx/html
+# Stage 2: Serve with Node.js (Next.js Standalone Mode)
+FROM node:20-alpine AS runner
+WORKDIR /app
 
-# Clean out default Nginx files
-RUN rm -rf ./*
+# Set environment to production
+ENV NODE_ENV=production
+# Next.js defaults to port 3000, but we can override it to 80 to match your Azure ingress
+ENV PORT=80
+ENV HOSTNAME="0.0.0.0"
 
-# ⚡ Copy the static Next.js output from Stage 1 (/app/out instead of /app/build)
-COPY --from=build /app/out .
-
-# Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy the standalone build from Stage 1
+COPY --from=build /app/public ./public
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+
+# Start the standalone Node server
+CMD ["node", "server.js"]
