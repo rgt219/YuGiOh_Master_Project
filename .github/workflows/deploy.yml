@@ -64,7 +64,7 @@ jobs:
 
       - name: Build and Push Frontend Image
         run: |
-          docker build \
+          docker build --no-cache \
             --build-arg REACT_APP_IDENTITY_URL=https://identity.azurecontainerapps.io \
             --build-arg REACT_APP_DECK_API_URL=https://api.azurecontainerapps.io \
             -t yugiohapidocker.azurecr.io/frontend:${{ github.sha }} ./YuGiOh_Deck_React

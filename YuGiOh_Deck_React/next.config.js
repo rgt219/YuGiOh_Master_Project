@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone', // ⚡ Tells Next.js to generate the static 'out/' folder
+  output: 'export', // ⚡ Forces Next.js to generate the /app/out folder during build
   images: {
-    unoptimized: true, // Required for static export
+    unoptimized: true, // Required for static export when using Next <Image />
   },
 };
 
