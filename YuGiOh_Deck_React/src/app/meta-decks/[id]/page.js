@@ -1,62 +1,75 @@
-import MetaDeckProfile from '@/components/MetaDeckProfile';
+import ThreadDetail from '@/components/ThreadDetail';
 
-// ⚡ 1. REQUIRED for output: 'export' on dynamic routes
-const FALLBACK_META_IDS = [{ id: '1' }, { id: '2' }, { id: 'meta-1' }];
+// ⚡ Comprehensive fallback parameters matching the full path hierarchy
+const FALLBACK_STATIC_PARAMS = [
+  { forum: 'general', thread: 'discussion', id: '1' },
+  { forum: 'general', thread: 'discussion', id: '2' },
+  { forum: 'competitive', thread: 'thread', id: 'comp-1' }
+];
 
 export async function generateStaticParams() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.REACT_APP_API_URL || 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api';
 
   try {
-    const res = await fetch(`${baseUrl}/metadecks`, { next: { revalidate: 60 } });
-    if (!res.ok) return FALLBACK_META_IDS;
+    const res = await fetch(`${baseUrl}/forums/threads?category=all`, { next: { revalidate: 60 } });
+    if (!res.ok) return FALLBACK_STATIC_PARAMS;
 
-    const decks = await res.json();
+    const threads = await res.json();
     
-    if (!Array.isArray(decks) || decks.length === 0) {
-      return FALLBACK_META_IDS;
+    if (!Array.isArray(threads) || threads.length === 0) {
+      return FALLBACK_STATIC_PARAMS;
     }
 
-    const params = decks
-      .map((deck) => {
-        const rawId = deck?.id || deck?._id || deck?.deckId;
-        return rawId ? { id: String(rawId) } : null;
+    // ⚡ Return objects containing all segment parameters to satisfy the compiler
+    const params = threads
+      .map((thread) => {
+        const rawId = thread?.id || thread?._id || thread?.threadId;
+        if (!rawId) return null;
+        
+        return {
+          forum: String(thread?.category || 'general').toLowerCase(),
+          thread: 'thread',
+          id: String(rawId),
+        };
       })
       .filter(Boolean);
 
-    return params.length > 0 ? params : FALLBACK_META_IDS;
+    return params.length > 0 ? params : FALLBACK_STATIC_PARAMS;
   } catch (error) {
-    console.warn("Meta-decks static generation fallback triggered:", error);
-    return FALLBACK_META_IDS;
+    console.warn("Static generation fallback triggered for forum thread:", error);
+    return FALLBACK_STATIC_PARAMS;
   }
 }
 
-// ⚡ 2. Dynamic SEO & Open Graph Meta Tags Generator
+// ⚡ Dynamic SEO & Open Graph Meta Tags
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const id = resolvedParams?.id;
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.REACT_APP_API_URL || 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api';
 
   try {
-    const res = await fetch(`${baseUrl}/metadecks/${id}`, { cache: 'no-store' });
-    if (!res.ok) return { title: 'Meta Deck Profile | ErreGeTeYGO' };
-    
-    const deck = await res.json();
-    const archetype = deck?.archetype || deck?.Archetype || 'Tournament Meta Deck';
-    const pilot = deck?.pilot || deck?.Pilot || 'Top Duelist';
+    const res = await fetch(`${baseUrl}/forums/threads/${id}`, { cache: 'no-store' });
+    if (!res.ok) return { title: 'Forum Thread | ErreGeTeYGO' };
+
+    const thread = await res.json();
+    const title = thread?.title || 'Forum Discussion';
+    const author = thread?.author || 'Anonymous';
+    const content = thread?.content?.substring(0, 150) || 'Join the discussion on ErreGeTeYGO.';
 
     return {
-      title: `${archetype} Deck Profile | ErreGeTeYGO`,
-      description: `View full tournament decklist breakdown, main/extra ratios, card pricing, and inspector stats for ${archetype} piloted by ${pilot}.`,
+      title: `${title} - Forum | ErreGeTeYGO`,
+      description: `${content}... Posted by @${author}`,
       openGraph: {
-        title: `${archetype} Meta Deck Profile | ErreGeTeYGO`,
-        description: `Piloted by ${pilot} | Format: ${deck?.format || 'TCG'}`,
+        title: title,
+        description: content,
+        type: 'article',
       },
     };
   } catch {
-    return { title: 'Meta Deck Profile | ErreGeTeYGO' };
+    return { title: 'Forum Thread | ErreGeTeYGO' };
   }
 }
 
-export default async function MetaDeckProfilePage() {
-  return <MetaDeckProfile />;
+export default async function ThreadPage() {
+  return <ThreadDetail />;
 }
