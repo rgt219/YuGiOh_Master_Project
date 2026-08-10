@@ -1,11 +1,43 @@
 import DeckProfileDetails from '@/components/DeckProfileDetails';
 
-export async function generateMetadata({ params }) {
-  const { deckId } = await params;
-  const baseUrl = "https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb";
+// ⚡ Required for static export: matches dynamic folder [deckid]
+const FALLBACK_DECK_IDS = [{ deckid: '1' }, { deckid: '2' }, { deckid: 'deck-1' }];
+
+export async function generateStaticParams() {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.REACT_APP_API_URL || 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api';
 
   try {
-    const res = await fetch(`${baseUrl}/${deckId}`, { cache: 'no-store' });
+    const res = await fetch(`${baseUrl}/mongodb/DeckListMongoDb`, { next: { revalidate: 60 } });
+    if (!res.ok) return FALLBACK_DECK_IDS;
+
+    const decks = await res.json();
+    
+    if (!Array.isArray(decks) || decks.length === 0) {
+      return FALLBACK_DECK_IDS;
+    }
+
+    // ⚡ Key must exactly match [deckid] from your folder path
+    const params = decks
+      .map((deck) => {
+        const rawId = deck?.id || deck?._id || deck?.deckId;
+        return rawId ? { deckid: String(rawId) } : null;
+      })
+      .filter(Boolean);
+
+    return params.length > 0 ? params : FALLBACK_DECK_IDS;
+  } catch (error) {
+    console.warn("Deck profile static generation fallback triggered:", error);
+    return FALLBACK_DECK_IDS;
+  }
+}
+
+export async function generateMetadata({ params }) {
+  const resolvedParams = await params;
+  const { deckid } = resolvedParams;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.REACT_APP_API_URL || 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb';
+
+  try {
+    const res = await fetch(`${baseUrl}/${deckid}`, { cache: 'no-store' });
     if (!res.ok) return { title: 'Deck Profile Details | ErreGeTeYGO' };
     
     const deck = await res.json();
