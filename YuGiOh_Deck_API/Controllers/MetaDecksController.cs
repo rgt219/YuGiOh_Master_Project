@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using YuGiOhDeckApi.Repositories;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
 
@@ -14,7 +11,7 @@ namespace YuGiOhDeckApi.Controllers
     [Route("api/[controller]")]
     public class MetaDecksController : ControllerBase
     {
-        private readonly MongoDbService _mongoDbService;
+        private readonly IMongoDbService _mongoDbService;
         private readonly ILogger<MetaDecksController> _logger;
         private readonly IDistributedCache _cache; // ⚡ Injecting Redis
 
