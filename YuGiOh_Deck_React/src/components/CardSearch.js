@@ -437,7 +437,25 @@ export default function CardSearch() {
                                     className="md-card-tile p-2 rounded-3 bg-dark h-100 d-flex flex-column justify-content-between position-relative"
                                     onClick={() => setInspectCard(card)}
                                 >
-
+                                    <div 
+                                        className="position-relative overflow-hidden rounded mb-2"
+                                        style={{ aspectRatio: '59/86', backgroundColor: 'rgba(0,0,0,0.5)' }} 
+                                    >
+                                        <img 
+                                            src={card.image} 
+                                            alt={card.name} 
+                                            className="w-100 h-100 rounded" 
+                                            style={{ objectFit: 'cover' }}
+                                            loading="lazy"
+                                            onError={(e) => {
+                                                if (e.target.src !== card.fallbackImage && card.fallbackImage) {
+                                                    e.target.src = card.fallbackImage;
+                                                } else {
+                                                    e.target.src = "https://ygoprodeck.com/images/cards/back.jpg";
+                                                }
+                                            }}
+                                        />
+                                    </div>
                                     <div className="text-center">
                                         <span className="text-white fw-bold d-block text-truncate small" title={card.name}>
                                             {card.name}
