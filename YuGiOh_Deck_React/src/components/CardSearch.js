@@ -1,18 +1,15 @@
-'use client'; // 👈 Required for client state, search inputs, pagination, and modals
+'use client'; 
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Form, Button, Badge, Spinner, Modal, Row, Col, InputGroup } from 'react-bootstrap';
 
-// ⚡ Azure Blob Storage Container URL for card images
-const AZURE_BLOB_CONTAINER_URL = "https://yugiohforumstorage.blob.core.windows.net/forum-media";
-const CARDS_PER_PAGE = 30; // Paginate by 30 cards per page
+const AZURE_BLOB_CONTAINER_URL = "https://yugiohforumstorage.blob.core.windows.net/card-images";
+const CARDS_PER_PAGE = 30; 
 
-// Search Filter Option Lists
 const ATTRIBUTES = ['ALL', 'DARK', 'LIGHT', 'EARTH', 'WATER', 'FIRE', 'WIND', 'DIVINE'];
-const MAIN_CARD_TYPES = ['ALL', 'MONSTER', 'SPELL', 'TRAP'];
-const MONSTER_ABILITIES = ['ALL', 'FLIP', 'TUNER', 'GEMINI', 'SPIRIT', 'UNION', 'PENDULUM'];
-
-// Category-Specific Subtype Lists
+const MAIN_CARD_TYPES = ['ALL', 'NORMAL', 'EFFECT', 'SPELL', 'TRAP']; 
+const MONSTER_ABILITIES = ['ALL', 'FLIP', 'TUNER', 'GEMINI', 'SPIRIT', 'UNION'];
+const MONSTER_EXTRA_TYPES = ['ALL', 'FUSION', 'LINK', 'PENDULUM', 'SYNCHRO', 'XYZ'];
 const MONSTER_RACES = [
     'ALL MONSTER TYPES',
     'Aqua', 'Beast', 'Beast-Warrior', 'Cyberse', 'Dinosaur', 'Divine-Beast', 
@@ -31,7 +28,6 @@ const TRAP_TYPES = [
     'Normal', 'Continuous', 'Counter'
 ];
 
-// Deduplicated master list for "ALL" categories
 const ALL_RACES_TYPES = [
     'ALL RACES / TYPES',
     ...Array.from(new Set([
@@ -41,7 +37,6 @@ const ALL_RACES_TYPES = [
     ])).sort()
 ];
 
-// Helper to render Level / Rank stars
 const renderLevelStars = (level) => {
     if (!level) return null;
     return (
@@ -52,7 +47,6 @@ const renderLevelStars = (level) => {
     );
 };
 
-// Helper to render color-coded Banlist Status badges
 const renderBanBadge = (status) => {
     const s = (status || "Unlimited").toUpperCase();
     if (s === "FORBIDDEN" || s === "BANNED") return <Badge bg="danger" className="terminal-font shadow-sm px-2 py-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>FORBIDDEN</Badge>;
@@ -66,37 +60,30 @@ export default function CardSearch() {
     const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
 
-    // Search Criteria State
     const [searchQuery, setSearchQuery] = useState("Dragon");
     const [selectedMainType, setSelectedMainType] = useState("ALL");
     const [selectedAttribute, setSelectedAttribute] = useState("ALL");
     const [selectedAbility, setSelectedAbility] = useState("ALL");
+    const [selectedType, setSelectedType] = useState("ALL");
     const [selectedRace, setSelectedRace] = useState("ALL RACES / TYPES");
-
-    // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-
-    // Inspect Modal State
     const [inspectCard, setInspectCard] = useState(null);
 
-    // ⚡ Dynamically compute dropdown options based on selected main category
     const currentRaceOptions = useMemo(() => {
         if (selectedMainType === "SPELL") return SPELL_TYPES;
         if (selectedMainType === "TRAP") return TRAP_TYPES;
-        if (selectedMainType === "MONSTER") return MONSTER_RACES;
+        if (selectedMainType === "NORMAL" || selectedMainType === "EFFECT") return MONSTER_RACES;
         return ALL_RACES_TYPES;
     }, [selectedMainType]);
 
-    // ⚡ Handle Category switch & reset race filter to default option
     const handleCategoryChange = (newCategory) => {
         setSelectedMainType(newCategory);
         if (newCategory === "SPELL") setSelectedRace("ALL SPELL TYPES");
         else if (newCategory === "TRAP") setSelectedRace("ALL TRAP TYPES");
-        else if (newCategory === "MONSTER") setSelectedRace("ALL MONSTER TYPES");
+        else if (newCategory === "NORMAL" || newCategory === "EFFECT") setSelectedRace("ALL MONSTER TYPES");
         else setSelectedRace("ALL RACES / TYPES");
     };
 
-    // ⚡ Query YGOProDeck API (with misc=yes for pricing & banlists)
     const fetchCards = useCallback(async () => {
         setIsLoading(true);
         setHasError(false);
@@ -110,9 +97,6 @@ export default function CardSearch() {
             if (selectedRace && !selectedRace.startsWith("ALL")) {
                 params.append("race", selectedRace);
             }
-            
-            if (selectedMainType === "SPELL") params.append("type", "Spell Card");
-            else if (selectedMainType === "TRAP") params.append("type", "Trap Card");
 
             const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?${params.toString()}`;
             const response = await fetch(url);
@@ -167,12 +151,11 @@ export default function CardSearch() {
                 setHasError(true);
             }
         } catch (err) {
-            console.error("Error querying card database:", err);
             setHasError(true);
         } finally {
             setIsLoading(false);
         }
-    }, [selectedMainType, selectedAttribute, selectedRace]);
+    }, [selectedAttribute, selectedRace]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -181,7 +164,6 @@ export default function CardSearch() {
         return () => clearTimeout(timer);
     }, [fetchCards]);
 
-    // ⚡ MULTI-CRITERIA FILTERING
     const filteredCards = useMemo(() => {
         const queryLower = searchQuery.trim().toLowerCase();
 
@@ -192,7 +174,9 @@ export default function CardSearch() {
                 card.id.toString().includes(queryLower);
 
             let matchesMainType = true;
-            if (selectedMainType === "MONSTER") matchesMainType = card.type.toLowerCase().includes("monster");
+
+            if (selectedMainType === "NORMAL") matchesMainType = card.type.toLowerCase().includes("monster") && !card.type.toLowerCase().includes("effect");
+            else if (selectedMainType === "EFFECT") matchesMainType = card.type.toLowerCase().includes("monster") && card.type.toLowerCase().includes("effect");
             else if (selectedMainType === "SPELL") matchesMainType = card.type.toLowerCase().includes("spell");
             else if (selectedMainType === "TRAP") matchesMainType = card.type.toLowerCase().includes("trap");
 
@@ -201,18 +185,23 @@ export default function CardSearch() {
                 matchesAbility = card.type.toLowerCase().includes(selectedAbility.toLowerCase());
             }
 
+            let matchesType = true;
+            if (selectedType !== "ALL") {
+                matchesType = card.type.toLowerCase().includes(selectedType.toLowerCase());
+            }
+
             let matchesRace = true;
             if (selectedRace && !selectedRace.startsWith("ALL")) {
                 matchesRace = card.race.toLowerCase() === selectedRace.toLowerCase();
             }
 
-            return matchesText && matchesMainType && matchesAbility && matchesRace;
+            return matchesText && matchesMainType && matchesAbility && matchesType && matchesRace;
         });
-    }, [rawCards, searchQuery, selectedMainType, selectedAbility, selectedRace]);
+    }, [rawCards, searchQuery, selectedMainType, selectedAbility, selectedType, selectedRace]);
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, selectedMainType, selectedAttribute, selectedAbility, selectedRace]);
+    }, [searchQuery, selectedMainType, selectedAttribute, selectedAbility, selectedType, selectedRace]);
 
     const totalPages = Math.ceil(filteredCards.length / CARDS_PER_PAGE) || 1;
 
@@ -244,8 +233,6 @@ export default function CardSearch() {
             `}</style>
 
             <div className="container-fluid px-4" style={{ maxWidth: '1400px' }}>
-                
-                {/* 🌐 VRAINS HEADER & CONTROL PANEL */}
                 <div className="p-4 rounded-3 bg-dark border border-info border-opacity-25 shadow-lg mb-4" style={{ background: 'rgba(15, 23, 42, 0.9)' }}>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <div>
@@ -262,7 +249,7 @@ export default function CardSearch() {
                     </div>
 
                     <Row className="g-3">
-                        <Col lg={4} md={6}>
+                        <Col lg={4} md={12}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
                                 NAME OR EFFECT TEXT SEARCH
                             </Form.Label>
@@ -287,11 +274,11 @@ export default function CardSearch() {
                             </InputGroup>
                         </Col>
 
-                        <Col lg={3} md={6}>
+                        <Col lg={8} md={12}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
                                 CARD CATEGORY
                             </Form.Label>
-                            <div className="d-flex gap-1">
+                            <div className="d-flex gap-1 flex-wrap">
                                 {MAIN_CARD_TYPES.map(type => (
                                     <Button
                                         key={type}
@@ -306,16 +293,33 @@ export default function CardSearch() {
                             </div>
                         </Col>
 
-                        <Col lg={2} md={6}>
+                        <Col lg={3} md={6}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
-                                ABILITY / TYPE
+                                ATTRIBUTE
+                            </Form.Label>
+                            <Form.Select 
+                                className="bg-black text-info border-secondary terminal-font text-uppercase"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                value={selectedAttribute}
+                                onChange={(e) => setSelectedAttribute(e.target.value)}
+                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
+                            >
+                                {ATTRIBUTES.map(attr => (
+                                    <option key={attr} value={attr}>{attr}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+
+                        <Col lg={3} md={6}>
+                            <Form.Label className="hud-label text-info small terminal-font mb-1">
+                                ABILITY
                             </Form.Label>
                             <Form.Select 
                                 className="bg-black text-info border-secondary terminal-font"
                                 style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
                                 value={selectedAbility}
                                 onChange={(e) => setSelectedAbility(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
+                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedMainType === "NORMAL"}
                             >
                                 {MONSTER_ABILITIES.map(ability => (
                                     <option key={ability} value={ability}>
@@ -327,7 +331,26 @@ export default function CardSearch() {
 
                         <Col lg={3} md={6}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
-                                {selectedMainType === "SPELL" ? "SPELL TYPE" : selectedMainType === "TRAP" ? "TRAP TYPE" : "MONSTER TYPE / RACE"}
+                                TYPE
+                            </Form.Label>
+                            <Form.Select 
+                                className="bg-black text-info border-secondary terminal-font"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                value={selectedType}
+                                onChange={(e) => setSelectedType(e.target.value)}
+                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
+                            >
+                                {MONSTER_EXTRA_TYPES.map(type => (
+                                    <option key={type} value={type}>
+                                        {type === 'ALL' ? 'ALL TYPES' : type}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+
+                        <Col lg={3} md={6}>
+                            <Form.Label className="hud-label text-info small terminal-font mb-1">
+                                {selectedMainType === "SPELL" ? "SPELL TYPE" : selectedMainType === "TRAP" ? "TRAP TYPE" : "MONSTER RACE"}
                             </Form.Label>
                             <Form.Select 
                                 className="bg-black text-info border-secondary terminal-font"
@@ -340,26 +363,9 @@ export default function CardSearch() {
                                 ))}
                             </Form.Select>
                         </Col>
-
-                        <Col lg={12} className="d-flex align-items-center gap-2 pt-2 border-top border-secondary border-opacity-25">
-                            <span className="text-white-50 small terminal-font me-2">ATTRIBUTE:</span>
-                            {ATTRIBUTES.map(attr => (
-                                <Button
-                                    key={attr}
-                                    variant={selectedAttribute === attr ? "info" : "outline-dark"}
-                                    size="sm"
-                                    className={`terminal-font font-monospace text-uppercase px-3 ${selectedAttribute === attr ? 'text-dark fw-bold' : 'text-white-50'}`}
-                                    onClick={() => setSelectedAttribute(attr)}
-                                >
-                                    {attr}
-                                </Button>
-                            ))}
-                        </Col>
-
                     </Row>
                 </div>
 
-                {/* ⚡ TOP PAGINATION CONTROLS */}
                 {totalPages > 1 && (
                     <div className="d-flex align-items-center justify-content-between my-3 p-2 bg-dark rounded border border-info border-opacity-10">
                         <span className="text-info terminal-font small fw-bold ms-2">
@@ -391,7 +397,6 @@ export default function CardSearch() {
                     </div>
                 )}
 
-                {/* 🎴 MASTER DUEL CARD GRID */}
                 {isLoading ? (
                     <div className="text-center my-5 py-5">
                         <Spinner animation="border" variant="info" style={{ width: '3rem', height: '3rem' }} />
@@ -418,6 +423,7 @@ export default function CardSearch() {
                                 handleCategoryChange("ALL");
                                 setSelectedAttribute("ALL");
                                 setSelectedAbility("ALL");
+                                setSelectedType("ALL");
                             }}
                         >
                             RESET_ALL_FILTERS
@@ -431,29 +437,6 @@ export default function CardSearch() {
                                     className="md-card-tile p-2 rounded-3 bg-dark h-100 d-flex flex-column justify-content-between position-relative"
                                     onClick={() => setInspectCard(card)}
                                 >
-                                    <div className="position-relative overflow-hidden rounded mb-2">
-                                        <img 
-                                            src={card.image} 
-                                            alt={card.name} 
-                                            className="w-100 h-auto rounded"
-                                            loading="lazy"
-                                            onError={(e) => {
-                                                if (e.target.src !== card.fallbackImage && card.fallbackImage) {
-                                                    e.target.src = card.fallbackImage;
-                                                } else {
-                                                    e.target.src = "https://ygoprodeck.com/images/cards/back.jpg";
-                                                }
-                                            }}
-                                        />
-                                        {card.attribute && (
-                                            <span 
-                                                className={`position-absolute top-0 end-0 badge attr-${card.attribute.toUpperCase()} m-1 font-monospace`}
-                                                style={{ fontSize: '0.6rem' }}
-                                            >
-                                                {card.attribute.toUpperCase()}
-                                            </span>
-                                        )}
-                                    </div>
 
                                     <div className="text-center">
                                         <span className="text-white fw-bold d-block text-truncate small" title={card.name}>
@@ -469,7 +452,6 @@ export default function CardSearch() {
                     </Row>
                 )}
 
-                {/* ⚡ BOTTOM PAGINATION CONTROLS */}
                 {totalPages > 1 && (
                     <div className="d-flex align-items-center justify-content-center gap-3 mt-4 pt-3 border-top border-secondary border-opacity-25">
                         <Button 
@@ -506,7 +488,6 @@ export default function CardSearch() {
 
             </div>
 
-            {/* ⚡ REORGANIZED TIGHT VRAINS CYBER HUD INSPECT MODAL */}
             {inspectCard && (
                 <Modal
                     show={!!inspectCard}

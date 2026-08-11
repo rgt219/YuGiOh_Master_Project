@@ -85,7 +85,7 @@ const LiveTicker = () => {
         <Card className="master-duel-card shadow-lg border-info border-opacity-30">
             <Card.Header className="master-duel-card-header bg-dark text-info d-flex justify-content-between align-items-center py-2 px-3">
                 <h6 className="mb-0 fw-bold" style={{ letterSpacing: '1px' }}>
-                    📡 LIVE DUELIST ACTIVITY
+                    LIVE ACTIVITY
                 </h6>
             </Card.Header>
             <Card.Body className="p-2 bg-black-gradient">
