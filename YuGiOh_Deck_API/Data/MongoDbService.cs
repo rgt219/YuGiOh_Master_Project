@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -35,7 +29,6 @@ namespace YuGiOhDeckApi.Data
 
 
 
-            // Fire and forget the cache loader
             _ = InitializeCardCache();
         }
 
@@ -44,7 +37,6 @@ namespace YuGiOhDeckApi.Data
             try
             {
                 using var http = new HttpClient();
-                // Increase timeout for the large 13k card payload
                 http.Timeout = TimeSpan.FromMinutes(2);
 
                 var result = await http.GetFromJsonAsync<YGOProResult>("https://db.ygoprodeck.com/api/v7/cardinfo.php");
@@ -62,7 +54,6 @@ namespace YuGiOhDeckApi.Data
                         Level = c.level,
                         Atk = c.atk,
                         Def = c.def,
-                        // FIX: Use FirstOrDefault to safely get the image URL
                         Image = c.card_images?.FirstOrDefault()?.image_url_small ?? ""
                     }).ToList();
 
@@ -77,8 +68,6 @@ namespace YuGiOhDeckApi.Data
 
         public async Task<HydratedDeckResponse?> GetHydratedDeckAsync(string id)
         {
-            // 1. If the cache hasn't loaded yet, force an initialization and wait for it.
-            // This prevents the "Array(0)" issue on cold starts.
             if (_masterCache == null || !_masterCache.Any())
             {
                 Console.WriteLine("CACHE_EMPTY: Initializing master card data before hydration...");
@@ -88,7 +77,6 @@ namespace YuGiOhDeckApi.Data
             var thinDeck = await GetByIdAsync(id);
             if (thinDeck == null) return null;
 
-            // 2. Perform the mapping
             var response = new HydratedDeckResponse
             {
                 Id = thinDeck.Id,
@@ -107,7 +95,6 @@ namespace YuGiOhDeckApi.Data
                     .Where(c => c != null).ToList()!
             };
 
-            // 3. Debug logging to verify if we actually found anything
             Console.WriteLine($"HYDRATION_COMPLETE: Found {response.MainDeck.Count} cards for deck {id}");
 
             return response;
@@ -143,8 +130,6 @@ namespace YuGiOhDeckApi.Data
         {
             var filter = Builders<MetaDeck>.Filter.Eq(x => x.Id, metaDeck.Id);
 
-            // ReplaceOneAsync with IsUpsert = true will insert the document if it doesn't exist,
-            // or update it if a document with the same Id already exists.
             await _metaDeckCollection.ReplaceOneAsync(
                 filter,
                 metaDeck,
@@ -154,12 +139,13 @@ namespace YuGiOhDeckApi.Data
 
         public async Task<List<MetaDeck>> GetMetaDecksAsync(string? format = null)
         {
+            var sort = Builders<MetaDeck>.Sort.Descending(d => d.LastUpdated);
+
             if (string.IsNullOrWhiteSpace(format))
             {
-                return await _metaDeckCollection.Find(_ => true).ToListAsync();
+                return await _metaDeckCollection.Find(_ => true).Sort(sort).ToListAsync();
             }
 
-            // Regex.Escape ensures characters like '(' or ')' don't break the regex engine
             string safeFormat = Regex.Escape(format.Trim());
 
             var filter = Builders<MetaDeck>.Filter.Regex(
@@ -167,14 +153,14 @@ namespace YuGiOhDeckApi.Data
                 new BsonRegularExpression($"^{safeFormat}$", "i")
             );
 
-            return await _metaDeckCollection.Find(filter).ToListAsync();
+            // ⚡ 3. Apply the sort to the filtered query
+            return await _metaDeckCollection.Find(filter).Sort(sort).ToListAsync();
         }
 
         public async Task<MetaDeck?> GetMetaDeckByIdAsync(string id)
         {
             if (string.IsNullOrWhiteSpace(id)) return null;
 
-            // Filter by Id property or Mongo's internal _id string
             var filter = Builders<MetaDeck>.Filter.Or(
                 Builders<MetaDeck>.Filter.Eq(d => d.Id, id),
                 Builders<MetaDeck>.Filter.Eq("_id", id)
@@ -191,13 +177,11 @@ namespace YuGiOhDeckApi.Data
 
             foreach (var deck in metaDecks)
             {
-                // 1. Match existing record by its unique Id (or DeckId / Name)
                 var filter = Builders<MetaDeck>.Filter.Eq(d => d.Id, deck.Id);
 
-                // 2. Create a ReplaceOneModel with IsUpsert = true
                 var upsertModel = new ReplaceOneModel<MetaDeck>(filter, deck)
                 {
-                    IsUpsert = true // 👈 If found: UPDATE. If missing: INSERT.
+                    IsUpsert = true
                 };
 
                 updates.Add(upsertModel);

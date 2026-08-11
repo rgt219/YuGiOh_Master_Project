@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 
 namespace YuGiOhDeckApi.Controllers
 {
@@ -15,20 +16,14 @@ namespace YuGiOhDeckApi.Controllers
     {
         private readonly MongoDbService _mongoDbService;
         private readonly ILogger<MetaDecksController> _logger;
+        private readonly IDistributedCache _cache; // ⚡ Injecting Redis
 
-        public MetaDecksController(MongoDbService mongoDbService, ILogger<MetaDecksController> logger)
+        public MetaDecksController(MongoDbService mongoDbService, ILogger<MetaDecksController> logger, IDistributedCache cache)
         {
             _mongoDbService = mongoDbService;
             _logger = logger;
+            _cache = cache;
         }
-
-        // [HttpGet]
-        // public async Task<ActionResult<List<MetaDeck>>> GetMetaDecks()
-        // {
-        //     var metaDecks = await _mongoDbService.GetMetaDecksAsync();
-        //     return Ok(metaDecks);
-        // }
-
 
         [HttpGet("{id}")]
         public async Task<ActionResult<MetaDeck>> GetMetaDeckById(string id)
@@ -48,7 +43,6 @@ namespace YuGiOhDeckApi.Controllers
             }
             catch (Exception ex)
             {
-                // Logs exact error details in terminal/Docker console instead of dropping the connection
                 _logger.LogError(ex, "Exception thrown while fetching meta deck ID: {Id}", id);
                 return StatusCode(500, new { message = "An internal error occurred.", error = ex.Message });
             }
@@ -59,7 +53,28 @@ namespace YuGiOhDeckApi.Controllers
         {
             try
             {
+                string cacheKey = string.IsNullOrEmpty(format) ? "meta_decks_v2_all" : $"meta_decks_v2_{format.ToLower()}";
+
+                var cachedData = await _cache.GetStringAsync(cacheKey);
+
+                if (!string.IsNullOrEmpty(cachedData))
+                {
+                    _logger.LogInformation("Returning {Format} meta decks from Redis.", format ?? "all");
+                    var cachedDecks = JsonSerializer.Deserialize<List<MetaDeck>>(cachedData);
+                    return Ok(cachedDecks);
+                }
+
+                _logger.LogInformation("Fetching {Format} meta decks from MongoDB.", format ?? "all");
+
                 var metaDecks = await _mongoDbService.GetMetaDecksAsync(format);
+
+                var cacheOptions = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                };
+
+                await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(metaDecks), cacheOptions);
+
                 return Ok(metaDecks);
             }
             catch (Exception ex)

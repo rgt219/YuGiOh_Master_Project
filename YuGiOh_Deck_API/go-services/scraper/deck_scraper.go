@@ -30,47 +30,99 @@ var (
 	imageURLRegex = regexp.MustCompile(`(?:cards|cards_small)/(\d{6,9})\.jpg`)
 )
 
-// ScrapeMetaDecks executes the 2-pass scraping pipeline matching MetaDeckScraperService.cs
 func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 	client := &http.Client{Timeout: 15 * time.Second}
 	var allMetaDecks []models.MetaDeck
 
-	for formatKey, categoryURL := range formatURLs {
-		fmt.Printf("[Go Scraper] Pass 1: Fetching category grid for format '%s' from %s\n", formatKey, categoryURL)
+	pagesToScrape := 3
 
-		doc, err := fetchAndParseHTML(client, categoryURL)
-		if err != nil {
-			fmt.Printf("[Go Scraper Error] Failed to fetch %s: %v\n", formatKey, err)
-			continue
-		}
+	for formatKey, categoryBaseURL := range formatURLs {
+		fmt.Printf("[Go Scraper] Starting format '%s'\n", formatKey)
 
-		// Extract distinct deck links
-		seenHrefs := make(map[string]bool)
 		type deckLink struct {
 			Href string
 			Text string
+			ID   string
 		}
 		var distinctLinks []deckLink
 
-		doc.Find("a[href*='/deck/']").Each(func(i int, s *goquery.Selection) {
-			href, exists := s.Attr("href")
-			text := strings.TrimSpace(s.Text())
+		seenHrefs := make(map[string]string)
 
-			if exists && strings.Contains(href, "/deck/") && !seenHrefs[href] {
-				seenHrefs[href] = true
-				distinctLinks = append(distinctLinks, deckLink{Href: href, Text: text})
+		for page := 1; page <= pagesToScrape; page++ {
+			categoryURL := categoryBaseURL
+			if page > 1 {
+				offset := (page - 1) * 20
+				if !strings.Contains(categoryBaseURL, "?") {
+					categoryURL = fmt.Sprintf("%s?offset=%d", categoryBaseURL, offset)
+				} else {
+					categoryURL = fmt.Sprintf("%s&offset=%d", categoryBaseURL, offset)
+				}
 			}
-		})
 
-		fmt.Printf("[Go Scraper] Found %d distinct deck links for format '%s'. Starting Pass 2...\n", len(distinctLinks), formatKey)
+			fmt.Printf("[Go Scraper] Pass 1: Fetching page %d for '%s' from %s\n", page, formatKey, categoryURL)
 
-		for _, link := range distinctLinks {
+			doc, err := fetchAndParseHTML(client, categoryURL)
+			if err != nil {
+				fmt.Printf("[Go Scraper Error] Failed to fetch %s (Page %d): %v\n", formatKey, page, err)
+				break
+			}
+
+			pageLinkCount := 0
+			var pageOrderedHrefs []string
+
+			doc.Find("a[href*='/deck/']").Each(func(i int, s *goquery.Selection) {
+				href, exists := s.Attr("href")
+				text := strings.TrimSpace(s.Text())
+
+				if exists && strings.Contains(href, "/deck/") {
+					currentText, seen := seenHrefs[href]
+
+					if !seen {
+						seenHrefs[href] = text
+						pageOrderedHrefs = append(pageOrderedHrefs, href)
+						pageLinkCount++
+					} else if currentText == "" && text != "" {
+						seenHrefs[href] = text
+					}
+				}
+			})
+
+			if pageLinkCount == 0 {
+				fmt.Printf("[Go Scraper] Page %d empty. Moving to next format.\n", page)
+				break
+			}
+
+			for _, href := range pageOrderedHrefs {
+				text := seenHrefs[href]
+
+				deckID := ""
+				matches := deckIDRegex.FindStringSubmatch(strings.Split(href, "?")[0])
+				if len(matches) > 1 {
+					deckID = matches[1]
+				} else {
+					deckID = fmt.Sprintf("fallback-%d", time.Now().UnixNano()) // Failsafe
+				}
+
+				distinctLinks = append(distinctLinks, deckLink{
+					Href: href,
+					Text: text,
+					ID:   deckID,
+				})
+			}
+
+			time.Sleep(500 * time.Millisecond)
+		}
+
+		fmt.Printf("[Go Scraper] Found %d total distinct deck links for format '%s'. Starting Pass 2...\n", len(distinctLinks), formatKey)
+
+		baseScrapeTime := time.Now()
+
+		for i, link := range distinctLinks {
 			fullURL := link.Href
 			if !strings.HasPrefix(fullURL, "http") {
 				fullURL = "https://ygoprodeck.com" + link.Href
 			}
 
-			// Pass 2: Scrape individual deck details
 			mainDeck, extraDeck, sideDeck, pilot, placement := scrapeDeckDetails(client, fullURL)
 
 			archetype := link.Text
@@ -78,14 +130,17 @@ func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 				archetype = fmt.Sprintf("%s Meta Deck", formatKey)
 			}
 
+			adjustedTime := baseScrapeTime.Add(-time.Duration(i) * time.Second)
+
 			metaDeck := models.MetaDeck{
+				ID:                       link.ID,
 				Archetype:                archetype,
 				Format:                   formatKey,
 				Tier:                     "Tier 1",
 				RepresentationPercentage: 15.0,
 				Pilot:                    pilot,
 				Placement:                placement,
-				LastUpdated:              time.Now(),
+				LastUpdated:              adjustedTime,
 				SampleDeck: models.DeckList{
 					Title:     archetype,
 					UserID:    "",
@@ -99,7 +154,7 @@ func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 			fmt.Printf("[Go Scraper] Parsed '%s' (%s) -> Pilot: %s, Placement: %s (Main: %d, Extra: %d, Side: %d)\n",
 				archetype, formatKey, pilot, placement, len(mainDeck), len(extraDeck), len(sideDeck))
 
-			time.Sleep(300 * time.Millisecond) // Polite rate-limit delay
+			time.Sleep(300 * time.Millisecond)
 		}
 	}
 
@@ -116,7 +171,6 @@ func scrapeDeckDetails(client *http.Client, deckURL string) ([]string, []string,
 		placement = extractPlacement(doc)
 	}
 
-	// 1. Try Direct YDK Download First (Strip query params first, e.g. ?view=grid)
 	cleanURL := strings.Split(deckURL, "?")[0]
 	matches := deckIDRegex.FindStringSubmatch(cleanURL)
 	if len(matches) > 1 {
@@ -129,10 +183,8 @@ func scrapeDeckDetails(client *http.Client, deckURL string) ([]string, []string,
 		}
 	}
 
-	// 2. Fallback to DOM Card Extraction if YDK fails or is unavailable
 	var mainDeck, extraDeck, sideDeck []string
 	if doc != nil {
-		// Expanded CSS selector list covering all YGOPRODeck layout variations
 		mainNode := doc.Find(".main-deck, #main-deck, #deck-main, #main_deck, div[id*='main-deck']").First()
 		extraNode := doc.Find(".extra-deck, #extra-deck, #deck-extra, #extra_deck, div[id*='extra-deck']").First()
 		sideNode := doc.Find(".side-deck, #side-deck, #deck-side, #side_deck, div[id*='side-deck']").First()
@@ -164,7 +216,6 @@ func fetchAndParseYDK(client *http.Client, ydkURL string) ([]string, []string, [
 
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
-		// Clean UTF-8 BOM and whitespace
 		line := strings.TrimSpace(scanner.Text())
 		line = strings.TrimPrefix(line, "\ufeff")
 
@@ -228,11 +279,9 @@ func extractCardIDsFromSelection(s *goquery.Selection) []string {
 	}
 
 	s.Find("img, div[data-card-id], a[href*='/card/']").Each(func(i int, element *goquery.Selection) {
-		// Check data-card-id first
 		cardID, _ := element.Attr("data-card-id")
 
 		if cardID == "" {
-			// Check all lazy-load image attributes
 			src, _ := element.Attr("data-src")
 			if src == "" {
 				src, _ = element.Attr("data-original")
@@ -241,7 +290,6 @@ func extractCardIDsFromSelection(s *goquery.Selection) []string {
 				src, _ = element.Attr("src")
 			}
 
-			// Extract numeric card ID from image URL path or filename
 			matches := imageURLRegex.FindStringSubmatch(src)
 			if len(matches) > 1 {
 				cardID = matches[1]
