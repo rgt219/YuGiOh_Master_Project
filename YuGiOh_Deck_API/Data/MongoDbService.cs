@@ -27,7 +27,15 @@ namespace YuGiOhDeckApi.Data
             IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
             _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");
 
-
+            try
+            {
+                var indexKeys = Builders<MetaDeck>.IndexKeys.Descending(x => x.LastUpdated);
+                _metaDeckCollection.Indexes.CreateOne(new CreateIndexModel<MetaDeck>(indexKeys));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[INDEX_CREATION_WARNING]: {ex.Message}");
+            }
 
             _ = InitializeCardCache();
         }
