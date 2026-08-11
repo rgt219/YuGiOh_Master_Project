@@ -3,10 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using YuGiOh_Analytics_Consumer;
+using YuGiOhDeckApi.Repositories;
 using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
 
@@ -16,11 +13,11 @@ namespace YuGiOhDeckApi.Controllers
     [Route("api/[controller]")]
     public class AnalyticsController : ControllerBase
     {
-        private readonly MongoDbService _mongoDbService;
+        private readonly IMongoDbService _mongoDbService;
         private readonly ILogger<AnalyticsController> _logger;
         private readonly IMongoCollection<BsonDocument> _userActivityDtoCollection;
 
-        public AnalyticsController(MongoDbService mongoDbService, ILogger<AnalyticsController> logger, IOptions<MongoDBSettings> mongoDBSettings)
+        public AnalyticsController(IMongoDbService mongoDbService, ILogger<AnalyticsController> logger, IOptions<MongoDBSettings> mongoDBSettings)
         {
             _mongoDbService = mongoDbService;
             _logger = logger;
