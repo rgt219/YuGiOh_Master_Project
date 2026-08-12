@@ -19,7 +19,8 @@ namespace YuGiOhDeckApi.Controllers
         public async Task<IActionResult> GetMasterDuelBanList()
         {
             var data = await _banListService.GetMasterDuelBanListAsync();
-            if (data == null || data.Cards.Count == 0)
+
+            if (data == null || data.Cards == null || data.Cards.Count == 0)
             {
                 return StatusCode(503, new { message = "Master Duel ban list scraper service is unavailable." });
             }

@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Row, Col, Badge, Spinner } from 'react-bootstrap';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.REACT_APP_API_URL || 
+  'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api';
+
 const getCardTypeRank = (typeStr) => {
   if (!typeStr) return 99;
   const t = typeStr.toLowerCase();
@@ -70,8 +73,7 @@ export default function BanList() {
     setError(null);
 
     if (format === 'masterduel') {
-      // ⚡ Step 1: Call C# API endpoint (which proxies to Go scraper sidecar)
-      fetch('/api/banlist/masterduel')
+      fetch(`${API_BASE_URL}/BanList/masterduel`)
         .then((res) => {
           if (!res.ok) throw new Error("C# API returned HTTP " + res.status);
           return res.json();

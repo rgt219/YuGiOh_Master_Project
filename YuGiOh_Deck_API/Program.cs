@@ -38,6 +38,8 @@ namespace YuGiOhDeckApi
                 client.Timeout = TimeSpan.FromMinutes(2);
             });
 
+            builder.Services.AddHttpClient<IMasterDuelBanListService, MasterDuelBanListService>();
+
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
             builder.Services.AddHostedService<MetaDeckBackgroundService>();
 

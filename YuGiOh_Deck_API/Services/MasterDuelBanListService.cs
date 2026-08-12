@@ -18,8 +18,11 @@ namespace YuGiOhDeckApi.Services
             _httpClient = httpClient;
             _logger = logger;
 
-            var scraperUrl = Environment.GetEnvironmentVariable("GO_SCRAPER_URL") ?? "http://go-worker:8080/";
-            _httpClient.BaseAddress = new Uri(scraperUrl);
+            if (_httpClient.BaseAddress == null)
+            {
+                var scraperUrl = Environment.GetEnvironmentVariable("GO_SCRAPER_URL") ?? "http://go-worker:8080/";
+                _httpClient.BaseAddress = new Uri(scraperUrl);
+            }
         }
 
         public async Task<MasterDuelBanListResponse?> GetMasterDuelBanListAsync()
