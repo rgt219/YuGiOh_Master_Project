@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -19,6 +20,21 @@ func main() {
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "online", "service": "go-worker"})
+	})
+
+	r.GET("/internal/banlist/masterduel", func(c *gin.Context) {
+		banList, err := scraper.FetchMasterDuelBanList()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Master Duel Scraper failed",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		log.Printf("Successfully scraped %d cards for Master Duel Banlist", banList.Count)
+
+		c.JSON(http.StatusOK, banList)
 	})
 
 	r.POST("/api/scrape-meta-decks", func(c *gin.Context) {

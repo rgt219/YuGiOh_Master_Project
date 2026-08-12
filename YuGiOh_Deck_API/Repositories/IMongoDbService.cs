@@ -21,5 +21,7 @@ namespace YuGiOhDeckApi.Repositories
         Task RecomputeCardAnalyticsAsync();
         Task<List<DeckList>> GetRecentDecksAsync(int limit = 5);
         Task<string> GetUsernameByUserIdAsync(string? userId);
+        Task<MasterDuelBanListResponse?> GetLatestMasterDuelBanListAsync();
+        Task SaveMasterDuelBanListAsync(MasterDuelBanListResponse banlist);
     }
 }

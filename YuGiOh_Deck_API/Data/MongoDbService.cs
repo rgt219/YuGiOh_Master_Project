@@ -13,6 +13,7 @@ namespace YuGiOhDeckApi.Data
         private readonly IMongoCollection<MetaDeck> _metaDeckCollection;
         private readonly IMongoCollection<CardAnalytics> _cardAnalyticsCollection;
         private readonly IMongoCollection<BsonDocument> _usersCollection;
+        private readonly IMongoCollection<MasterDuelBanListResponse> _mdBanlistCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -23,6 +24,7 @@ namespace YuGiOhDeckApi.Data
             _deckListCollection = database.GetCollection<DeckList>(mongoDBSettings.Value.CollectionName);
             _metaDeckCollection = database.GetCollection<MetaDeck>("MetaDecks");
             _cardAnalyticsCollection = database.GetCollection<CardAnalytics>("CardAnalytics");
+            _mdBanlistCollection = database.GetCollection<MasterDuelBanListResponse>("MasterDuelBanList");
 
             IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
             _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");
@@ -354,6 +356,20 @@ namespace YuGiOhDeckApi.Data
             }
 
             return "Anonymous";
+        }
+
+        public async Task<MasterDuelBanListResponse?> GetLatestMasterDuelBanListAsync()
+        {
+            return await _mdBanlistCollection
+                .Find(_ => true)
+                .SortByDescending(b => b.UpdatedAt)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task SaveMasterDuelBanListAsync(MasterDuelBanListResponse banlist)
+        {
+            await _mdBanlistCollection.DeleteManyAsync(_ => true);
+            await _mdBanlistCollection.InsertOneAsync(banlist);
         }
 
         // Internal helper classes for the YGOPro API JSON structure

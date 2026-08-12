@@ -22,10 +22,18 @@ namespace YuGiOhDeckApi.Controllers
 
             if (data == null || data.Cards == null || data.Cards.Count == 0)
             {
-                return StatusCode(503, new { message = "Master Duel ban list scraper service is unavailable." });
+                return StatusCode(503, new { message = "Master Duel ban list is not yet available in the database." });
             }
 
             return Ok(data);
+        }
+
+        [HttpPost("scrape-masterduel")]
+        public async Task<IActionResult> ScrapeMasterDuelBanList()
+        {
+            var success = await _banListService.TriggerScrapeAndSaveAsync();
+            if (!success) return StatusCode(500, new { message = "Scrape failed." });
+            return Ok(new { message = "Successfully scraped and saved!" });
         }
     }
 }
