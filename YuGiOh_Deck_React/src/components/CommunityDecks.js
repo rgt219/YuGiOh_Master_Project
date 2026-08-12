@@ -6,7 +6,7 @@ import Link from 'next/link';
 import '../mdstyles.css';
 
 // 🚀 YOUR AZURE BLOB STORAGE CONTAINER
-const AZURE_BLOB_BASE_URL = "https://ygocardstore.blob.core.windows.net/card-images";
+const AZURE_BLOB_BASE_URL = "https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images";
 
 export default function CommunityDecks() {
     const [decks, setDecks] = useState([]);

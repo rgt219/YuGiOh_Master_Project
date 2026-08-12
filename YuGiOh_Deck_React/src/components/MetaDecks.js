@@ -195,14 +195,11 @@ export default function MetaDecks({ mdSound }) {
                             >
                               {archetype}
                             </h5>
-                            <Badge bg="warning" className="text-dark fw-bold text-uppercase fs-7 flex-shrink-0">
-                              {deck?.tier || deck?.Tier || 'TIER 1'}
-                            </Badge>
                           </div>
 
                           <div className="mt-2 d-flex align-items-center justify-content-between">
-                            <Badge bg="dark" className="text-light fw-bold px-3 py-2">
-                              🏆 {
+                            <Badge bg="dark" className="text-light fw-bold px-3 py-2" style={{alignContent: 'center'}}>
+                                {
                                     (deck?.placement || deck?.Placement || 'Tournament Placement')
                                       .replace(/Reached/gi, '')
                                       .replace(/\bat\b/gi, '@')

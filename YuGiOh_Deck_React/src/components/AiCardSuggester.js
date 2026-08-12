@@ -13,15 +13,12 @@ export default function AiCardSuggester({ show, onHide, mainDeck = [], extraDeck
     const [errorMsg, setErrorMsg] = useState('');
     const [skippedCards, setSkippedCards] = useState([]);
 
-    // FORMAT LEGALITY CHECKBOX STATE
     const [formats, setFormats] = useState({
         TCG: true,
         OCG: false,
         MasterDuel: false,
         Genesys: false
     });
-
-    const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 
     const quickChips = [
         { label: "🛡️ Hand Traps", prompt: "Suggest 3 staple hand traps that fit this deck strategy." },
@@ -34,9 +31,7 @@ export default function AiCardSuggester({ show, onHide, mainDeck = [], extraDeck
         setFormats(prev => ({ ...prev, [formatKey]: !prev[formatKey] }));
     };
 
-    // Helper: Execute Gemini REST API Call
     const callGeminiApi = async (systemPrompt) => {
-        // 🚀 Points directly to your Azure Container App backend!
         const response = await fetch(
             `https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Ai/suggest`,
             {
@@ -57,7 +52,6 @@ export default function AiCardSuggester({ show, onHide, mainDeck = [], extraDeck
         return JSON.parse(rawText);
     };
 
-    // 🚀 AUTONOMOUS SINGLE-PROMPT FULL DECK GENERATOR
     const handleAutoBuild = async (e) => {
         e.preventDefault();
         if (!autoBuildPrompt.trim()) return;
@@ -70,7 +64,6 @@ export default function AiCardSuggester({ show, onHide, mainDeck = [], extraDeck
         const activeFormats = Object.keys(formats).filter(k => formats[k]);
         const formatConstraint = activeFormats.length > 0 ? activeFormats.join(", ") : "Standard TCG";
 
-        // Chain-of-Thought Prompting with Strict Sum Requirements
         const systemPrompt = `You are a Yu-Gi-Oh! TCG Master Deck Architect and Competitive Game Theory Engine.
 
 User Request: "${autoBuildPrompt}"
@@ -112,7 +105,6 @@ Output JSON ONLY in this exact structure:
 
             const failedList = [];
 
-            // Hydration engine
             const hydrateDeckSection = async (cardList) => {
                 const hydratedCards = [];
                 for (const item of cardList) {
@@ -160,13 +152,10 @@ Output JSON ONLY in this exact structure:
                 hydrateDeckSection(parsedAi.extraDeck || [])
             ]);
 
-            // 🚀 AUTOMATED COUNT ENFORCEMENT & PADDING ENGINE
-            // 1. Auto-Pad Main Deck to exactly 40 if hydration dropped cards or Gemini math fell short
             if (hydratedMain.length > 0 && hydratedMain.length < 40) {
                 const nameCounts = {};
                 hydratedMain.forEach(c => { nameCounts[c.name] = (nameCounts[c.name] || 0) + 1; });
 
-                // First pass: bump existing 1 or 2 copy cards up to 3 copies
                 for (const card of [...hydratedMain]) {
                     if (hydratedMain.length >= 40) break;
                     if (nameCounts[card.name] < 3) {
@@ -176,7 +165,6 @@ Output JSON ONLY in this exact structure:
                 }
             }
 
-            // 2. Auto-Pad Extra Deck to exactly 15 if short
             if (hydratedExtra.length > 0 && hydratedExtra.length < 15) {
                 const extraCounts = {};
                 hydratedExtra.forEach(c => { extraCounts[c.name] = (extraCounts[c.name] || 0) + 1; });
@@ -217,7 +205,6 @@ Output JSON ONLY in this exact structure:
         }
     };
 
-    // Standard Card Suggestion Handler
     const handleAskAi = async (customPrompt = null, isAutoComplete = false) => {
         const query = customPrompt || promptText;
         if (!query.trim() && !isAutoComplete) return;
@@ -300,7 +287,6 @@ Output JSON ONLY:
         }
     };
 
-    // Deck Health Analyzer Handler
     const handleAnalyzeDeck = async () => {
         setLoading(true);
         setErrorMsg('');
@@ -347,33 +333,31 @@ Output JSON ONLY:
     return (
         <Modal show={show} onHide={onHide} size="lg" centered contentClassName="md-modal border-info">
             <Modal.Header closeButton className="border-info bg-dark text-info">
-                <Modal.Title className="terminal-font">🤖 AI_DECK_DOCTOR // INTELLIGENCE_SUITE</Modal.Title>
+                <Modal.Title className="terminal-font">AI ASSISTANT</Modal.Title>
             </Modal.Header>
 
             <Modal.Body className="bg-dark text-white p-4">
-                {/* MODE TABS */}
                 <Nav variant="pills" activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-4 bg-black p-1 rounded border border-secondary">
                     <Nav.Item className="flex-fill text-center">
                         <Nav.Link eventKey="suggester" className="terminal-font py-2 small">
-                            ⚡ CARD_SUGGESTER
+                            CARD SUGGESTIONS
                         </Nav.Link>
                     </Nav.Item>
                     <Nav.Item className="flex-fill text-center">
                         <Nav.Link eventKey="autobuild" className="terminal-font py-2 small text-warning fw-bold">
-                            🚀 AUTO_DECK_BUILDER
+                            AUTO BUILD
                         </Nav.Link>
                     </Nav.Item>
                     <Nav.Item className="flex-fill text-center">
                         <Nav.Link eventKey="analyzer" className="terminal-font py-2 small">
-                            📊 DECK_HEALTH_AUDITOR
+                            DECK GRADER
                         </Nav.Link>
                     </Nav.Item>
                 </Nav>
 
-                {/* FORMAT CHECKBOXES */}
                 <div className="mb-3 p-3 bg-black bg-opacity-60 rounded border border-info border-opacity-30">
                     <Form.Label className="terminal-font text-info small d-block mb-2">
-                        FORMAT_LEGALITY_CONSTRAINTS // FILTER BY ACTIVE FORMAT(S)
+                        FILTER BY ACTIVE FORMAT
                     </Form.Label>
                     <div className="d-flex flex-wrap gap-4">
                         {[
@@ -395,7 +379,6 @@ Output JSON ONLY:
                     </div>
                 </div>
 
-                {/* TAB 1: CARD SUGGESTER */}
                 {activeTab === 'suggester' && (
                     <>
                         <div className="mb-3">
@@ -441,11 +424,11 @@ Output JSON ONLY:
                                     onClick={() => handleAskAi(null, true)}
                                     disabled={loading || mainDeck.length >= 40}
                                 >
-                                    🚀 AUTO-COMPLETE DECK ({Math.max(0, 40 - mainDeck.length)} SLOTS)
+                                    AUTO-BUILD DECK ({Math.max(0, 40 - mainDeck.length)} SLOTS)
                                 </Button>
 
                                 <Button type="submit" variant="info" className="terminal-font fw-bold text-dark" disabled={loading || !promptText.trim()}>
-                                    {loading ? <Spinner size="sm" animation="border" /> : "EXECUTE_AI_ANALYSIS ⚡"}
+                                    {loading ? <Spinner size="sm" animation="border" /> : "ANALYZE"}
                                 </Button>
                             </div>
                         </Form>
@@ -490,12 +473,11 @@ Output JSON ONLY:
                     </>
                 )}
 
-                {/* 🚀 TAB 2: AUTONOMOUS SINGLE-PROMPT DECK GENERATOR */}
                 {activeTab === 'autobuild' && (
                     <Form onSubmit={handleAutoBuild} className="mb-3">
                         <Form.Group className="mb-3">
                             <Form.Label className="terminal-font text-warning small fw-bold">
-                                DECK_STRATEGY_PROMPT // DESCRIBE DESIRED DECK ARCHETYPE & BOOSTER SETS
+                                DESCRIBE DESIRED DECK ARCHETYPE(S) & BOOSTER SETS
                             </Form.Label>
                             <Form.Control
                                 as="textarea"
@@ -534,13 +516,8 @@ Output JSON ONLY:
                     </Form>
                 )}
 
-                {/* TAB 3: DECK HEALTH AUDITOR */}
                 {activeTab === 'analyzer' && (
                     <div>
-                        <p className="text-white-50 small mb-3">
-                            Run an algorithmic audit on your current deck state ({mainDeck.length} Main Deck cards) to measure opening consistency, brick probability, and format synergy gaps.
-                        </p>
-
                         <div className="d-flex justify-content-center mb-4">
                             <Button variant="info" className="terminal-font text-dark fw-bold px-4" onClick={handleAnalyzeDeck} disabled={loading}>
                                 {loading ? <Spinner size="sm" animation="border" /> : "RUN_DECK_AUDIT 📊"}

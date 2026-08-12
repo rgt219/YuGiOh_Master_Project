@@ -13,7 +13,7 @@ export const deckList = {
     userId: ''
 };
 
-const AZURE_BLOB_BASE_URL = "https://ygocardstore.blob.core.windows.net/card-images";
+const AZURE_BLOB_BASE_URL = "https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images";
 
 const fetchYgoCards = async () => {
     const response = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php');

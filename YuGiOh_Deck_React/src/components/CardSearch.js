@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Form, Button, Badge, Spinner, Modal, Row, Col, InputGroup } from 'react-bootstrap';
 
-const AZURE_BLOB_CONTAINER_URL = "https://yugiohforumstorage.blob.core.windows.net/card-images";
+const AZURE_BLOB_CONTAINER_URL = "https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images";
 const CARDS_PER_PAGE = 30; 
 
 const ATTRIBUTES = ['ALL', 'DARK', 'LIGHT', 'EARTH', 'WATER', 'FIRE', 'WIND', 'DIVINE'];
@@ -37,6 +37,14 @@ const ALL_RACES_TYPES = [
     ])).sort()
 ];
 
+const RARITIES = ['ALL', 'Common', 'Rare', 'Super Rare', 'Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Ghost Rare', 'Starlight Rare', 'Quarter Century Secret Rare', 'Gold Rare', 'Collector\'s Rare', 'Platinum Secret Rare'];
+
+const LEVELS = ['ALL', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
+
+const LINKS = ['ALL', '1', '2', '3', '4', '5', '6'];
+
+const SCALES = ['ALL', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'];
+
 const renderLevelStars = (level) => {
     if (!level) return null;
     return (
@@ -68,6 +76,12 @@ export default function CardSearch() {
     const [selectedRace, setSelectedRace] = useState("ALL RACES / TYPES");
     const [currentPage, setCurrentPage] = useState(1);
     const [inspectCard, setInspectCard] = useState(null);
+    const [selectedArchetype, setSelectedArchetype] = useState("ALL");
+    const [selectedRarity, setSelectedRarity] = useState("ALL");
+    const [selectedLevel, setSelectedLevel] = useState("ALL");
+    const [selectedLink, setSelectedLink] = useState("ALL");
+    const [selectedScale, setSelectedScale] = useState("ALL");
+    const [archetypesList, setArchetypesList] = useState(["ALL"]);
 
     const currentRaceOptions = useMemo(() => {
         if (selectedMainType === "SPELL") return SPELL_TYPES;
@@ -84,6 +98,16 @@ export default function CardSearch() {
         else setSelectedRace("ALL RACES / TYPES");
     };
 
+    useEffect(() => {
+        fetch("https://db.ygoprodeck.com/api/v7/archetypes.php")
+            .then(res => res.json())
+            .then(data => {
+                const names = data.map(a => a.archetype_name).sort();
+                setArchetypesList(["ALL", ...names]);
+            })
+            .catch(() => setArchetypesList(["ALL"]));
+    }, []);
+
     const fetchCards = useCallback(async () => {
         setIsLoading(true);
         setHasError(false);
@@ -98,11 +122,32 @@ export default function CardSearch() {
                 params.append("race", selectedRace);
             }
 
+            if (selectedArchetype !== "ALL") params.append("archetype", selectedArchetype);
+            if (selectedLevel !== "ALL") params.append("level", selectedLevel);
+            if (selectedLink !== "ALL") params.append("link", selectedLink);
+            if (selectedScale !== "ALL") params.append("scale", selectedScale);
+
             const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?${params.toString()}`;
-            const response = await fetch(url);
+
+            const genesysParams = new URLSearchParams(params.toString());
+            genesysParams.append("format", "genesys");
+            const genesysUrl = `https://db.ygoprodeck.com/api/v7/cardinfo.php?${genesysParams.toString()}`;
+
+            const [response, genesysResponse] = await Promise.all([
+                fetch(url),
+                fetch(genesysUrl).catch(() => null) 
+            ]);
 
             if (response.ok) {
                 const result = await response.json();
+
+                const genesysMap = {};
+                if (genesysResponse && genesysResponse.ok) {
+                    const genesysResult = await genesysResponse.json();
+                    (genesysResult.data || []).forEach(c => {
+                        genesysMap[c.id] = c.misc_info?.[0]?.genesys_points ?? 0;
+                    });
+                }
                 
                 const normalized = (result.data || []).map(c => {
                     const priceObj = c.card_prices?.[0] || {};
@@ -112,7 +157,7 @@ export default function CardSearch() {
                     const isLinkOrPendulum = (c.type || "").toLowerCase().includes("link") || 
                                              (c.type || "").toLowerCase().includes("pendulum");
 
-                    const genesysPts = isLinkOrPendulum ? "N/A" : (miscObj.genesys_points ?? 0);
+                    const genesysPts = isLinkOrPendulum ? "N/A" : (genesysMap[c.id] ?? 0);
 
                     return {
                         id: c.id,
@@ -140,7 +185,8 @@ export default function CardSearch() {
                         },
 
                         isLinkOrPendulum,
-                        genesysPoints: genesysPts
+                        genesysPoints: genesysPts,
+                        cardSets: c.card_sets || [],
                     };
                 });
 
@@ -155,7 +201,7 @@ export default function CardSearch() {
         } finally {
             setIsLoading(false);
         }
-    }, [selectedAttribute, selectedRace]);
+    }, [selectedAttribute, selectedRace, selectedArchetype, selectedLevel, selectedLink, selectedScale]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -195,9 +241,17 @@ export default function CardSearch() {
                 matchesRace = card.race.toLowerCase() === selectedRace.toLowerCase();
             }
 
-            return matchesText && matchesMainType && matchesAbility && matchesType && matchesRace;
+            let matchesRarity = true;
+            if (selectedRarity !== "ALL") {
+                matchesRarity = card.cardSets && card.cardSets.some(set => 
+                    (set.set_rarity && set.set_rarity.toLowerCase().includes(selectedRarity.toLowerCase())) ||
+                    (set.set_rarity_code && set.set_rarity_code.toLowerCase().includes(selectedRarity.toLowerCase()))
+                );
+            }
+
+            return matchesText && matchesMainType && matchesAbility && matchesType && matchesRace && matchesRarity;
         });
-    }, [rawCards, searchQuery, selectedMainType, selectedAbility, selectedType, selectedRace]);
+    }, [rawCards, searchQuery, selectedMainType, selectedAbility, selectedType, selectedRace, selectedRarity]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -243,9 +297,6 @@ export default function CardSearch() {
                                 FOUND {filteredCards.length} MATCHES • PAGE {currentPage} OF {totalPages}
                             </span>
                         </div>
-                        <Badge bg="info" className="text-dark terminal-font fs-6 px-3 py-2">
-                            POWERED BY AZURE BLOB STORAGE
-                        </Badge>
                     </div>
 
                     <Row className="g-3">
@@ -363,6 +414,88 @@ export default function CardSearch() {
                                 ))}
                             </Form.Select>
                         </Col>
+                        <Col lg={3} md={6}>
+                            <Form.Label className="hud-label text-info small terminal-font mb-1">
+                                ARCHETYPE
+                            </Form.Label>
+                            <Form.Select 
+                                className="bg-black text-info border-secondary terminal-font"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                value={selectedArchetype}
+                                onChange={(e) => setSelectedArchetype(e.target.value)}
+                            >
+                                {archetypesList.map(arch => (
+                                    <option key={arch} value={arch}>{arch.toUpperCase()}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+
+                        <Col lg={3} md={6}>
+                            <Form.Label className="hud-label text-info small terminal-font mb-1">
+                                RARITY
+                            </Form.Label>
+                            <Form.Select 
+                                className="bg-black text-info border-secondary terminal-font"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                value={selectedRarity}
+                                onChange={(e) => setSelectedRarity(e.target.value)}
+                            >
+                                {RARITIES.map(r => (
+                                    <option key={r} value={r}>{r.toUpperCase()}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+
+                        <Col lg={2} md={4}>
+                            <Form.Label className="hud-label text-info small terminal-font mb-1">
+                                LEVEL / RANK
+                            </Form.Label>
+                            <Form.Select 
+                                className="bg-black text-info border-secondary terminal-font"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                value={selectedLevel}
+                                onChange={(e) => setSelectedLevel(e.target.value)}
+                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedType === "LINK"}
+                            >
+                                {LEVELS.map(l => (
+                                    <option key={l} value={l}>{l === 'ALL' ? 'ALL LEVELS' : l}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+
+                        <Col lg={2} md={4}>
+                            <Form.Label className="hud-label text-info small terminal-font mb-1">
+                                LINK ARROWS
+                            </Form.Label>
+                            <Form.Select 
+                                className="bg-black text-info border-secondary terminal-font"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                value={selectedLink}
+                                onChange={(e) => setSelectedLink(e.target.value)}
+                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "LINK" && selectedType !== "ALL")}
+                            >
+                                {LINKS.map(l => (
+                                    <option key={l} value={l}>{l === 'ALL' ? 'ALL LINKS' : l}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+
+                        <Col lg={2} md={4}>
+                            <Form.Label className="hud-label text-info small terminal-font mb-1">
+                                PEND. SCALE
+                            </Form.Label>
+                            <Form.Select 
+                                className="bg-black text-info border-secondary terminal-font"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                value={selectedScale}
+                                onChange={(e) => setSelectedScale(e.target.value)}
+                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "PENDULUM" && selectedType !== "ALL")}
+                            >
+                                {SCALES.map(s => (
+                                    <option key={s} value={s}>{s === 'ALL' ? 'ALL SCALES' : s}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
                     </Row>
                 </div>
 
@@ -424,6 +557,11 @@ export default function CardSearch() {
                                 setSelectedAttribute("ALL");
                                 setSelectedAbility("ALL");
                                 setSelectedType("ALL");
+                                setSelectedArchetype("ALL");
+                                setSelectedLevel("ALL");
+                                setSelectedLink("ALL");
+                                setSelectedScale("ALL");
+                                setSelectedRarity("ALL");
                             }}
                         >
                             RESET_ALL_FILTERS
@@ -657,6 +795,8 @@ export default function CardSearch() {
                                                 <span className="text-info small terminal-font d-block fw-bold" style={{ fontSize: '0.62rem' }}>
                                                      GENESYS POINTS
                                                 </span>
+                                                <span className="text-white-50 d-block" style={{ fontSize: '0.55rem' }}>TCG</span>
+
                                                 <div>
                                                     {inspectCard.isLinkOrPendulum ? (
                                                         <Badge bg="danger" className="terminal-font px-1 py-1" style={{ fontSize: '0.58rem' }}>
@@ -686,8 +826,39 @@ export default function CardSearch() {
 
                                 </div>
                             </Col>
-
                         </Row>
+                        <div className="mt-2 flex-grow-1 d-flex flex-column">
+                                    <label className="text-info small terminal-font mb-1 d-block" style={{ fontSize: '0.7rem' }}>
+                                        TCG PRINTINGS
+                                    </label>
+                                    <div 
+                                        className="rounded bg-black bg-opacity-60 border border-secondary border-opacity-30 overflow-auto"
+                                        style={{ maxHeight: '160px' }} // Controls how tall the table gets before scrolling
+                                    >
+                                        {inspectCard.cardSets && inspectCard.cardSets.length > 0 ? (
+                                            <table className="table table-sm table-dark table-borderless m-0 terminal-font" style={{ fontSize: '0.75rem' }}>
+                                                <thead style={{ position: 'sticky', top: 0, backgroundColor: '#0a0d14', zIndex: 1 }}>
+                                                    <tr className="text-info-50" style={{ borderBottom: '1px solid rgba(0, 210, 255, 0.2)' }}>
+                                                        <th className="py-2 px-2 fw-normal">Set Code</th>
+                                                        <th className="py-2 px-2 fw-normal">Set Name</th>
+                                                        <th className="py-2 px-2 fw-normal">Rarity</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {inspectCard.cardSets.map((set, idx) => (
+                                                        <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                                            <td className="text-warning px-2 align-middle">{set.set_code}</td>
+                                                            <td className="text-white-50 px-2 align-middle">{set.set_name}</td>
+                                                            <td className="text-info px-2 align-middle">{set.set_rarity}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        ) : (
+                                            <div className="text-white-50 small p-3 text-center">No set data available for this card.</div>
+                                        )}
+                                    </div>
+                                </div>
                     </Modal.Body>
                 </Modal>
             )}

@@ -3,13 +3,12 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Form, Modal, Button, Spinner, Badge, Nav, Alert } from 'react-bootstrap';
 
 export default function AiDeckCopywriter({ show, onHide, deckName = "Untitled Deck", mainDeck = [], extraDeck = [] }) {
-    const [activeTab, setActiveTab] = useState('formatted'); // 'formatted' | 'markdown'
+    const [activeTab, setActiveTab] = useState('formatted');
     const [loading, setLoading] = useState(false);
     const [articleData, setArticleData] = useState(null);
     const [copied, setCopied] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
-    // Call backend Azure proxy endpoint
     const handleGenerateWriteup = async () => {
         setLoading(true);
         setErrorMsg('');
@@ -94,7 +93,6 @@ Output JSON ONLY in this exact structure:
             </Modal.Header>
 
             <Modal.Body className="bg-dark text-white p-4">
-                {/* INITIAL GENERATE CALLOUT */}
                 {!articleData && !loading && (
                     <div className="text-center py-4">
                         <h5 className="text-info terminal-font mb-2">GENERATE A PROFESSIONAL DECK PROFILE</h5>
@@ -107,7 +105,6 @@ Output JSON ONLY in this exact structure:
                     </div>
                 )}
 
-                {/* LOADING SPINNER */}
                 {loading && (
                     <div className="text-center py-5">
                         <Spinner animation="border" variant="info" className="mb-3" />
@@ -117,7 +114,6 @@ Output JSON ONLY in this exact structure:
 
                 {errorMsg && <Alert variant="danger" className="terminal-font small my-3">{errorMsg}</Alert>}
 
-                {/* ARTICLE RESULTS */}
                 {articleData && !loading && (
                     <>
                         <div className="d-flex justify-content-between align-items-center mb-3">
@@ -144,7 +140,6 @@ Output JSON ONLY in this exact structure:
                             </Button>
                         </div>
 
-                        {/* TAB 1: FORMATTED ARTICLE VIEW */}
                         {activeTab === 'formatted' && (
                             <div className="bg-black p-4 rounded border border-info border-opacity-40">
                                 <div className="d-flex align-items-center gap-2 mb-2">
@@ -157,7 +152,6 @@ Output JSON ONLY in this exact structure:
                                 <h4 className="text-white terminal-font fw-bold mb-3">{articleData.headline}</h4>
                                 <p className="text-white-50 leading-relaxed mb-4">{articleData.overview}</p>
 
-                                {/* ENGINE BREAKDOWN */}
                                 {articleData.engineBreakdown?.length > 0 && (
                                     <div className="mb-4">
                                         <h6 className="text-info terminal-font border-bottom border-secondary pb-2 mb-3">
@@ -174,7 +168,6 @@ Output JSON ONLY in this exact structure:
                                     </div>
                                 )}
 
-                                {/* WIN CONDITIONS */}
                                 {articleData.keyWinConditions?.length > 0 && (
                                     <div className="mb-4">
                                         <h6 className="text-success terminal-font border-bottom border-secondary pb-2 mb-2">
@@ -188,7 +181,6 @@ Output JSON ONLY in this exact structure:
                                     </div>
                                 )}
 
-                                {/* BUDGET SUBSTITUTIONS */}
                                 {articleData.budgetSubstitutions?.length > 0 && (
                                     <div>
                                         <h6 className="text-warning terminal-font border-bottom border-secondary pb-2 mb-3">
@@ -210,7 +202,6 @@ Output JSON ONLY in this exact structure:
                             </div>
                         )}
 
-                        {/* TAB 2: RAW MARKDOWN VIEW */}
                         {activeTab === 'markdown' && (
                             <div className="bg-black p-3 rounded border border-secondary">
                                 <Form.Control

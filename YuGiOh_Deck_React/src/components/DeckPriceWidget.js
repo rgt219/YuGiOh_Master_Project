@@ -102,7 +102,7 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
             <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-50">
                 <div>
                     <h6 className="text-info terminal-font m-0 fw-bold">
-                        💰 DECK_VALUATION // MARKET_INDEX
+                        DECK PRICE
                     </h6>
                     <small className="text-muted terminal-font">REAL-TIME TCG PRICING METRICS</small>
                 </div>
@@ -144,7 +144,7 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
                         className="terminal-font fw-bold"
                         onClick={() => setShowBudgetModal(true)}
                     >
-                        ⚡ BUDGET OPTIMIZER
+                        BUDGET OPTIMIZER
                     </Button>
                 )}
             </div>
@@ -153,7 +153,7 @@ export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDec
             {!loadingPrices && topExpensiveCards.length > 0 && (
                 <div>
                     <small className="text-info terminal-font fw-bold d-block mb-2">
-                        🔥 TOP_VALUE_DRIVERS (MOST EXPENSIVE CARDS)
+                        TOP CARD PRICES
                     </small>
                     <Table size="sm" variant="dark" responsive className="m-0 border-secondary border-opacity-25 small">
                         <thead>

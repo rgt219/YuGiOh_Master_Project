@@ -392,7 +392,7 @@ export default function ThreadDetail() {
 
                             <Form.Group>
                                 <Form.Label className="hud-label text-white-50 small terminal-font mb-1">
-                                    🎥 YOUTUBE / MEDIA LINK
+                                    YOUTUBE / MEDIA LINK
                                 </Form.Label>
                                 <Form.Control 
                                     type="url"

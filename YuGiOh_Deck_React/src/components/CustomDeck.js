@@ -63,7 +63,7 @@ export default function CustomDeck({
                         ? card.image
                         : (typeof card === 'object' && card.card_images?.[0]?.image_url_small)
                             ? card.card_images[0].image_url_small
-                            : `https://ygocardstore.blob.core.windows.net/card-images/${cardId}.jpg`;
+                            : `https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images/${cardId}.jpg`;
 
                     return (
                         <div

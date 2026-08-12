@@ -1,43 +1,33 @@
-'use client'; // 👈 Required for format state, client fetch queries, and modal inspectors
+'use client'; 
 
 import React, { useState, useEffect } from 'react';
 import { Modal, Row, Col, Badge, Spinner } from 'react-bootstrap';
 
-// Helper function to rank card types according to requested order:
-// Normal Monster -> Effect Monster -> Fusion -> Link -> Synchro -> XYZ -> Spell -> Trap
 const getCardTypeRank = (typeStr) => {
   if (!typeStr) return 99;
   const t = typeStr.toLowerCase();
 
-  // 1. Normal Monsters
   if (t.includes("normal monster") || (t.includes("normal") && t.includes("monster") && !t.includes("effect"))) {
     return 1;
   }
-  // 3. Fusion Monsters
   if (t.includes("fusion")) {
     return 3;
   }
-  // 4. Link Monsters
   if (t.includes("link")) {
     return 4;
   }
-  // 5. Synchro Monsters
   if (t.includes("synchro")) {
     return 5;
   }
-  // 6. XYZ Monsters
   if (t.includes("xyz")) {
     return 6;
   }
-  // 7. Spells
   if (t.includes("spell")) {
     return 7;
   }
-  // 8. Traps
   if (t.includes("trap")) {
     return 8;
   }
-  // 2. Effect Monsters & other main deck monsters
   if (t.includes("monster") || t.includes("effect") || t.includes("tuner")) {
     return 2;
   }

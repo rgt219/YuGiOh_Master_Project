@@ -19,15 +19,15 @@ export default function About() {
 
         skillsDeck: [
             { 
-                category: "CORE_LANGUAGES", 
+                category: "CORE LANGUAGES", 
                 items: ["C# (.NET 8/9)", "C++", "Java", "Python", "TypeScript", "JavaScript", "SQL", "HTML5/CSS3", "PowerShell", "JSON/BSON"] 
             },
             { 
-                category: "ENGINES_&_FRAMEWORKS", 
+                category: "TOOLS & FRAMEWORKS", 
                 items: ["React 18", "ASP.NET Core Web API", "SignalR (WebSockets)", "Redux Toolkit", "React-Bootstrap", "SpringBoot", "Qt", "VxWorks", "Unreal Engine 5", "Unity"] 
             },
             { 
-                category: "INFRASTRUCTURE_&_MESSAGING", 
+                category: "INFRASTRUCTURE & MESSAGING", 
                 items: ["Apache Kafka", "Azure Event Hubs", "Azure Container Apps", "Azure Blob Storage (DLQ)", "Azure Cosmos DB", "MongoDB", "Docker", "RabbitMQ", "Linux (Red Hat 9)", "Envoy Ingress", "Git", "GitHub Actions CI/CD", "Jenkins", "Bamboo", "TCP/IP"] 
             }
         ],
@@ -75,7 +75,6 @@ export default function About() {
         ]
     };
 
-    // Master Duel Theme Styling Objects
     const masterDuelLaserCardStyle = {
         background: 'radial-gradient(circle at 50% 0%, rgba(31, 18, 53, 0.95) 0%, rgba(10, 13, 20, 0.98) 100%)',
         border: '1px solid #00f2ff',
@@ -109,7 +108,6 @@ export default function About() {
         <div style={{ backgroundColor: '#0a0d14', minHeight: "100vh" }} className="py-5 mt-4">
             <Container className="px-3 mx-auto" style={{ maxWidth: '1400px' }}>
                 
-                {/* --- 1. MASTER DUEL CARD HEADER --- */}
                 <div className="p-4 p-md-5 mb-5 rounded-3 position-relative overflow-hidden" style={masterDuelLaserCardStyle}>
                     <Row className="align-items-center">
                         <Col xs={12} md={3} className="text-center mb-4 mb-md-0">
@@ -150,7 +148,7 @@ export default function About() {
                                 {profileData.userName}
                             </h1>
                             <h5 className="fw-bold tracking-wider mb-3 terminal-font" style={textStylePurple}>
-                                SYSTEM ARCHITECT // {profileData.realName.toUpperCase()}
+                                {profileData.realName.toUpperCase()}
                             </h5>
 
                             <hr style={{ borderColor: '#00f2ff', opacity: 0.3 }} className="my-3" />
@@ -169,20 +167,19 @@ export default function About() {
                     </Row>
                 </div>
 
-                {/* --- 2. TWO-COLUMN MACRO MATRIX GRID --- */}
                 <Row className="g-4">
                     <Col lg={5} xs={12}>
                         <Card className="mb-4" style={masterDuelLaserCardStyle}>
                             <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
                                 <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStylePurple}>
-                                    ⚙️ TECH DECK RECIPE (SKILLS)
+                                    SOFTWARE SKILLSET
                                 </h6>
                             </Card.Header>
                             <Card.Body className="p-3">
                                 {profileData.skillsDeck.map((deck, idx) => (
                                     <div key={idx} className="mb-3 text-start">
                                         <small className="d-block mb-2 fw-bold text-uppercase terminal-font" style={{ fontSize: '0.72rem', color: '#a69cb5' }}>
-                                            // {deck.category}
+                                            {deck.category}
                                         </small>
                                         <div className="d-flex flex-wrap gap-1">
                                             {deck.items.map((skill, i) => (
@@ -204,7 +201,7 @@ export default function About() {
                         <Card style={masterDuelLaserCardStyle}>
                             <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
                                 <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleCyan}>
-                                    🌐 PLATFORM SPECIFICATIONS (ERREGETEYGO.COM)
+                                    PLATFORM SPECIFICATIONS
                                 </h6>
                             </Card.Header>
                             <Card.Body className="text-start p-3">
@@ -227,7 +224,7 @@ export default function About() {
                         <Card style={masterDuelLaserCardStyle}>
                             <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
                                 <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleAmber}>
-                                    📜 PROFESSIONAL DEPLOYMENT HISTORY
+                                    PROFESSIONAL DEPLOYMENT HISTORY
                                 </h6>
                             </Card.Header>
                             <Card.Body className="p-0 text-start">

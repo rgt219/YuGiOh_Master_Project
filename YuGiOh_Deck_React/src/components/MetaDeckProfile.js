@@ -211,13 +211,11 @@ export default function MetaDeckProfile() {
                 <h2 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px' }}>
                   {archetype}
                 </h2>
-                <span className="small text-white-50">DECK ID: #{deckIdStr.substring(0, 8)}...</span>
               </div>
               <div className="d-flex gap-2">
                 <Badge bg="success" className="text-dark fw-bold px-3 py-2 fs-6">PILOT: {pilot}</Badge>
                 <Badge bg="dark" className="text-light fw-bold px-3 py-2 fs-6">PLACEMENT: {placement}</Badge>
                 <Badge bg="info" className="text-dark fw-bold px-3 py-2 fs-6">FORMAT: {format}</Badge>
-                <Badge bg="warning" className="text-dark fw-bold px-3 py-2 fs-6">{tier}</Badge>
               </div>
             </div>
           </Card.Header>
@@ -308,9 +306,19 @@ export default function MetaDeckProfile() {
               <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
                 <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2 mb-3 d-flex justify-content-between align-items-center">
                   <h6 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
-                    🔍 CARD INSPECTOR
+                    CARD INSPECTOR
                   </h6>
                   {pinnedCardData ? (
+                    <Badge 
+                      bg="warning" 
+                      className="text-dark fw-bold terminal-font text-uppercase px-2 py-1"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setPinnedCardData(null)}
+                      title="Click to unlock inspector"
+                    >
+                      PINNED (CLICK UNPIN)
+                    </Badge>
+                  ) : (
                     <Badge 
                       bg="info" 
                       className="text-dark fw-bold terminal-font text-uppercase px-2 py-1"
@@ -318,12 +326,8 @@ export default function MetaDeckProfile() {
                       onClick={() => setPinnedCardData(null)}
                       title="Click to unlock inspector"
                     >
-                      📌 PINNED (CLICK UNPIN)
+                      CLICK TO PIN CARD
                     </Badge>
-                  ) : (
-                    <span className="small text-white-50" style={{ fontSize: '0.75rem' }}>
-                      💡 Click card to lock
-                    </span>
                   )}
                 </Card.Header>
 
@@ -418,7 +422,6 @@ export default function MetaDeckProfile() {
                 <h5 className="m-0 text-info terminal-font fw-bold">
                   MAIN DECK ({mainDeckIds.length})
                 </h5>
-                <span className="small text-white-50">40 - 60 Cards</span>
               </Card.Header>
               <Card.Body className="p-1">
                 <div className="d-flex flex-wrap gap-2 justify-content-start">
@@ -463,7 +466,6 @@ export default function MetaDeckProfile() {
                   <h5 className="m-0 text-warning terminal-font fw-bold">
                     EXTRA DECK ({extraDeckIds.length})
                   </h5>
-                  <span className="small text-white-50">0 - 15 Cards</span>
                 </Card.Header>
                 <Card.Body className="p-1">
                   <div className="d-flex flex-wrap gap-2 justify-content-start">
@@ -509,7 +511,6 @@ export default function MetaDeckProfile() {
                   <h5 className="m-0 text-success terminal-font fw-bold">
                     SIDE DECK ({sideDeckIds.length})
                   </h5>
-                  <span className="small text-white-50">0 - 15 Cards</span>
                 </Card.Header>
                 <Card.Body className="p-1">
                   <div className="d-flex flex-wrap gap-2 justify-content-start">

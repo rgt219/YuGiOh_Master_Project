@@ -8,7 +8,6 @@ export default function AiComboPlaybook({ show, onHide, deckName = "Untitled Dec
     const [comboData, setComboData] = useState(null);
     const [errorMsg, setErrorMsg] = useState('');
 
-    // Fisher-Yates Shuffle Algorithm to draw 5 random cards
     const drawHand = useCallback(() => {
         if (!mainDeck || mainDeck.length < 5) return;
 
@@ -24,14 +23,12 @@ export default function AiComboPlaybook({ show, onHide, deckName = "Untitled Dec
         setErrorMsg('');
     }, [mainDeck]);
 
-    // Automatically draw a hand when the modal opens
     useEffect(() => {
         if (show) {
             drawHand();
         }
     }, [show, drawHand]);
 
-    // Send the drawn 5-card hand to Azure Backend Proxy for AI Analysis
     const handleAnalyzeHand = async () => {
         if (drawnHand.length < 5) {
             setErrorMsg("Your deck needs at least 5 cards to simulate an opening hand.");
@@ -112,7 +109,6 @@ Output JSON ONLY in this exact structure:
             </Modal.Header>
 
             <Modal.Body className="bg-dark text-white p-4">
-                {/* 🃏 HAND SIMULATOR SECTION */}
                 <div className="mb-4 p-3 bg-black bg-opacity-70 rounded border border-info border-opacity-40">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <div>
@@ -129,7 +125,6 @@ Output JSON ONLY in this exact structure:
                         </div>
                     </div>
 
-                    {/* 5 CARDS CAROUSEL/GRID */}
                     <div className="row g-2 justify-content-center">
                         {drawnHand.map((card, idx) => (
                             <div key={idx} className="col-6 col-sm-4 col-md-2">
@@ -152,29 +147,26 @@ Output JSON ONLY in this exact structure:
 
                 {errorMsg && <Alert variant="danger" className="terminal-font small my-3">{errorMsg}</Alert>}
 
-                {/* 🧠 AI COMBO ANALYSIS RESULTS */}
                 {comboData && !loading && (
                     <div className="bg-black p-4 rounded border border-info border-opacity-50">
-                        {/* HEADER STATS */}
                         <div className="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom border-secondary">
                             <div>
                                 <Badge bg={comboData.handGrade === 'S' || comboData.handGrade === 'A' ? 'success' : comboData.handGrade === 'Brick' ? 'danger' : 'warning'} className="fs-6 me-2 terminal-font">
                                     HAND GRADE: {comboData.handGrade}
                                 </Badge>
                                 <span className="terminal-font text-info small">
-                                    {comboData.isPlayable ? "✅ PLAYABLE HAND" : "⚠️ UNPLAYABLE / BRICK"}
+                                    {comboData.isPlayable ? "PLAYABLE HAND" : "UNPLAYABLE / BRICK"}
                                 </span>
                             </div>
                             <div className="text-end">
-                                <small className="text-muted d-block terminal-font">EXPECTED_END_BOARD</small>
+                                <small className="text-muted d-block terminal-font">EXPECTED END BOARD</small>
                                 <strong className="text-warning small">{comboData.endBoardSummary}</strong>
                             </div>
                         </div>
 
                         <div className="row g-4">
-                            {/* LEFT COLUMN: STEP-BY-STEP COMBO TREE */}
                             <div className="col-lg-7">
-                                <h6 className="text-info terminal-font mb-3">📜 STEP_BY_STEP_COMBO_SEQUENCE</h6>
+                                <h6 className="text-info terminal-font mb-3">STEP-BY-STEP COMBO SEQUENCE</h6>
                                 <div className="d-flex flex-column gap-2">
                                     {comboData.comboSteps?.map((s, i) => (
                                         <div key={i} className="p-2 px-3 bg-dark rounded border border-secondary border-opacity-50 d-flex gap-3 align-items-start">
@@ -185,9 +177,8 @@ Output JSON ONLY in this exact structure:
                                 </div>
                             </div>
 
-                            {/* RIGHT COLUMN: CHOKEPOINTS & VULNERABILITIES */}
                             <div className="col-lg-5">
-                                <h6 className="text-danger terminal-font mb-3">🛡️ INTERRUPTIONS & CHOKEPOINTS</h6>
+                                <h6 className="text-danger terminal-font mb-3">INTERRUPTIONS & CHOKEPOINTS</h6>
                                 <div className="d-flex flex-column gap-2 mb-3">
                                     {comboData.chokepoints?.map((c, i) => (
                                         <div key={i} className="p-3 bg-dark rounded border border-danger border-opacity-40">
@@ -204,7 +195,7 @@ Output JSON ONLY in this exact structure:
 
                                 {comboData.nibiruSafety && (
                                     <div className="p-3 bg-dark rounded border border-warning border-opacity-40">
-                                        <strong className="text-warning small terminal-font d-block mb-1">☄️ NIBIRU_SAFETY_EVALUATION</strong>
+                                        <strong className="text-warning small terminal-font d-block mb-1">NIBIRU SAFETY EVALUATION</strong>
                                         <p className="text-white-50 small m-0" style={{ fontSize: '0.8rem' }}>
                                             {comboData.nibiruSafety}
                                         </p>

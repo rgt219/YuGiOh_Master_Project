@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation'; // ⚡ Added routing hooks
+import { usePathname, useRouter } from 'next/navigation';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
@@ -21,12 +21,10 @@ export default function NavbarYGO() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // ⚡ 2. Sync with localStorage / sessionStorage on client load AND on route changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (mdSound) setSfxActive(mdSound.enabled);
 
-      // Check for user in session storage every time the URL path changes
       const storedUser = sessionStorage.getItem('user');
       if (storedUser) {
         try {
@@ -38,25 +36,24 @@ export default function NavbarYGO() {
         setLocalUser(null);
       }
     }
-  }, [pathname]); // Re-run this check whenever the user navigates
+  }, [pathname]);
 
-  const handleSfxToggle = () => {
-    if (mdSound?.toggleSound) {
-      const newState = mdSound.toggleSound();
-      setSfxActive(newState);
-    }
-  };
+  // const handleSfxToggle = () => {
+  //   if (mdSound?.toggleSound) {
+  //     const newState = mdSound.toggleSound();
+  //     setSfxActive(newState);
+  //   }
+  // };
 
   const closeNav = () => setExpanded(false);
 
-  // ⚡ 3. Handle Logout directly inside the Navbar
   const handleLogout = () => {
     mdSound?.playClick?.();
     closeNav();
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     setLocalUser(null);
-    router.push('/login'); // Redirect to login page
+    router.push('/login'); 
   };
 
   return (
@@ -75,7 +72,6 @@ export default function NavbarYGO() {
       }}
     >
       <Container fluid className="px-3 px-md-4">
-        {/* BRAND LOGO */}
         <Navbar.Brand 
           as={Link} 
           href="/" 
@@ -93,7 +89,6 @@ export default function NavbarYGO() {
 
         <Navbar.Collapse id="basic-navbar-nav" className="mt-2 mt-lg-0">
           <Nav className="me-auto gap-1 gap-lg-2 align-items-lg-center">
-            {/* ... [INFO, DECKS, CARD DATABASE, AND FORUMS DROPDOWNS REMAIN UNCHANGED] ... */}
             <NavDropdown title={<span className="fw-bold">Info</span>} id="info-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2">
               <NavDropdown.Item as={Link} href="/about" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>About</NavDropdown.Item>
               <NavDropdown.Item as={Link} href="/contact" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Contact</NavDropdown.Item>
@@ -116,9 +111,8 @@ export default function NavbarYGO() {
             </NavDropdown>
           </Nav>
 
-          {/* RIGHT SIDE: SFX TOGGLE & USER PROFILE / AUTH */}
           <Nav className="align-items-lg-center gap-2 mt-3 mt-lg-0 pt-2 pt-lg-0 border-top border-lg-0 border-secondary border-opacity-25">
-            <Button 
+            {/* <Button 
               variant={sfxActive ? "outline-info" : "outline-secondary"}
               size="sm"
               className="py-1 px-3 border-opacity-50 fw-bold w-100 w-lg-auto mb-2 mb-lg-0"
@@ -126,7 +120,7 @@ export default function NavbarYGO() {
               title="Toggle Master Duel Audio Effects"
             >
               {sfxActive ? "🔊 SFX: ON" : "🔇 SFX: OFF"}
-            </Button>
+            </Button> */}
 
             {/* ⚡ 4. Render conditional UI based on localUser instead of props */}
             {localUser ? (

@@ -132,7 +132,7 @@ export default function DeckBuilder({ user }) {
                         cardMap[card.id.toString()] = {
                             ...card,
                             isExtraDeck,
-                            image: `https://ygocardstore.blob.core.windows.net/card-images/${card.id}.jpg`,
+                            image: `https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images/${card.id}.jpg`,
                             fallbackImage: card.card_images?.[0]?.image_url_small || `https://images.ygoprodeck.com/images/cards_small/${card.id}.jpg`
                         };
                     });
@@ -288,7 +288,7 @@ export default function DeckBuilder({ user }) {
     };
 
     const activeImageUrl = activeCard.image || activeCard.card_images?.[0]?.image_url ||
-        ((activeCard.id || activeCard.Id) ? `https://ygocardstore.blob.core.windows.net/card-images/${activeCard.id || activeCard.Id}.jpg` : 'https://images.ygoprodeck.com/images/cards/back_high.jpg');
+        ((activeCard.id || activeCard.Id) ? `https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images/${activeCard.id || activeCard.Id}.jpg` : 'https://images.ygoprodeck.com/images/cards/back_high.jpg');
 
     return (
         <div className="md-theme-bg min-vh-100 py-5 mt-5">
@@ -312,7 +312,7 @@ export default function DeckBuilder({ user }) {
                                 <h4 className="m-0 text-info terminal-font text-nowrap">DECK BUILDER</h4>
                                 <Form.Control 
                                     className="bg-black text-info border-info terminal-font fw-bold fs-5 shadow-none flex-grow-1"
-                                    placeholder={isImporting ? "SYNCHRONIZING..." : "ENTER_DECK_NAME..."}
+                                    placeholder={isImporting ? "SYNCHRONIZING..." : "ENTER DECK NAME..."}
                                     value={deckName} 
                                     onChange={(e) => dispatch(updateDeckName(e.target.value))} 
                                     disabled={isImporting}
@@ -327,7 +327,7 @@ export default function DeckBuilder({ user }) {
                                     className="terminal-font text-dark fw-bold text-nowrap"
                                     onClick={() => setShowAiModal(true)}
                                 >
-                                    🤖 AI SUGGEST
+                                    AI HELPER
                                 </Button>
 
                                 <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
@@ -429,7 +429,7 @@ export default function DeckBuilder({ user }) {
                                     style={{ fontSize: '0.72rem' }}
                                     onClick={() => handlePinCard(activeCard)}
                                 >
-                                    🔒 LOCK CURRENT VIEW
+                                    LOCK CURRENT VIEW
                                 </Button>
                             )}
                         </Card.Header>
