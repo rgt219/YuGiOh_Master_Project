@@ -360,10 +360,11 @@ namespace YuGiOhDeckApi.Data
 
         public async Task<MasterDuelBanListResponse?> GetLatestMasterDuelBanListAsync()
         {
-            return await _mdBanlistCollection
+            var allLists = await _mdBanlistCollection
                 .Find(_ => true)
-                .SortByDescending(b => b.UpdatedAt)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
+
+            return allLists.OrderByDescending(b => b.UpdatedAt).FirstOrDefault();
         }
 
         public async Task SaveMasterDuelBanListAsync(MasterDuelBanListResponse banlist)
