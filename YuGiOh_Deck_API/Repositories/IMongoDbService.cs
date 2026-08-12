@@ -23,5 +23,9 @@ namespace YuGiOhDeckApi.Repositories
         Task<string> GetUsernameByUserIdAsync(string? userId);
         Task<MasterDuelBanListResponse?> GetLatestMasterDuelBanListAsync();
         Task SaveMasterDuelBanListAsync(MasterDuelBanListResponse banlist);
+        Task<List<MasterDuelCardDocument>> GetAllMasterDuelCardsAsync();
+        Task<MasterDuelCardDocument?> GetMasterDuelCardByGameIdAsync(string gameId);
+        Task<bool> SaveMasterDuelDatabaseAsync(MasterDuelDatabaseSyncResponseDto syncPayload);
+        Task<List<MasterDuelCardDocument>> GetRestrictedMasterDuelCardsAsync();
     }
 }

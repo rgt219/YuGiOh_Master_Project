@@ -14,6 +14,7 @@ namespace YuGiOhDeckApi.Data
         private readonly IMongoCollection<CardAnalytics> _cardAnalyticsCollection;
         private readonly IMongoCollection<BsonDocument> _usersCollection;
         private readonly IMongoCollection<MasterDuelBanListResponse> _mdBanlistCollection;
+        private readonly IMongoCollection<MasterDuelCardDocument> _mdCardsCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -25,6 +26,7 @@ namespace YuGiOhDeckApi.Data
             _metaDeckCollection = database.GetCollection<MetaDeck>("MetaDecks");
             _cardAnalyticsCollection = database.GetCollection<CardAnalytics>("CardAnalytics");
             _mdBanlistCollection = database.GetCollection<MasterDuelBanListResponse>("MasterDuelBanList");
+            _mdCardsCollection = database.GetCollection<MasterDuelCardDocument>("MasterDuelCards");
 
             IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
             _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");
@@ -371,6 +373,41 @@ namespace YuGiOhDeckApi.Data
         {
             await _mdBanlistCollection.DeleteManyAsync(_ => true);
             await _mdBanlistCollection.InsertOneAsync(banlist);
+        }
+
+        public async Task<List<MasterDuelCardDocument>> GetAllMasterDuelCardsAsync()
+        {
+            return await _mdCardsCollection.Find(_ => true).ToListAsync();
+        }
+
+        public async Task<MasterDuelCardDocument?> GetMasterDuelCardByGameIdAsync(string gameId)
+        {
+            return await _mdCardsCollection.Find(c => c.GameId == gameId).FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> SaveMasterDuelDatabaseAsync(MasterDuelDatabaseSyncResponseDto syncPayload)
+        {
+            if (syncPayload.Cards == null || syncPayload.Cards.Count == 0) return false;
+
+            var models = syncPayload.Cards.Select(card =>
+            {
+                card.UpdatedAt = DateTime.UtcNow;
+                return new ReplaceOneModel<MasterDuelCardDocument>(
+                    Builders<MasterDuelCardDocument>.Filter.Eq(c => c.GameId, card.GameId),
+                    card
+                )
+                { IsUpsert = true };
+            }).Cast<WriteModel<MasterDuelCardDocument>>().ToList();
+
+            await _mdCardsCollection.BulkWriteAsync(models);
+            return true;
+        }
+
+        public async Task<List<MasterDuelCardDocument>> GetRestrictedMasterDuelCardsAsync()
+        {
+            return await _mdCardsCollection
+                .Find(c => c.BanStatus != "Unlimited" && c.BanStatus != "")
+                .ToListAsync();
         }
 
         // Internal helper classes for the YGOPro API JSON structure

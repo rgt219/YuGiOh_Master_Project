@@ -8,6 +8,8 @@ namespace YuGiOhDeckApi.Services
     {
         Task<MasterDuelBanListResponse?> GetMasterDuelBanListAsync();
         Task<bool> TriggerScrapeAndSaveAsync();
+        Task<List<MasterDuelCardDocument>> GetAllCardsAsync();
+        Task<List<MasterDuelCardDocument>> GetRestrictedMasterDuelCardsAsync();
     }
 
     public class MasterDuelBanListService : IMasterDuelBanListService
@@ -29,31 +31,40 @@ namespace YuGiOhDeckApi.Services
             }
         }
 
+        public async Task<List<MasterDuelCardDocument>> GetAllCardsAsync()
+        {
+            return await _mongoDbService.GetAllMasterDuelCardsAsync();
+        }
+
         public async Task<MasterDuelBanListResponse?> GetMasterDuelBanListAsync()
         {
             return await _mongoDbService.GetLatestMasterDuelBanListAsync();
+        }
+
+        public async Task<List<MasterDuelCardDocument>> GetRestrictedMasterDuelCardsAsync()
+        {
+            return await _mongoDbService.GetRestrictedMasterDuelCardsAsync();
         }
 
         public async Task<bool> TriggerScrapeAndSaveAsync()
         {
             try
             {
-                _logger.LogInformation("Admin requested Master Duel Banlist scrape...");
-                var response = await _httpClient.GetFromJsonAsync<MasterDuelBanListResponse>("internal/banlist/masterduel");
+                _logger.LogInformation("Admin requested Master Duel Full Database sync...");
+
+                var response = await _httpClient.GetFromJsonAsync<MasterDuelDatabaseSyncResponseDto>("internal/banlist/masterduel");
 
                 if (response != null && response.Cards != null && response.Cards.Count > 0)
                 {
-                    response.Id = null; // Ensure MongoDB generates a new ObjectId
-                    response.UpdatedAt = DateTime.UtcNow;
-                    await _mongoDbService.SaveMasterDuelBanListAsync(response);
-                    _logger.LogInformation("Successfully saved new Master Duel Banlist to MongoDB.");
+                    await _mongoDbService.SaveMasterDuelDatabaseAsync(response);
+                    _logger.LogInformation("Successfully bulk-synced Master Duel Database to MongoDB.");
                     return true;
                 }
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to scrape or save Master Duel Banlist.");
+                _logger.LogError(ex, "Failed to sync Master Duel Database.");
                 return false;
             }
         }

@@ -5,59 +5,72 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 )
 
-type MDMBanListEntry struct {
-	Name   string `json:"name"`
-	Status string `json:"status"` // "Forbidden", "Limited", "Semi-Limited"
+type LinkedArticle struct {
+	Title string `json:"title"`
+	URL   string `json:"url"`
+	Image string `json:"image"`
 }
 
-type BanListResponse struct {
-	Format    string            `json:"format"`
-	Source    string            `json:"source"`
-	UpdatedAt time.Time         `json:"updatedAt"`
-	Count     int               `json:"count"`
-	Cards     []MDMBanListEntry `json:"cards"`
+type SourceDetail struct {
+	ID            string         `json:"_id"`
+	Type          string         `json:"type"`
+	Name          string         `json:"name"`
+	Expires       *time.Time     `json:"expires"`
+	LinkedArticle *LinkedArticle `json:"linkedArticle"`
 }
 
-type BanListCache struct {
-	mu        sync.RWMutex
-	data      *BanListResponse
-	updatedAt time.Time
-	ttl       time.Duration
+type ObtainEntry struct {
+	Amount int          `json:"amount"`
+	Type   string       `json:"type"`
+	Source SourceDetail `json:"source"`
 }
 
-var cache = BanListCache{
-	ttl: 6 * time.Hour,
+type MDMCardEntity struct {
+	KonamiID     string        `json:"konamiID"`
+	GameID       string        `json:"gameId"`
+	Name         string        `json:"name"`
+	Type         string        `json:"type"`
+	AlternateArt bool          `json:"alternateArt"`
+	MonsterType  []string      `json:"monsterType"`
+	Level        *int          `json:"level"`
+	Race         string        `json:"race"`
+	Attribute    string        `json:"attribute"`
+	Atk          *int          `json:"atk"`
+	Def          *int          `json:"def"`
+	Description  string        `json:"description"`
+	Rarity       string        `json:"rarity"`
+	BanStatus    string        `json:"banStatus"`
+	OcgBanStatus *string       `json:"ocgBanStatus"`
+	TcgBanStatus *string       `json:"tcgBanStatus"`
+	PopRank      float64       `json:"popRank"`
+	Obtain       []ObtainEntry `json:"obtain"`
+	UpdatedAt    time.Time     `json:"updatedAt"`
 }
 
-type mdmCardApiResponse struct {
-	Name      string `json:"name"`
-	BanStatus string `json:"banStatus"`
+type MasterDuelDatabaseSyncResponse struct {
+	Format    string          `json:"format"`
+	UpdatedAt time.Time       `json:"updatedAt"`
+	Count     int             `json:"count"`
+	Cards     []MDMCardEntity `json:"cards"`
 }
 
-func FetchMasterDuelBanList() (*BanListResponse, error) {
-	cache.mu.RLock()
-	if cache.data != nil && time.Since(cache.updatedAt) < cache.ttl {
-		defer cache.mu.RUnlock()
-		return cache.data, nil
-	}
-	cache.mu.RUnlock()
-
-	targetURL := "https://www.masterduelmeta.com/api/v1/cards?tcgBanStatus[$or][$exists]=true&ocgBanStatus[$or][$exists]=true&banStatus[$or][$exists]=true&alternateArt[$ne]=true&limit=0"
+func FetchMasterDuelBanList() (*MasterDuelDatabaseSyncResponse, error) {
+	// Pulls EVERY card instead of filtering out unlimited ones
+	targetURL := "https://www.masterduelmeta.com/api/v1/cards?alternateArt[$ne]=true&limit=0"
 
 	req, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build request: %w", err)
 	}
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Referer", "https://www.masterduelmeta.com/")
 
-	client := &http.Client{Timeout: 15 * time.Second}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http execution failed: %w", err)
@@ -68,40 +81,27 @@ func FetchMasterDuelBanList() (*BanListResponse, error) {
 		return nil, fmt.Errorf("MasterDuelMeta API returned HTTP status %d", resp.StatusCode)
 	}
 
-	var apiCards []mdmCardApiResponse
-	if err := json.NewDecoder(resp.Body).Decode(&apiCards); err != nil {
+	var rawCards []MDMCardEntity
+	if err := json.NewDecoder(resp.Body).Decode(&rawCards); err != nil {
 		return nil, fmt.Errorf("failed to decode JSON response: %w", err)
 	}
 
-	var entries []MDMBanListEntry
-	for _, card := range apiCards {
-		normStatus := normalizeStatus(card.BanStatus)
-		if normStatus != "Unlimited" && card.Name != "" {
-			entries = append(entries, MDMBanListEntry{
-				Name:   card.Name,
-				Status: normStatus,
-			})
+	now := time.Now()
+	for i := range rawCards {
+		rawCards[i].UpdatedAt = now
+		if rawCards[i].BanStatus == "" {
+			rawCards[i].BanStatus = "Unlimited"
+		} else {
+			rawCards[i].BanStatus = normalizeStatus(rawCards[i].BanStatus)
 		}
 	}
 
-	if len(entries) == 0 {
-		return nil, fmt.Errorf("api returned 0 restricted cards")
-	}
-
-	result := &BanListResponse{
-		Format:    "Master Duel",
-		Source:    "https://www.masterduelmeta.com/forbidden-limited-list",
-		UpdatedAt: time.Now(),
-		Count:     len(entries),
-		Cards:     entries,
-	}
-
-	cache.mu.Lock()
-	cache.data = result
-	cache.updatedAt = time.Now()
-	cache.mu.Unlock()
-
-	return result, nil
+	return &MasterDuelDatabaseSyncResponse{
+		Format:    "Master Duel Complete Database",
+		UpdatedAt: now,
+		Count:     len(rawCards),
+		Cards:     rawCards,
+	}, nil
 }
 
 func normalizeStatus(raw string) string {
@@ -109,25 +109,11 @@ func normalizeStatus(raw string) string {
 	switch {
 	case strings.Contains(s, "ban"), strings.Contains(s, "forbid"), s == "0", s == "forbidden":
 		return "Forbidden"
-	case (strings.Contains(s, "limit") && !strings.Contains(s, "semi")), s == "1", s == "limited":
-		return "Limited"
-	case strings.Contains(s, "semi"), s == "2", s == "semi-limited":
+	case strings.Contains(s, "limited 2"), strings.Contains(s, "semi"), s == "2":
 		return "Semi-Limited"
+	case strings.Contains(s, "limit"), s == "1", s == "limited":
+		return "Limited"
 	default:
 		return "Unlimited"
 	}
-}
-
-func normalizeString(s string) string {
-	// Simple lowercase helper
-	return s
-}
-
-func containsAny(s string, substrings ...string) bool {
-	for _, sub := range substrings {
-		if len(s) >= len(sub) && (s == sub || len(sub) == 0) {
-			return true
-		}
-	}
-	return false
 }

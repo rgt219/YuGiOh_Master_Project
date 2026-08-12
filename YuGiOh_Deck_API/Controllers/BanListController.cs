@@ -18,22 +18,37 @@ namespace YuGiOhDeckApi.Controllers
         [HttpGet("masterduel")]
         public async Task<IActionResult> GetMasterDuelBanList()
         {
-            var data = await _banListService.GetMasterDuelBanListAsync();
+            var restrictedCards = await _banListService.GetRestrictedMasterDuelCardsAsync();
 
-            if (data == null || data.Cards == null || data.Cards.Count == 0)
+            if (restrictedCards == null || restrictedCards.Count == 0)
             {
-                return StatusCode(503, new { message = "Master Duel ban list is not yet available in the database." });
+                return StatusCode(503, new { message = "Master Duel ban list is not yet populated." });
             }
 
-            return Ok(data);
+            return Ok(new
+            {
+                format = "Master Duel",
+                updatedAt = DateTime.UtcNow,
+                count = restrictedCards.Count,
+                cards = restrictedCards.Select(c => new
+                {
+                    name = c.Name,
+                    status = c.BanStatus
+                }).ToList()
+            });
         }
 
         [HttpPost("scrape-masterduel")]
         public async Task<IActionResult> ScrapeMasterDuelBanList()
         {
             var success = await _banListService.TriggerScrapeAndSaveAsync();
-            if (!success) return StatusCode(500, new { message = "Scrape failed." });
-            return Ok(new { message = "Successfully scraped and saved!" });
+
+            if (!success)
+            {
+                return StatusCode(500, new { message = "Scrape failed. Check Go Worker logs for Cloudflare blocks or timeouts." });
+            }
+
+            return Ok(new { message = "Master Duel ban list successfully scraped and saved to MongoDB." });
         }
     }
 }
