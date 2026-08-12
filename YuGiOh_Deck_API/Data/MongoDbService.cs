@@ -389,17 +389,38 @@ namespace YuGiOhDeckApi.Data
         {
             if (syncPayload.Cards == null || syncPayload.Cards.Count == 0) return false;
 
-            var models = syncPayload.Cards.Select(card =>
+            var uniqueCards = syncPayload.Cards
+                .Where(c => !string.IsNullOrWhiteSpace(c.Name))
+                .GroupBy(c => c.Name.Trim())
+                .Select(g => g.First())
+                .ToList();
+
+            // ⚡ FIX 1: Drop the collection instead of DeleteManyAsync
+            // Dropping is instantaneous and avoids the massive RU spike caused by bulk deletions.
+            await _mdCardsCollection.Database.DropCollectionAsync("MasterDuelCards");
+
+            foreach (var card in uniqueCards)
             {
                 card.UpdatedAt = DateTime.UtcNow;
-                return new ReplaceOneModel<MasterDuelCardDocument>(
-                    Builders<MasterDuelCardDocument>.Filter.Eq(c => c.GameId, card.GameId),
-                    card
-                )
-                { IsUpsert = true };
-            }).Cast<WriteModel<MasterDuelCardDocument>>().ToList();
+                card.Id = null; // Clean ID so MongoDB generates a fresh one
+            }
 
-            await _mdCardsCollection.BulkWriteAsync(models);
+            // ⚡ FIX 2: Chunk the massive list into smaller batches to respect Cosmos DB limits
+            int batchSize = 400; // A very safe threshold for Cosmos DB
+
+            for (int i = 0; i < uniqueCards.Count; i += batchSize)
+            {
+                var batch = uniqueCards.Skip(i).Take(batchSize).ToList();
+
+                if (batch.Any())
+                {
+                    await _mdCardsCollection.InsertManyAsync(batch);
+
+                    // ⚡ Pause for a fraction of a second to let your Azure RU quota refill
+                    await Task.Delay(250);
+                }
+            }
+
             return true;
         }
 
