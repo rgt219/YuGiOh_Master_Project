@@ -4,7 +4,14 @@ WORKDIR /app
 
 # Define ARGs for environment variables
 ARG NEXT_PUBLIC_API_URL
+ARG REACT_APP_IDENTITY_URL
+ARG REACT_APP_DECK_API_URL
+ARG NEXT_PUBLIC_CDN_URL
+
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV REACT_APP_IDENTITY_URL=$REACT_APP_IDENTITY_URL
+ENV REACT_APP_DECK_API_URL=$REACT_APP_DECK_API_URL
+ENV NEXT_PUBLIC_CDN_URL=$NEXT_PUBLIC_CDN_URL
 
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
@@ -17,9 +24,12 @@ WORKDIR /app
 
 # Set environment to production
 ENV NODE_ENV=production
-# Next.js defaults to port 3000, but we can override it to 80 to match your Azure ingress
 ENV PORT=80
 ENV HOSTNAME="0.0.0.0"
+
+# ⚡ CATCH THE VARIABLE IN STAGE 2 SO THE NODE SERVER HAS IT
+ARG NEXT_PUBLIC_CDN_URL
+ENV NEXT_PUBLIC_CDN_URL=$NEXT_PUBLIC_CDN_URL
 
 # Copy the standalone build from Stage 1
 COPY --from=build /app/public ./public
