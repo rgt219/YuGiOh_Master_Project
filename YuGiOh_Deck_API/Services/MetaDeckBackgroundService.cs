@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -46,19 +47,23 @@ namespace YuGiOhDeckApi.BackgroundServices
 
                         if (scrapedDecks != null && scrapedDecks.Count > 0)
                         {
-                            _logger.LogInformation("Scraped {Count} meta decks. Updating MongoDB collection...", scrapedDecks.Count);
-
-                            // 🚀 2. Clear out older documents to prevent duplicates across runs
+                            // ⚡ FIX: Save the scraped decks into MongoDB!
                             await mongoDbService.SaveMetaDecksBulkAsync(scrapedDecks);
+                            _logger.LogInformation("Successfully saved {Count} meta decks to MongoDB.", scrapedDecks.Count);
 
-                            await mongoDbService.RecomputeCardAnalyticsAsync();
-                            _logger.LogInformation("Successfully recomputed CardAnalytics collection.");
-
-                            _logger.LogInformation("Successfully updated MongoDB with fresh multi-format meta decks.");
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Scraper returned 0 decks. Skipping database update.");
+                            try
+                            {
+                                var cache = scope.ServiceProvider.GetRequiredService<IDistributedCache>();
+                                await cache.RemoveAsync("meta_decks_v2_all");
+                                await cache.RemoveAsync("meta_decks_v2_tcg");
+                                await cache.RemoveAsync("meta_decks_v2_ocg");
+                                await cache.RemoveAsync("meta_decks_v2_master duel");
+                                await cache.RemoveAsync("meta_decks_v2_genesys");
+                            }
+                            catch (Exception redisEx)
+                            {
+                                _logger.LogWarning("Redis cache clear skipped (Local Redis offline): {Message}", redisEx.Message);
+                            }
                         }
                     }
                 }

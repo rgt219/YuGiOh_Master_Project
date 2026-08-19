@@ -45,19 +45,16 @@ function CommentMediaPreview({ urls }) {
                         className="position-absolute bottom-0 end-0 bg-black bg-opacity-75 text-info px-1 font-monospace"
                         style={{ fontSize: '0.6rem', borderTopLeftRadius: '3px' }}
                     >
-                        🔍 ENLARGE
+                        ENLARGE
                     </span>
                 </div>
 
                 <div className="flex-grow-1 overflow-hidden">
                     <span className="text-info small terminal-font d-block fw-bold" style={{ fontSize: '0.75rem' }}>
-                        ATTACHMENT_LOG ({attachmentCount} File{attachmentCount > 1 ? 's' : ''})
-                    </span>
-                    <span className="text-white-50 small d-block text-truncate" style={{ maxWidth: '380px', fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                        {urls[0]}
+                        ATTACHMENT LOG ({attachmentCount} File{attachmentCount > 1 ? 's' : ''})
                     </span>
                     <span className="text-info-50 small terminal-font d-block mt-1" style={{ fontSize: '0.65rem', opacity: 0.8 }}>
-                        ⚡ CLICK_TO_VIEW_FULL_MEDIA
+                        Click to view file(s)
                     </span>
                 </div>
             </div>
@@ -122,7 +119,7 @@ export default function ThreadDetail() {
 
     const handleVote = async (voteType) => {
         if (!username) {
-            alert("⚠️ ACCESS DENIED: You must be logged in to vote on threads!");
+            alert("ACCESS DENIED: You must be logged in to vote on threads!");
             return;
         }
 
@@ -144,7 +141,7 @@ export default function ThreadDetail() {
 
     const handleOpenCommentModal = () => {
         if (!username) {
-            alert("⚠️ ACCESS DENIED: You must be logged in to post a comment!");
+            alert("ACCESS DENIED: You must be logged in to post a comment!");
             return;
         }
         setShowCommentModal(true);
@@ -154,7 +151,7 @@ export default function ThreadDetail() {
         e.preventDefault();
 
         if (!username) {
-            alert("⚠️ ACCESS DENIED: You must be logged in to post a comment!");
+            alert("ACCESS DENIED: You must be logged in to post a comment!");
             return;
         }
 
@@ -271,15 +268,6 @@ export default function ThreadDetail() {
                                 ▼ DOWNVOTE
                             </Button>
                         </div>
-
-                        <Button
-                            variant={username ? "outline-info" : "outline-warning"}
-                            size="sm"
-                            className="terminal-font fw-bold d-flex align-items-center gap-2 px-3 py-1 rounded-pill"
-                            onClick={handleOpenCommentModal}
-                        >
-                            {username ? `${thread.commentCount || 0} Comments` : `🔒 Login to Comment`}
-                        </Button>
                     </div>
                 </div>
 

@@ -179,7 +179,7 @@ export default function GeneralDiscussion() {
     const handleOpenCreateModal = () => {
         const user = getLoggedInUser();
         if (!user || !user.userName) {
-            alert("⚠️ ACCESS DENIED: You must be logged in to create a thread!");
+            alert("ACCESS DENIED: You must be logged in to create a thread!");
             return;
         }
         setShowModal(true);
@@ -201,7 +201,6 @@ export default function GeneralDiscussion() {
         <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px' }}>
             <div className="container" style={{ maxWidth: '1100px' }}>
                 
-                {/* FORUM HEADER PANEL */}
                 <div className="p-4 rounded-3 bg-dark border border-info border-opacity-25 shadow-lg mb-4 position-relative overflow-hidden">
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                         <div>
@@ -222,12 +221,11 @@ export default function GeneralDiscussion() {
                     </div>
                 </div>
 
-                {/* FILTER & SEARCH BAR */}
                 <div className="row g-3 mb-4 align-items-center">
                     <div className="col-md-6">
                         <Form.Control 
                             type="text"
-                            placeholder="🔍 Search threads by title or duelist..."
+                            placeholder="Search threads by title or duelist..."
                             className="md-input-field"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}

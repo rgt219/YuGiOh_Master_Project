@@ -68,7 +68,7 @@ export default function CardSearch() {
     const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
 
-    const [searchQuery, setSearchQuery] = useState("Dragon");
+    const [searchQuery, setSearchQuery] = useState("");
     const [selectedMainType, setSelectedMainType] = useState("ALL");
     const [selectedAttribute, setSelectedAttribute] = useState("ALL");
     const [selectedAbility, setSelectedAbility] = useState("ALL");
@@ -265,9 +265,10 @@ export default function CardSearch() {
     }, [filteredCards, currentPage]);
 
     return (
-        <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px', backgroundColor: '#0a0d14' }}>
+        <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px', backgroundColor: '#0a0d14', fontFamily: "'Cascadia Mono', monospace" }}>
             <style>{`
-                .terminal-font { font-family: 'Courier New', Courier, monospace; }
+                * { font-family: 'Cascadia Mono', monospace !important; }
+                .terminal-font { font-family: 'Cascadia Mono', monospace !important; }
                 .hud-label { letter-spacing: 1px; }
                 .attr-DARK { background-color: #0d6efd; color: #fff; }
                 .attr-LIGHT { background-color: #bfa136; color: #fff; }
@@ -564,7 +565,7 @@ export default function CardSearch() {
                                 setSelectedRarity("ALL");
                             }}
                         >
-                            RESET_ALL_FILTERS
+                            Reset Filters
                         </Button>
                     </div>
                 ) : (
@@ -656,7 +657,7 @@ export default function CardSearch() {
                     <Modal.Header closeButton closeVariant="white" className="border-secondary bg-black bg-opacity-60 py-2">
                         <Modal.Title className="text-info terminal-font fw-bold fs-6 d-flex align-items-center gap-2">
                             <span>CARD INSPECTOR</span>
-                            <span className="text-white-50">// #{inspectCard.id}</span>
+                            <span className="text-white-50">{inspectCard.id}</span>
                         </Modal.Title>
                     </Modal.Header>
 
@@ -664,7 +665,7 @@ export default function CardSearch() {
                         <Row className="g-3 align-items-stretch">
                             <Col md={5} className="d-flex flex-column justify-content-between">
                                 <div className="text-center">
-                                    <div className="vrains-card-art-container mx-auto mb-2">
+                                    <div className="mx-auto mb-2">
                                         <img 
                                             src={inspectCard.image} 
                                             alt={inspectCard.name} 

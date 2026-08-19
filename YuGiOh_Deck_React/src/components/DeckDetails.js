@@ -37,7 +37,7 @@ export default function DeckDetails() {
             {/* HUD HEADER */}
             <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-info border-opacity-50 pb-2">
                 <div>
-                    <span className="text-info small terminal-font d-block">// ARCHETYPE_DATABASE</span>
+                    <span className="text-info small terminal-font d-block">ARCHETYPE DATABASE</span>
                     <h1 className="display-5 text-uppercase fw-bold m-0" style={{fontFamily: "Cascadia Mono", color: "#fff", textShadow: "0 0 10px #00d4ff"}}>
                         {deck.title}
                     </h1>

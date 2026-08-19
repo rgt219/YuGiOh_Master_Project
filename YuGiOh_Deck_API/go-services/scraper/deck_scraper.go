@@ -1,334 +1,183 @@
 package scraper
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"path"
-	"regexp"
+	"net/url"
 	"strings"
 	"time"
 
 	"erregeteygo/worker/models"
-
-	"github.com/PuerkitoBio/goquery"
-)
-
-// Map format keys to YGOProDeck category routes
-var formatURLs = map[string]string{
-	"TCG":         "https://ygoprodeck.com/category/format/tournament%20meta%20decks",
-	"OCG":         "https://ygoprodeck.com/category/format/tournament%20meta%20decks%20ocg%20%28asian-english%29",
-	"MASTER DUEL": "https://ygoprodeck.com/category/format/master%20duel%20decks",
-	"GENESYS":     "https://ygoprodeck.com/category/format/tournament%20meta%20decks%20%28genesys%29",
-}
-
-var (
-	deckIDRegex   = regexp.MustCompile(`-(\d+)$`)
-	cardIDRegex   = regexp.MustCompile(`^\d{6,9}$`)
-	cleanWSRegex  = regexp.MustCompile(`\s+`)
-	pilotPrefix   = regexp.MustCompile(`(?i)^(piloted by|by|Player:|Pilot:)\s*`)
-	imageURLRegex = regexp.MustCompile(`(?:cards|cards_small)/(\d{6,9})\.jpg`)
 )
 
 func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
-	client := &http.Client{Timeout: 15 * time.Second}
+	// Simple HTTP client (no cookie jars or complex sessions needed anymore)
+	client := &http.Client{Timeout: 20 * time.Second}
 	var allMetaDecks []models.MetaDeck
+	maxPages := 10
 
-	pagesToScrape := 3
+	// All 4 formats explicitly routed through the high-speed JSON API
+	apiFormats := map[string]string{
+		"TCG":         "tournament meta decks",
+		"OCG":         "tournament meta decks ocg",
+		"MASTER DUEL": "master duel decks",
+		"GENESYS":     "tournament meta decks (genesys)",
+	}
 
-	for formatKey, categoryBaseURL := range formatURLs {
-		fmt.Printf("[Go Scraper] Starting format '%s'\n", formatKey)
+	for formatKey, formatParam := range apiFormats {
+		fmt.Printf("\n[Go API Scraper] Starting format '%s'\n", formatKey)
 
-		type deckLink struct {
-			Href string
-			Text string
-			ID   string
-		}
-		var distinctLinks []deckLink
+		seenIDs := make(map[string]bool)
+		pageDecksCollected := 0
 
-		seenHrefs := make(map[string]string)
+		for page := 1; page <= maxPages; page++ {
+			offset := (page - 1) * 21
+			encodedFormat := strings.ReplaceAll(url.QueryEscape(formatParam), "+", "%20")
+			apiURL := fmt.Sprintf("https://ygoprodeck.com/api/decks/getDecks.php?limit=21&offset=%d&format=%s&tournament", offset, encodedFormat)
 
-		for page := 1; page <= pagesToScrape; page++ {
-			categoryURL := categoryBaseURL
-			if page > 1 {
-				offset := (page - 1) * 20
-				if !strings.Contains(categoryBaseURL, "?") {
-					categoryURL = fmt.Sprintf("%s?offset=%d", categoryBaseURL, offset)
-				} else {
-					categoryURL = fmt.Sprintf("%s&offset=%d", categoryBaseURL, offset)
-				}
-			}
+			fmt.Printf("[Go API Scraper] Fetching page %d for '%s' from %s\n", page, formatKey, apiURL)
 
-			fmt.Printf("[Go Scraper] Pass 1: Fetching page %d for '%s' from %s\n", page, formatKey, categoryURL)
-
-			doc, err := fetchAndParseHTML(client, categoryURL)
+			req, err := http.NewRequest("GET", apiURL, nil)
 			if err != nil {
-				fmt.Printf("[Go Scraper Error] Failed to fetch %s (Page %d): %v\n", formatKey, page, err)
 				break
 			}
 
-			pageLinkCount := 0
-			var pageOrderedHrefs []string
+			// Standard headers to bypass basic server rejection
+			req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+			req.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
+			req.Header.Set("X-Requested-With", "XMLHttpRequest")
 
-			doc.Find("a[href*='/deck/']").Each(func(i int, s *goquery.Selection) {
-				href, exists := s.Attr("href")
-				text := strings.TrimSpace(s.Text())
+			resp, err := client.Do(req)
+			if err != nil || resp.StatusCode != http.StatusOK {
+				if resp != nil {
+					resp.Body.Close()
+				}
+				break
+			}
 
-				if exists && strings.Contains(href, "/deck/") {
-					currentText, seen := seenHrefs[href]
+			bodyBytes, err := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			if err != nil {
+				break
+			}
 
-					if !seen {
-						seenHrefs[href] = text
-						pageOrderedHrefs = append(pageOrderedHrefs, href)
-						pageLinkCount++
-					} else if currentText == "" && text != "" {
-						seenHrefs[href] = text
+			// Flexible JSON parsing
+			var rawItems []map[string]interface{}
+			err = json.Unmarshal(bodyBytes, &rawItems)
+
+			// If wrapped inside an object (e.g., {"data": [...]}), unwrap it
+			if err != nil {
+				var wrapper map[string]interface{}
+				if errObj := json.Unmarshal(bodyBytes, &wrapper); errObj == nil {
+					for _, key := range []string{"data", "decks", "results", "items"} {
+						if val, ok := wrapper[key]; ok {
+							if arr, isArr := val.([]interface{}); isArr {
+								for _, v := range arr {
+									if mapVal, isMap := v.(map[string]interface{}); isMap {
+										rawItems = append(rawItems, mapVal)
+									}
+								}
+								break
+							}
+						}
 					}
 				}
-			})
+			}
 
-			if pageLinkCount == 0 {
-				fmt.Printf("[Go Scraper] Page %d empty. Moving to next format.\n", page)
+			if len(rawItems) == 0 {
+				fmt.Printf("[Go API Scraper] Reached end of archive for '%s' at page %d.\n", formatKey, page)
 				break
 			}
 
-			for _, href := range pageOrderedHrefs {
-				text := seenHrefs[href]
+			pageDecksFound := 0
+			for _, item := range rawItems {
+				// 1. EXTRACT EXACT ID (deckNum)
+				deckNumVal, ok := item["deckNum"]
+				if !ok || deckNumVal == nil {
+					continue
+				}
+				idStr := fmt.Sprintf("%v", deckNumVal)
 
-				deckID := ""
-				matches := deckIDRegex.FindStringSubmatch(strings.Split(href, "?")[0])
-				if len(matches) > 1 {
-					deckID = matches[1]
-				} else {
-					deckID = fmt.Sprintf("fallback-%d", time.Now().UnixNano()) // Failsafe
+				if idStr == "" || idStr == "0" || seenIDs[idStr] {
+					continue
+				}
+				seenIDs[idStr] = true
+
+				// 2. EXTRACT DECK NAME (deck_name)
+				archetype := fmt.Sprintf("%v", item["deck_name"])
+				if strings.TrimSpace(archetype) == "" || archetype == "<nil>" {
+					archetype = fmt.Sprintf("%s Meta Deck", formatKey)
 				}
 
-				distinctLinks = append(distinctLinks, deckLink{
-					Href: href,
-					Text: text,
-					ID:   deckID,
-				})
+				// 3. EXTRACT PILOT (tournamentPlayerName fallback to username)
+				pilot := fmt.Sprintf("%v", item["tournamentPlayerName"])
+				if pilot == "" || pilot == "<nil>" {
+					pilot = fmt.Sprintf("%v", item["username"])
+				}
+				if pilot == "" || pilot == "<nil>" {
+					pilot = "Unknown Pilot"
+				}
+
+				// 4. EXTRACT PLACEMENT (tournamentPlacement)
+				placement := fmt.Sprintf("%v", item["tournamentPlacement"])
+				if placement == "" || placement == "<nil>" {
+					placement = "Tournament Meta Deck"
+				}
+
+				// 5. PARSE EMBEDDED CARD LISTS DIRECTLY FROM API JSON
+				parseDeckArray := func(key string) []string {
+					var cards []string
+					if val, exists := item[key]; exists && val != nil {
+						// Unmarshal the stringified JSON array (e.g., "[\"45536531\"]")
+						_ = json.Unmarshal([]byte(fmt.Sprintf("%v", val)), &cards)
+					}
+					return cards
+				}
+
+				mainDeck := parseDeckArray("main_deck")
+				extraDeck := parseDeckArray("extra_deck")
+				sideDeck := parseDeckArray("side_deck")
+
+				// Ensure newer decks get more recent timestamps to preserve frontend sorting
+				adjustedTime := time.Now().Add(-time.Duration(len(allMetaDecks)) * time.Second)
+
+				// 6. BUILD THE MODEL
+				metaDeck := models.MetaDeck{
+					ID:                       idStr,
+					Archetype:                archetype,
+					Format:                   formatKey,
+					Tier:                     "Tier 1",
+					RepresentationPercentage: 15.0,
+					Pilot:                    pilot,
+					Placement:                placement,
+					LastUpdated:              adjustedTime,
+					SampleDeck: models.DeckList{
+						Title:     archetype,
+						UserID:    "",
+						MainDeck:  mainDeck,
+						ExtraDeck: extraDeck,
+						SideDeck:  sideDeck,
+					},
+				}
+
+				allMetaDecks = append(allMetaDecks, metaDeck)
+				pageDecksFound++
+				pageDecksCollected++
 			}
 
-			time.Sleep(500 * time.Millisecond)
-		}
-
-		fmt.Printf("[Go Scraper] Found %d total distinct deck links for format '%s'. Starting Pass 2...\n", len(distinctLinks), formatKey)
-
-		baseScrapeTime := time.Now()
-
-		for i, link := range distinctLinks {
-			fullURL := link.Href
-			if !strings.HasPrefix(fullURL, "http") {
-				fullURL = "https://ygoprodeck.com" + link.Href
+			fmt.Printf("[Go API Scraper] Page %d for '%s' yielded %d new distinct decks.\n", page, formatKey, pageDecksFound)
+			if pageDecksFound == 0 {
+				break
 			}
 
-			mainDeck, extraDeck, sideDeck, pilot, placement := scrapeDeckDetails(client, fullURL)
-
-			archetype := link.Text
-			if strings.TrimSpace(archetype) == "" {
-				archetype = fmt.Sprintf("%s Meta Deck", formatKey)
-			}
-
-			adjustedTime := baseScrapeTime.Add(-time.Duration(i) * time.Second)
-
-			metaDeck := models.MetaDeck{
-				ID:                       link.ID,
-				Archetype:                archetype,
-				Format:                   formatKey,
-				Tier:                     "Tier 1",
-				RepresentationPercentage: 15.0,
-				Pilot:                    pilot,
-				Placement:                placement,
-				LastUpdated:              adjustedTime,
-				SampleDeck: models.DeckList{
-					Title:     archetype,
-					UserID:    "",
-					MainDeck:  mainDeck,
-					ExtraDeck: extraDeck,
-					SideDeck:  sideDeck,
-				},
-			}
-
-			allMetaDecks = append(allMetaDecks, metaDeck)
-			fmt.Printf("[Go Scraper] Parsed '%s' (%s) -> Pilot: %s, Placement: %s (Main: %d, Extra: %d, Side: %d)\n",
-				archetype, formatKey, pilot, placement, len(mainDeck), len(extraDeck), len(sideDeck))
-
+			// Polite delay between pages
 			time.Sleep(300 * time.Millisecond)
 		}
+
+		fmt.Printf("[Go API Scraper] Completed format '%s'. Total valid decks extracted: %d\n", formatKey, pageDecksCollected)
 	}
 
 	return allMetaDecks, nil
-}
-
-func scrapeDeckDetails(client *http.Client, deckURL string) ([]string, []string, []string, string, string) {
-	doc, err := fetchAndParseHTML(client, deckURL)
-	pilot := "Unknown Pilot"
-	placement := "Tournament Meta Deck"
-
-	if err == nil && doc != nil {
-		pilot = extractPilot(doc)
-		placement = extractPlacement(doc)
-	}
-
-	cleanURL := strings.Split(deckURL, "?")[0]
-	matches := deckIDRegex.FindStringSubmatch(cleanURL)
-	if len(matches) > 1 {
-		deckID := matches[1]
-		ydkURL := fmt.Sprintf("https://ygoprodeck.com/api/deck/downloadYDK.php?file=%s", deckID)
-
-		main, extra, side, ydkErr := fetchAndParseYDK(client, ydkURL)
-		if ydkErr == nil && len(main) > 0 {
-			return main, extra, side, pilot, placement
-		}
-	}
-
-	var mainDeck, extraDeck, sideDeck []string
-	if doc != nil {
-		mainNode := doc.Find(".main-deck, #main-deck, #deck-main, #main_deck, div[id*='main-deck']").First()
-		extraNode := doc.Find(".extra-deck, #extra-deck, #deck-extra, #extra_deck, div[id*='extra-deck']").First()
-		sideNode := doc.Find(".side-deck, #side-deck, #deck-side, #side_deck, div[id*='side-deck']").First()
-
-		mainDeck = extractCardIDsFromSelection(mainNode)
-		extraDeck = extractCardIDsFromSelection(extraNode)
-		sideDeck = extractCardIDsFromSelection(sideNode)
-	}
-
-	return mainDeck, extraDeck, sideDeck, pilot, placement
-}
-
-func fetchAndParseYDK(client *http.Client, ydkURL string) ([]string, []string, []string, error) {
-	req, err := http.NewRequest("GET", ydkURL, nil)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	setHeaders(req)
-
-	resp, err := client.Do(req)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, nil, nil, fmt.Errorf("ydk fetch failed with status %d", resp.StatusCode)
-	}
-	defer resp.Body.Close()
-
-	var main, extra, side []string
-	currentSection := "main"
-	cardIDPattern := regexp.MustCompile(`\d{6,9}`)
-
-	scanner := bufio.NewScanner(resp.Body)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		line = strings.TrimPrefix(line, "\ufeff")
-
-		if strings.HasPrefix(strings.ToLower(line), "#main") {
-			currentSection = "main"
-		} else if strings.HasPrefix(strings.ToLower(line), "#extra") {
-			currentSection = "extra"
-		} else if strings.HasPrefix(strings.ToLower(line), "!side") {
-			currentSection = "side"
-		} else if match := cardIDPattern.FindString(line); match != "" {
-			switch currentSection {
-			case "main":
-				main = append(main, match)
-			case "extra":
-				extra = append(extra, match)
-			case "side":
-				side = append(side, match)
-			}
-		}
-	}
-
-	if len(main) == 0 && len(extra) == 0 {
-		return nil, nil, nil, fmt.Errorf("no card IDs found in YDK content")
-	}
-
-	return main, extra, side, nil
-}
-
-func extractPilot(doc *goquery.Document) string {
-	node := doc.Find("a[href*='by-player']").First()
-	if node.Length() == 0 {
-		node = doc.Find("i.fa-user").Parent().First()
-	}
-
-	if node.Length() > 0 {
-		text := cleanWSRegex.ReplaceAllString(node.Text(), " ")
-		text = pilotPrefix.ReplaceAllString(text, "")
-		text = strings.TrimSpace(text)
-		if text != "" {
-			return text
-		}
-	}
-	return "Unknown Pilot"
-}
-
-func extractPlacement(doc *goquery.Document) string {
-	node := doc.Find("span.deck-metadata-child:has(i.fa-trophy), span.deck-metadata-child:contains('Reached'), a[href*='/tournament/']").First()
-	if node.Length() > 0 {
-		text := strings.TrimSpace(cleanWSRegex.ReplaceAllString(node.Text(), " "))
-		if text != "" && !strings.HasPrefix(strings.ToLower(text), "tournament meta") {
-			return text
-		}
-	}
-	return "Tournament Meta Deck"
-}
-
-func extractCardIDsFromSelection(s *goquery.Selection) []string {
-	var cardIDs []string
-	if s.Length() == 0 {
-		return cardIDs
-	}
-
-	s.Find("img, div[data-card-id], a[href*='/card/']").Each(func(i int, element *goquery.Selection) {
-		cardID, _ := element.Attr("data-card-id")
-
-		if cardID == "" {
-			src, _ := element.Attr("data-src")
-			if src == "" {
-				src, _ = element.Attr("data-original")
-			}
-			if src == "" {
-				src, _ = element.Attr("src")
-			}
-
-			matches := imageURLRegex.FindStringSubmatch(src)
-			if len(matches) > 1 {
-				cardID = matches[1]
-			} else if src != "" {
-				filename := path.Base(src)
-				cardID = strings.TrimSuffix(filename, path.Ext(filename))
-			}
-		}
-
-		if cardIDRegex.MatchString(cardID) {
-			cardIDs = append(cardIDs, cardID)
-		}
-	})
-
-	return cardIDs
-}
-
-func fetchAndParseHTML(client *http.Client, url string) (*goquery.Document, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	setHeaders(req)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad status code: %d", resp.StatusCode)
-	}
-
-	return goquery.NewDocumentFromReader(resp.Body)
-}
-
-func setHeaders(req *http.Request) {
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
 }

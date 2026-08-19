@@ -58,49 +58,85 @@ type MasterDuelDatabaseSyncResponse struct {
 }
 
 func FetchMasterDuelBanList() (*MasterDuelDatabaseSyncResponse, error) {
-	// Pulls EVERY card instead of filtering out unlimited ones
-	targetURL := "https://www.masterduelmeta.com/api/v1/cards?alternateArt[$ne]=true&limit=0"
-
-	req, err := http.NewRequest("GET", targetURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build request: %w", err)
-	}
-
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Referer", "https://www.masterduelmeta.com/")
+	var allCards []MDMCardEntity
+	skip := 0
+	limit := 3000
 
 	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("http execution failed: %w", err)
-	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("MasterDuelMeta API returned HTTP status %d", resp.StatusCode)
+	for {
+		targetURL := fmt.Sprintf("https://www.masterduelmeta.com/api/v1/cards?alternateArt[$ne]=true&limit=%d&skip=%d", limit, skip)
+
+		req, err := http.NewRequest("GET", targetURL, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build request: %w", err)
+		}
+
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("Referer", "https://www.masterduelmeta.com/")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			return nil, fmt.Errorf("http execution failed: %w", err)
+		}
+
+		// Check for explicit HTTP Error blocks
+		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
+			if len(allCards) > 0 {
+				fmt.Printf("Notice: API returned %d at skip %d. Saving %d cards!\n", resp.StatusCode, skip, len(allCards))
+				break
+			}
+			return nil, fmt.Errorf("MasterDuelMeta API returned HTTP status %d", resp.StatusCode)
+		}
+
+		var batch []MDMCardEntity
+		// ⚡ THE FIX: Catch Cloudflare's 200 OK HTML pages right here!
+		if err := json.NewDecoder(resp.Body).Decode(&batch); err != nil {
+			resp.Body.Close()
+			if len(allCards) > 0 {
+				fmt.Printf("Notice: JSON decode failed at skip %d (Likely Cloudflare HTML intercept). Safely saving %d cards!\n", skip, len(allCards))
+				break
+			}
+			return nil, fmt.Errorf("failed to decode JSON response: %w", err)
+		}
+		resp.Body.Close()
+
+		if len(batch) == 0 {
+			break
+		}
+
+		allCards = append(allCards, batch...)
+		fmt.Printf("Downloaded %d cards so far...\n", len(allCards))
+
+		if len(batch) < limit {
+			break
+		}
+
+		skip += limit
+		time.Sleep(4 * time.Second)
 	}
 
-	var rawCards []MDMCardEntity
-	if err := json.NewDecoder(resp.Body).Decode(&rawCards); err != nil {
-		return nil, fmt.Errorf("failed to decode JSON response: %w", err)
-	}
+	fmt.Printf("====================================================\n")
+	fmt.Printf("SUCCESS: Formatting and sending %d cards to C# API!\n", len(allCards))
+	fmt.Printf("====================================================\n")
 
 	now := time.Now()
-	for i := range rawCards {
-		rawCards[i].UpdatedAt = now
-		if rawCards[i].BanStatus == "" {
-			rawCards[i].BanStatus = "Unlimited"
+	for i := range allCards {
+		allCards[i].UpdatedAt = now
+		if allCards[i].BanStatus == "" {
+			allCards[i].BanStatus = "Unlimited"
 		} else {
-			rawCards[i].BanStatus = normalizeStatus(rawCards[i].BanStatus)
+			allCards[i].BanStatus = normalizeStatus(allCards[i].BanStatus)
 		}
 	}
 
 	return &MasterDuelDatabaseSyncResponse{
 		Format:    "Master Duel Complete Database",
 		UpdatedAt: now,
-		Count:     len(rawCards),
-		Cards:     rawCards,
+		Count:     len(allCards),
+		Cards:     allCards,
 	}, nil
 }
 

@@ -1,4 +1,4 @@
-'use client'; // 👈 Required for hooks, form state, and router navigation
+'use client'; 
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -11,17 +11,13 @@ export default function Login({ setUser }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [validated, setValidated] = useState(false);
-    
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-
-    // Forgot Password Modal States
     const [showForgotModal, setShowForgotModal] = useState(false);
     const [resetEmail, setResetEmail] = useState("");
     const [resetStatus, setResetStatus] = useState("");
     const [isResetSending, setIsResetSending] = useState(false);
-    
-    const router = useRouter(); // ⚡ Next.js App Router Navigation
+    const router = useRouter(); 
 
     useEffect(() => {
         const token = sessionStorage.getItem("token");
@@ -57,7 +53,6 @@ export default function Login({ setUser }) {
             if (response.ok) {
                 const data = await response.json();
                 
-                // ⚡ THE FIX: Safely extract and validate the token 
                 const token = data.token || data.accessToken || data.jwt;
                 
                 if (!token) {
@@ -119,7 +114,7 @@ export default function Login({ setUser }) {
                 </div>
 
                 <Form noValidate validated={validated} onSubmit={handleSubmit} className="login-form">
-                    <h2 className="login-branding">ErreGeTe <span className="text-info">YGO</span></h2>
+                    <h2 className="login-branding">ErreGeTe YGO</h2>
 
                     {errorMessage && (
                         <div className="alert alert-danger py-2 text-center terminal-font small" role="alert">
@@ -128,7 +123,7 @@ export default function Login({ setUser }) {
                     )}
 
                     <Form.Group className="input-hud-group mb-4" controlId="validationEmail">
-                        <Form.Label className="hud-label">EMAIL IDENTIFIER</Form.Label>
+                        <Form.Label className="hud-label">EMAIL</Form.Label>
                         <Form.Control 
                             required
                             type="email" 
@@ -172,7 +167,6 @@ export default function Login({ setUser }) {
                 </Form>
             </div>
 
-            {/* ⚡ Forgot Password Modal */}
             <Modal 
                 show={showForgotModal} 
                 onHide={() => setShowForgotModal(false)} 

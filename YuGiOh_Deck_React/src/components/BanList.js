@@ -61,13 +61,12 @@ const renderBanBadge = (status) => {
 export default function BanList() {
   const [cards, setCards] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("ALL"); // ALL | Forbidden | Limited | Semi-Limited
+  const [selectedStatus, setSelectedStatus] = useState("ALL"); 
   const [selectedCard, setSelectedCard] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [format, setFormat] = useState("tcg"); // 'tcg', 'ocg', or 'masterduel'
+  const [format, setFormat] = useState("tcg"); 
 
-  // Fetch Ban List data on mount or format change
   useEffect(() => {
     setIsLoading(true);
     setError(null);
@@ -240,7 +239,8 @@ export default function BanList() {
   return (
     <div style={styles.container}>
       <style>{`
-        .terminal-font { font-family: 'Courier New', Courier, monospace; }
+        * { font-family: 'Cascadia Mono', monospace !important; }
+        .terminal-font { font-family: 'Cascadia Mono', monospace !important; }
         .attr-DARK { background-color: #0d6efd; color: #fff; }
         .attr-LIGHT { background-color: #bfa136; color: #fff; }
         .attr-EARTH { background-color: #7a5127; color: #fff; }
@@ -307,7 +307,6 @@ export default function BanList() {
 
         <div style={styles.filterBar}>
           <div style={styles.searchWrapper}>
-            <span style={styles.searchIcon}>🔍</span>
             <input
               type="text"
               value={searchQuery}
@@ -405,7 +404,7 @@ export default function BanList() {
               <Modal.Header closeButton closeVariant="white" className="border-secondary bg-black bg-opacity-60 py-2">
                 <Modal.Title className="text-info terminal-font fw-bold fs-6 d-flex align-items-center gap-2">
                   <span>CARD INSPECTOR</span>
-                  <span className="text-white-50">// #{selectedCard.id}</span>
+                  <span className="text-white-50">{selectedCard.id}</span>
                 </Modal.Title>
               </Modal.Header>
 
@@ -589,7 +588,7 @@ const styles = {
     backgroundColor: '#0a0d14',
     color: '#ffffff',
     minHeight: '100vh',
-    fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    fontFamily: "'Cascadia Mono', monospace",
     padding: '100px 20px 40px 20px',
   },
   header: {

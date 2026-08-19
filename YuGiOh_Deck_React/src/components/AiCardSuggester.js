@@ -357,7 +357,7 @@ Output JSON ONLY:
 
                 <div className="mb-3 p-3 bg-black bg-opacity-60 rounded border border-info border-opacity-30">
                     <Form.Label className="terminal-font text-info small d-block mb-2">
-                        FILTER BY ACTIVE FORMAT
+                        Filter By Active Format
                     </Form.Label>
                     <div className="d-flex flex-wrap gap-4">
                         {[
@@ -382,7 +382,7 @@ Output JSON ONLY:
                 {activeTab === 'suggester' && (
                     <>
                         <div className="mb-3">
-                            <Form.Label className="terminal-font text-info small d-block">QUICK_PRESETS</Form.Label>
+                            <Form.Label className="terminal-font text-info small d-block">Presets</Form.Label>
                             <div className="d-flex flex-wrap gap-2">
                                 {quickChips.map((chip, idx) => (
                                     <Button
@@ -405,7 +405,7 @@ Output JSON ONLY:
 
                         <Form onSubmit={(e) => { e.preventDefault(); handleAskAi(); }} className="mb-3">
                             <Form.Group className="mb-3">
-                                <Form.Label className="terminal-font text-info small">CUSTOM_PROMPT_INPUT</Form.Label>
+                                <Form.Label className="terminal-font text-info small">Custom Prompt Input</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={2}
@@ -424,7 +424,7 @@ Output JSON ONLY:
                                     onClick={() => handleAskAi(null, true)}
                                     disabled={loading || mainDeck.length >= 40}
                                 >
-                                    AUTO-BUILD DECK ({Math.max(0, 40 - mainDeck.length)} SLOTS)
+                                    Auto Build Deck ({Math.max(0, 40 - mainDeck.length)} Slots)
                                 </Button>
 
                                 <Button type="submit" variant="info" className="terminal-font fw-bold text-dark" disabled={loading || !promptText.trim()}>
@@ -510,7 +510,7 @@ Output JSON ONLY:
 
                         <div className="d-flex justify-content-end mt-3">
                             <Button type="submit" variant="warning" className="terminal-font fw-bold text-dark px-4" disabled={loading || !autoBuildPrompt.trim()}>
-                                GENERATE FULL DECK ⚡
+                                Generate Deck
                             </Button>
                         </div>
                     </Form>
@@ -520,7 +520,7 @@ Output JSON ONLY:
                     <div>
                         <div className="d-flex justify-content-center mb-4">
                             <Button variant="info" className="terminal-font text-dark fw-bold px-4" onClick={handleAnalyzeDeck} disabled={loading}>
-                                {loading ? <Spinner size="sm" animation="border" /> : "RUN_DECK_AUDIT 📊"}
+                                {loading ? <Spinner size="sm" animation="border" /> : "Run Deck Audit"}
                             </Button>
                         </div>
 

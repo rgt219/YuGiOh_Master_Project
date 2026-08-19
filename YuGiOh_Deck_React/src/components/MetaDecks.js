@@ -45,8 +45,14 @@ export default function MetaDecks({ mdSound }) {
       });
   }, [activeFormat]);
 
-  const totalPages = Math.ceil(metaDecks.length / DECKS_PER_PAGE) || 1;
-  const paginatedDecks = metaDecks.slice(
+  const sortedMetaDecks = [...metaDecks].sort((a, b) => {
+    const dateA = new Date(a.lastUpdated || a.LastUpdated || 0);
+    const dateB = new Date(b.lastUpdated || b.LastUpdated || 0);
+    return dateB - dateA; // Descending order (newest first)
+  });
+
+  const totalPages = Math.ceil(sortedMetaDecks.length / DECKS_PER_PAGE) || 1;
+  const paginatedDecks = sortedMetaDecks.slice(
     (currentPage - 1) * DECKS_PER_PAGE, 
     currentPage * DECKS_PER_PAGE
   );
@@ -129,13 +135,13 @@ export default function MetaDecks({ mdSound }) {
             >
               <Card.Body>
                 <h4 className="text-danger terminal-font fw-bold mb-3" style={{ letterSpacing: '2px' }}>
-                  ⚠️ CONNECTION FAILURE
+                  CONNECTION FAILURE
                 </h4>
                 <p className="text-white-50 mb-3">{error}</p>
                 <Button 
                   variant="outline-danger" 
                   className="terminal-font fw-bold"
-                  onClick={() => setActiveFormat(activeFormat)}
+                  onClick={() => setActiveFormat((prevFormat => prevFormat))}
                 >
                   RETRY CONNECTION
                 </Button>
