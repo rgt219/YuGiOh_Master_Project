@@ -42,6 +42,11 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] UserRegistration user)
     {
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            return BadRequest("Email cannot be null or empty.");
+        }
+
         var registeredUser = await _userService.GetByEmailAsync(user.Email);
 
         if (registeredUser == null)
@@ -56,7 +61,6 @@ public class UsersController : ControllerBase
             return Unauthorized(new { message = "INVALID_ACCESS_CODE" });
         }
 
-        // FIX: Moved variable inside the method where 'registeredUser' exists
         var token = GenerateJwtToken(registeredUser);
 
         return Ok(new
@@ -66,15 +70,13 @@ public class UsersController : ControllerBase
             email = registeredUser.Email,
             userName = registeredUser.UserName,
             id = registeredUser.Id,
-            token = token // FIX: Use the variable we just generated
+            token
         });
     }
 
-    // Helper method remains at the bottom of the class
     private string GenerateJwtToken(UserRegistration user)
     {
-        // FIX: _config is now available via the constructor
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[] {
@@ -82,6 +84,7 @@ public class UsersController : ControllerBase
             new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
             new Claim("userId", user.Id.ToString() ?? ""),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(ClaimTypes.Name, user.UserName ?? "")
         };
 
         var token = new JwtSecurityToken(
@@ -94,7 +97,6 @@ public class UsersController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    // DTO Payloads
     public record ForgotPasswordRequest(string Email);
     public record ResetPasswordRequest(string Email, string Token, string NewPassword);
 
@@ -102,18 +104,22 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, [FromServices] IEmailService emailService)
     {
         if (string.IsNullOrEmpty(request.Email))
-            return BadRequest(new { message = "INVALID_EMAIL_IDENTIFIER" });
+            return BadRequest(new { message = "Invalid Email" });
 
         var user = await _userService.GetByEmailAsync(request.Email);
 
-        // Safety check: Always return OK to prevent user email fishing/enumeration
         if (user == null)
             return Ok(new { message = "DISPATCH_COMMAND_SENT" });
 
-        // Generate secure 32-byte cryptographic token
+        if (string.IsNullOrWhiteSpace(user.Email))
+        {
+            // Handle the error: return an error response, throw, or abort the process
+            return BadRequest("Cannot send password reset: User email is missing.");
+        }
+
         var token = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
         user.ResetToken = token;
-        user.ResetTokenExpires = DateTime.UtcNow.AddMinutes(15); // Expiration set to 15 mins
+        user.ResetTokenExpires = DateTime.UtcNow.AddMinutes(15);
 
         await _userService.UpdateAsync(user);
 
@@ -123,7 +129,7 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "EMAIL_UPLINK_FAILED", details = ex.Message });
+            return StatusCode(500, new { message = "Email uplink failed", details = ex.Message });
         }
 
         return Ok(new { message = "DISPATCH_COMMAND_SENT" });
