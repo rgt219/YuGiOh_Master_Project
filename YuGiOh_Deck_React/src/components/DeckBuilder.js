@@ -32,7 +32,7 @@ const getAttributeColor = (attribute) => {
   }
 };
 
-export default function DeckBuilder({ user }) {
+export default function DeckBuilder() {
     const mainDeck = useSelector((state) => state.deck.mainDeck || []);
     const extraDeck = useSelector((state) => state.deck.extraDeck || []);
     const deckName = useSelector((state) => state.deck.deckName || '');
@@ -47,6 +47,35 @@ export default function DeckBuilder({ user }) {
     const [pinnedCard, setPinnedCard] = useState(null);
 
     const fileInputRef = useRef(null);
+
+    const [user, setUser] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const stored = sessionStorage.getItem("user");
+            return stored ? JSON.parse(stored) : null;
+        }
+        return null;
+    });
+
+    const [token, setToken] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return sessionStorage.getItem("token") || null;
+        }
+        return null;
+    });
+
+    useEffect(() => {
+        const storedUser = sessionStorage.getItem("user");
+        const storedToken = sessionStorage.getItem("token");
+
+        if (storedUser && storedToken && !user) {
+            try {
+                setUser(JSON.parse(storedUser));
+                setToken(storedToken);
+            } catch (err) {
+                console.error("Failed to parse session storage user:", err);
+            }
+        }
+    }, [user]);
 
     // ⌨️ ESC Key Shortcut to unlock card inspector view
     useEffect(() => {
@@ -262,19 +291,29 @@ export default function DeckBuilder({ user }) {
         const payload = {
             id: String(Math.floor(Math.random() * 1000000) + 1),
             title: deckName || "NEW_DECKLIST",
-            userId: String(user.id),
-            mainDeck: mainDeck.map(card => String(card.id || card.Id)), 
+            userId: String(user.id), // ⚡ Back to string since C# expects System.String
+            userName: user.userName || "Duelist",
+            mainDeck: mainDeck.map(card => String(card.id || card.Id)), // ⚡ Maps your main deck cards into the required newDeck field
             extraDeck: extraDeck.map(card => String(card.id || card.Id)),
             sideDeck: []
         };
 
+        console.log("Sending Payload:", payload); // ⚡ Check your console to verify fields look right before sending
+
         try {
             const response = await fetch("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload),
             });
-            if (response.ok) setShowSaveModal(true);
+            if (response.ok) {
+                setShowSaveModal(true);
+            } else {
+                const errorText = await response.text();
+                console.error("SERVER_400_ERROR:", errorText);
+            }
         } catch (err) {
             console.error("SAVE_ERROR:", err);
         }
@@ -291,7 +330,12 @@ export default function DeckBuilder({ user }) {
         ((activeCard.id || activeCard.Id) ? `https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images/${activeCard.id || activeCard.Id}.jpg` : 'https://images.ygoprodeck.com/images/cards/back_high.jpg');
 
     return (
-        <div className="md-theme-bg min-vh-100 py-5 mt-5">
+        <div className="md-theme-bg min-vh-100 py-5 mt-5" style={{ fontFamily: "'Cascadia Mono', monospace" }}>
+            <style>{`
+                * { font-family: 'Cascadia Mono', monospace !important; }
+                .terminal-font { font-family: 'Cascadia Mono', monospace !important; }
+            `}</style>
+            
             <input 
                 type="file" 
                 accept=".ydk" 
@@ -303,98 +347,114 @@ export default function DeckBuilder({ user }) {
             {/* 🚀 CONSTRAINED CONTAINER: Prevents stretching on Ultrawide & 4K displays */}
             <Container className="px-3 mx-auto" style={{ maxWidth: '1400px' }}>
                 {/* --- 1. TOP HEADER & CONTROL TOOLBAR --- */}
-                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
-                    <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2">
-                        <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
-                            
-                            {/* Title & Deck Name Input */}
-                            <div className="d-flex align-items-center gap-3 flex-grow-1">
-                                <h4 className="m-0 text-info terminal-font text-nowrap">DECK BUILDER</h4>
-                                <Form.Control 
-                                    className="bg-black text-info border-info terminal-font fw-bold fs-5 shadow-none flex-grow-1"
-                                    placeholder={isImporting ? "SYNCHRONIZING..." : "ENTER DECK NAME..."}
-                                    value={deckName} 
-                                    onChange={(e) => dispatch(updateDeckName(e.target.value))} 
-                                    disabled={isImporting}
-                                    style={{ maxWidth: '400px', letterSpacing: '1px' }}
-                                />
-                            </div>
+               <div 
+    className="mb-4 text-white"
+    style={{
+        backgroundColor: '#0a0d14',
+        border: '1px solid rgba(0, 210, 255, 0.3)',
+        borderRadius: '6px',
+        width: '100%',
+        boxShadow: '0 0 20px rgba(0, 210, 255, 0.05)'
+    }}
+>
 
-                            {/* Toolbar Buttons */}
-                            <div className="d-flex align-items-center gap-2 flex-wrap">
-                                <Button 
-                                    variant="warning" 
-                                    className="terminal-font text-dark fw-bold text-nowrap"
-                                    onClick={() => setShowAiModal(true)}
-                                >
-                                    AI HELPER
-                                </Button>
+    {/* Content Area */}
+    <div className="p-4">
+        <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+            
+            {/* Title & Deck Name Input */}
+            <div className="d-flex align-items-center gap-3 flex-grow-1">
+                <h4 className="m-0 text-info terminal-font text-nowrap fw-bold">DECK BUILDER</h4>
+                <Form.Control 
+                    className="terminal-font fw-bold fs-5 shadow-none flex-grow-1"
+                    placeholder={isImporting ? "SYNCHRONIZING..." : "ENTER DECK NAME..."}
+                    value={deckName} 
+                    onChange={(e) => dispatch(updateDeckName(e.target.value))} 
+                    disabled={isImporting}
+                    style={{ 
+                        maxWidth: '400px', 
+                        letterSpacing: '1px', 
+                        backgroundColor: '#121824',
+                        border: '1px solid rgba(0, 210, 255, 0.3)',
+                        color: '#ffffff'
+                    }}
+                />
+            </div>
 
-                                <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
+            {/* Toolbar Buttons */}
+            <div className="d-flex align-items-center gap-2 flex-wrap">
+                <Button 
+                    variant="warning" 
+                    className="terminal-font text-dark fw-bold text-nowrap"
+                    onClick={() => setShowAiModal(true)}
+                >
+                    AI HELPER
+                </Button>
 
-                                {/* File Operations */}
-                                <Button 
-                                    variant="outline-success"
-                                    disabled={isImporting} 
-                                    className="terminal-font fw-bold text-nowrap"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    {isImporting ? <Spinner size="sm" animation="border" /> : "IMPORT YDK"}
-                                </Button>
+                <div className="vr opacity-25 d-none d-sm-block mx-1" style={{ height: '24px', backgroundColor: '#00d2ff' }}></div>
 
-                                <Button 
-                                    variant="outline-success" 
-                                    className="terminal-font fw-bold text-nowrap"
-                                    onClick={handleExportYDK}
-                                >
-                                    EXPORT YDK
-                                </Button>
+                {/* File Operations */}
+                <Button 
+                    variant="outline-info"
+                    disabled={isImporting} 
+                    className="terminal-font fw-bold text-nowrap"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    {isImporting ? <Spinner size="sm" animation="border" /> : "IMPORT YDK"}
+                </Button>
 
-                                <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
+                <Button 
+                    variant="outline-info" 
+                    className="terminal-font fw-bold text-nowrap"
+                    onClick={handleExportYDK}
+                >
+                    EXPORT YDK
+                </Button>
 
-                                {/* Clear Button */}
-                                <Button 
-                                    variant="outline-danger" 
-                                    className="terminal-font fw-bold text-nowrap px-3"
-                                    onClick={handleClearDeck}
-                                >
-                                    CLEAR
-                                </Button>
+                <div className="vr opacity-25 d-none d-sm-block mx-1" style={{ height: '24px', backgroundColor: '#00d2ff' }}></div>
 
-                                <div className="vr bg-info opacity-25 d-none d-sm-block mx-1" style={{ height: '24px' }}></div>
+                {/* Clear Button */}
+                <Button 
+                    variant="outline-danger" 
+                    className="terminal-font fw-bold text-nowrap px-3"
+                    onClick={handleClearDeck}
+                >
+                    CLEAR
+                </Button>
 
-                                {/* AUTH PROTECTED SAVE DECK BUTTON */}
-                                {!user ? (
-                                    <OverlayTrigger
-                                        placement="top"
-                                        overlay={<Tooltip id="archive-disabled-tooltip">Must be logged in to save</Tooltip>}
-                                    >
-                                        <span className="d-inline-block">
-                                            <Button 
-                                                variant="success" 
-                                                className="text-nowrap fw-bold terminal-font" 
-                                                disabled 
-                                                style={{ pointerEvents: 'none' }}
-                                            >
-                                                SAVE DECK
-                                            </Button>
-                                        </span>
-                                    </OverlayTrigger>
-                                ) : (
-                                    <Button 
-                                        variant="success"
-                                        className="text-nowrap fw-bold terminal-font" 
-                                        onClick={handleSave} 
-                                        disabled={isImporting}
-                                    >
-                                        SAVE DECK
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-                    </Card.Header>
-                </Card>
+                <div className="vr opacity-25 d-none d-sm-block mx-1" style={{ height: '24px', backgroundColor: '#00d2ff' }}></div>
 
+                {/* SAVE DECK BUTTON */}
+                {!user ? (
+                    <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip id="archive-disabled-tooltip">Must be logged in to save</Tooltip>}
+                    >
+                        <span className="d-inline-block">
+                            <Button 
+                                variant="outline-info" 
+                                className="text-nowrap fw-bold terminal-font" 
+                                disabled 
+                                style={{ pointerEvents: 'none' }}
+                            >
+                                SAVE DECK
+                            </Button>
+                        </span>
+                    </OverlayTrigger>
+                ) : (
+                    <Button 
+                        variant="outline-info"
+                        className="text-nowrap fw-bold terminal-font" 
+                        onClick={handleSave} 
+                        disabled={isImporting}
+                    >
+                        SAVE DECK
+                    </Button>
+                )}
+            </div>
+        </div>
+    </div>
+</div>
                 {/* --- 2. STICKY TOP CARD INSPECTOR --- */}
                 <div 
                     style={{ 
@@ -405,7 +465,13 @@ export default function DeckBuilder({ user }) {
                     }}
                     className="mb-4"
                 >
-                    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className={`shadow-lg p-3 md-panel ${pinnedCard ? 'border-warning' : 'border-info'}`}>
+                    <Card style={{ 
+                        backgroundColor: 'rgba(10, 13, 20, 0.4)', 
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(0, 210, 255, 0.3)',
+                        boxShadow: '0 0 15px rgba(0, 210, 255, 0.03)',
+                        borderRadius: '6px'
+                    }}  text="white" className={`shadow-lg p-3 md-panel ${pinnedCard ? 'border-warning' : 'border-info'}`}>
                         <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2 mb-3 d-flex justify-content-between align-items-center">
                             <h6 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
                                 CARD INSPECTOR
@@ -419,7 +485,7 @@ export default function DeckBuilder({ user }) {
                                     onClick={() => setPinnedCard(null)}
                                     title="Click or press ESC to unlock hover inspector"
                                 >
-                                    📌 CARD LOCKED (CLICK OR ESC TO UNLOCK)
+                                    CARD LOCKED (CLICK OR ESC TO UNLOCK)
                                 </Badge>
                             ) : (
                                 <Button
@@ -510,9 +576,7 @@ export default function DeckBuilder({ user }) {
                     </Card>
                 </div>
 
-                {/* --- 3. MAIN WORKSPACE --- */}
                 <Row className="g-4">
-                    {/* LEFT COLUMN: CANVAS (CustomDeck) */}
                     <Col lg={7}>
                         <CustomDeck 
                             mainDeck={mainDeck} 
@@ -525,7 +589,6 @@ export default function DeckBuilder({ user }) {
                         />
                     </Col>
 
-                    {/* RIGHT COLUMN: SEARCH POOL (CardApi) */}
                     <Col lg={5}>
                         <CardApi 
                             onAddCard={handleAddCard} 
@@ -540,7 +603,6 @@ export default function DeckBuilder({ user }) {
                 </Row>
             </Container>
 
-            {/* AI CARD SUGGESTER MODAL */}
             <AiCardSuggester 
                 show={showAiModal} 
                 onHide={() => setShowAiModal(false)} 
@@ -553,7 +615,6 @@ export default function DeckBuilder({ user }) {
                 }}
             />
 
-            {/* SAVE SUCCESS NOTIFICATION MODAL */}
             <Modal show={showSaveModal} onHide={() => setShowSaveModal(false)} centered contentClassName="md-modal">
                 <Modal.Header closeButton className="border-info bg-dark">
                     <Modal.Title className="text-info terminal-font">SYSTEM_NOTIFICATION</Modal.Title>
