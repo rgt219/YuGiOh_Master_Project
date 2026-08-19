@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Card from 'react-bootstrap/Card';
-import Badge from 'react-bootstrap/Badge';
 import Link from 'next/link';
 import DecksGrid from "./DecksGrid";
 import TrendingCards from "./TrendingCards";
@@ -10,7 +9,9 @@ import Footer from "./Footer";
 import LiveTicker from "./LiveTicker";
 import '../mdstyles.css';
 
-// 🚀 Dedicated Video Nav Card with Instant Hover & Fast Page Load
+const CDN_BASE_URL = process.env.NEXT_PUBLIC_CDN_URL;
+
+// ⚡ Dedicated Video Nav Card with Perfect Square (1:1) Ratio and "Cover"
 function NavVideoCard({ link }) {
     const videoRef = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
@@ -18,19 +19,16 @@ function NavVideoCard({ link }) {
     const handleMouseEnter = () => {
         setIsHovered(true);
         if (videoRef.current) {
-            videoRef.current.currentTime = 0; // Rewind video to start
+            videoRef.current.currentTime = 0; 
             const playPromise = videoRef.current.play();
-            
             if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                    // Ignore fast hover interruptions
-                });
+                playPromise.catch(() => {});
             }
         }
     };
 
     const handleMouseLeave = () => {
-        setIsHovered(false); // Hides video layer, revealing thumbnail underneath
+        setIsHovered(false); 
         if (videoRef.current) {
             videoRef.current.pause();
             videoRef.current.currentTime = 0;
@@ -40,30 +38,14 @@ function NavVideoCard({ link }) {
     return (
         <Card 
             as={Link} 
-            href={link.path} // ⚡ Updated from 'to' to 'href' for Next.js Link
+            href={link.path} 
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            className="md-nav-card flex-grow-1 flex-sm-grow-0 overflow-hidden"
-            style={{ 
-                width: '100%', 
-                maxWidth: '16rem', 
-                textDecoration: 'none', 
-                cursor: 'pointer' 
-            }}
+            className="md-nav-card flex-grow-1 flex-sm-grow-0 overflow-hidden border-0 shadow-lg"
+            style={{ width: '100%', maxWidth: '300px', textDecoration: 'none', cursor: 'pointer', backgroundColor: '#0a0d14' }}
         >
-            <div className="md-card-img-container" style={{ position: 'relative', width: '100%', height: '200px' }}>
-                {/* LAYER 1: Always-visible Static Artwork */}
-                <Card.Img 
-                    src={link.img} 
-                    style={{ 
-                        width: '100%', 
-                        height: "200px", 
-                        objectFit: "cover", 
-                        opacity: 0.8 
-                    }} 
-                />
-
-                {/* LAYER 2: Overlay Video (Instant Hover Playback via preload="metadata") */}
+            <div className="md-card-img-container" style={{ position: 'relative', width: '100%', aspectRatio: '1/1', backgroundColor: '#0a0d14' }}>
+                <Card.Img src={link.img} style={{ width: '100%', height: "100%", objectFit: "cover", opacity: 0.8 }} />
                 {link.video && (
                     <video
                         ref={videoRef}
@@ -73,22 +55,14 @@ function NavVideoCard({ link }) {
                         playsInline
                         preload="metadata"
                         style={{ 
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%', 
-                            height: '100%', 
-                            objectFit: 'cover',
-                            opacity: isHovered ? 1 : 0, // Cross-fades between video and image
-                            transition: 'opacity 0.25s ease-in-out',
-                            pointerEvents: 'none'
+                            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
+                            objectFit: 'cover', opacity: isHovered ? 1 : 0, transition: 'opacity 0.25s ease-in-out', pointerEvents: 'none'
                         }}
                     />
                 )}
             </div>
-
             <Card.Body className="p-0">
-                <div className="md-card-overlay-text text-center py-2 text-white fw-bold">
+                <div className="md-card-overlay-text text-center py-2 text-info terminal-font fw-bold border-top border-info border-opacity-50" style={{ backgroundColor: 'rgba(10, 13, 20, 0.9)' }}>
                     {link.label}
                 </div>
             </Card.Body>
@@ -96,114 +70,39 @@ function NavVideoCard({ link }) {
     );
 }
 
-// 👾 Full-Stack Tech Stack Slides mapped to Code Talker monsters with Unique VRAINS Colors
+// ⚡ Full-Stack Tech Stack Slides
 const techStackSlides = [
-    {
-        tech: "React 18 & Redux Toolkit",
-        badge: "FRONTEND",
-        badgeBg: "info",
-        cardName: "Decode Talker",
-        cardId: "1861629",
-        shortName: "Decode",
-        themeColor: "#00f2ff", // Neon Cyan
-        bgGradient: "radial-gradient(circle at 80% 20%, rgba(0, 242, 255, 0.25) 0%, rgba(8, 12, 22, 0.96) 75%)",
-        desc: "Architected with modular functional React components, custom hooks, and centralized Redux Toolkit state management for instant deck building and real-time state synchronization."
-    },
-    {
-        tech: "C# .NET 9 Web API",
-        badge: "BACKEND",
-        badgeBg: "primary",
-        cardName: "Encode Talker",
-        cardId: "6622715",
-        shortName: "Encode",
-        themeColor: "#3b82f6", // Royal Blue
-        bgGradient: "radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.25) 0%, rgba(8, 12, 22, 0.96) 75%)",
-        desc: "Asynchronous ASP.NET Core RESTful controllers handling CORS policies, business logic validation, MongoDB BSON mappings, and high-speed JSON payload serialization."
-    },
-    {
-        tech: "Apache Kafka (Azure Event Hubs)",
-        badge: "STREAMING",
-        badgeBg: "warning",
-        cardName: "Transcode Talker",
-        cardId: "46947713",
-        shortName: "Transcode",
-        themeColor: "#eab308", // Cyber Amber/Gold
-        bgGradient: "radial-gradient(circle at 80% 20%, rgba(234, 179, 8, 0.25) 0%, rgba(8, 12, 22, 0.96) 75%)",
-        desc: "High-throughput event-driven topic streaming using Azure Event Hubs Kafka API to decouple data ingestion from core domain services during peak community activity."
-    },
-    {
-        tech: "ASP.NET Core SignalR",
-        badge: "REALTIME",
-        badgeBg: "danger",
-        cardName: "Decode Talker Heatsoul",
-        cardId: "61245672",
-        shortName: "Heatsoul",
-        themeColor: "#ef4444", // Crimson Pulse Red
-        bgGradient: "radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.25) 0%, rgba(8, 12, 22, 0.96) 75%)",
-        desc: "Low-latency WebSocket hubs broadcasting live community deck creations, duelist status feeds, and interactive notifications instantly across active connected clients."
-    },
-    {
-        tech: "MongoDB & Azure Cosmos DB",
-        badge: "DATABASE",
-        badgeBg: "success",
-        cardName: "Excode Talker",
-        cardId: "40669071",
-        shortName: "Excode",
-        themeColor: "#10b981", // Emerald Green
-        bgGradient: "radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.25) 0%, rgba(8, 12, 22, 0.96) 75%)",
-        desc: "Cloud document database architecture with Cosmos DB vCore clusters persisting user profiles, published decklists, and aggregated meta card metrics."
-    },
-    {
-        tech: "Docker & Azure Container Apps",
-        badge: "MICROSERVICES",
-        badgeBg: "info",
-        cardName: "Allied Code Talker @Ignister",
-        cardId: "39138610",
-        shortName: "Allied",
-        themeColor: "#06b6d4", // Electric Cyan
-        bgGradient: "radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.25) 0%, rgba(8, 12, 22, 0.96) 75%)",
-        desc: "Serverless containerized microservices hosted on Azure Container Apps with Envoy proxy ingress routing and automated GitHub Actions deployment pipelines."
-    },
-    {
-        tech: "Azure Blob Storage (DLQ)",
-        badge: "RELIABILITY",
-        badgeBg: "secondary",
-        cardName: "Accesscode Talker",
-        cardId: "86066372",
-        shortName: "Accesscode",
-        themeColor: "#a855f7", // Deep Cyber Purple
-        bgGradient: "radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.25) 0%, rgba(8, 12, 22, 0.96) 75%)",
-        desc: "Dead Letter Queue (DLQ) storage and Azure Blob Storage CDN hosting high-resolution card artwork and media attachment payloads with image fallback handling."
-    },
-    {
-        tech: "Go (Golang) Microservice",
-        badge: "CONCURRENCY",
-        badgeBg: "pink",
-        cardName: "Powercode Talker",
-        cardId: "15844566",
-        shortName: "Powercode",
-        themeColor: "#ec4899", // Neon Magenta/Pink
-        bgGradient: "radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.25) 0%, rgba(8, 12, 22, 0.96) 75%)",
-        desc: "High-speed Go background microservice utilizing parallel Goroutine worker pools to offload streaming YDK web scraping and image CDN synchronization."
-    },
+    { tech: "React 18 & Redux Toolkit", cardName: "Decode Talker", cardId: "1861629", shortName: "Decode", themeColor: "#00f2ff", desc: "Architected with modular functional React components." },
+    { tech: "C# .NET 9 Web API", cardName: "Encode Talker", cardId: "6622715", shortName: "Encode", themeColor: "#3b82f6", desc: "Asynchronous ASP.NET Core RESTful controllers." },
+    { tech: "Go (Golang) Microservice", cardName: "Powercode Talker", cardId: "15844566", shortName: "Powercode", themeColor: "#ec4899", desc: "High-speed Go background microservice." },
 ];
 
 export default function Home({ user }) {
     const [decks, setDecks] = useState([]);
     const [decklist, setDeckList] = useState([]);
-    
-    // ⚡ Active Tech Slide State & Auto-Rotation Timer
     const [activeIndex, setActiveIndex] = useState(0);
     const activeTech = techStackSlides[activeIndex];
 
+    const heroVideos = [
+        `${CDN_BASE_URL}/videos/mdgameplay.mp4`,
+        `${CDN_BASE_URL}/videos/duelingbook.mp4`
+    ];
+    const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+
     useEffect(() => {
-        fetch("/decks.json") // ⚡ Next.js resolves public files from root '/decks.json'
+        const interval = setInterval(() => {
+            setActiveVideoIndex(prev => (prev + 1) % heroVideos.length);
+        }, 6000); // Transitions every 6 seconds
+        return () => clearInterval(interval);
+    }, [heroVideos.length]);
+
+    useEffect(() => {
+        fetch("/decks.json") 
             .then(response => response.json())
             .then(data => setDecks(data))
             .catch(err => console.warn("Could not load decks.json:", err));
     }, []);
 
-    // ⚡ Auto-rotate slides every 5.5 seconds
     useEffect(() => {
         const interval = setInterval(() => {
             setActiveIndex(prev => (prev + 1) % techStackSlides.length);
@@ -212,189 +111,360 @@ export default function Home({ user }) {
     }, []);
 
     const toggleDeckList = (deckId) => {
-        setDeckList(prev => 
-            prev.includes(deckId) 
-                ? prev.filter(id => id !== deckId) 
-                : [...prev, deckId]
-        );
+        setDeckList(prev => prev.includes(deckId) ? prev.filter(id => id !== deckId) : [...prev, deckId]);
     };
 
     return (
-        <div className="md-theme-bg">
-            {/* HERO SECTION - Explicit 95px Top Clearance for Fixed Navbar */}
-            <div className="container pb-2 px-3" style={{ paddingTop: '95px' }}>
-                <section 
-                    className="vrains-hero-container p-3 p-md-5 text-white bg-dark border border-info border-opacity-25 shadow-lg mx-auto" 
-                    style={{
-                        maxWidth: '1300px',
-                        boxShadow: `0 0 35px ${activeTech.themeColor}33`,
-                        transition: 'box-shadow 0.8s ease-in-out'
-                    }}
-                >
-                    {/* ⚡ STACKED BACKGROUND GRADIENT LAYERS (Smooth Cross-Fade) */}
-                    {techStackSlides.map((slide, idx) => (
-                        <div
-                            key={idx}
-                            className="vrains-hero-bg-layer"
-                            style={{
-                                background: slide.bgGradient,
-                                opacity: activeIndex === idx ? 1 : 0
-                            }}
-                        />
-                    ))}
-
-                    {/* Animated Cyber Grid Canvas Overlay */}
-                    <div className="vrains-hero-grid-overlay"></div>
-
-                    <div className="row align-items-center py-1 py-md-2 position-relative z-index-2">
-                        
-                        {/* 🎮 LEFT COLUMN: WELCOME TITLE + SMALLER POWERED-BY SUBTITLE */}
-                        <div className="col-lg-7 text-start mb-4 mb-lg-0">
-                            
-                            {/* 1) LARGER HERO MAIN TITLE */}
-                            <h2 
-                                className="fw-extrabold text-white mb-2 display-4 fs-1-md" 
-                                style={{ 
-                                    letterSpacing: '1.5px', 
-                                    textShadow: '0 0 16px rgba(0,242,255,0.4)',
-                                    fontWeight: 800
-                                }}
-                            >
-                                WELCOME TO ERREGETEYGO!
-                            </h2>
-
-                            {/* 1) SMALLER DYNAMIC SUBTITLE */}
-                            <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                                <h4 className="fw-bold mb-0 font-monospace fs-5 fs-md-4" style={{ color: activeTech.themeColor, textShadow: `0 0 10px ${activeTech.themeColor}`, transition: 'color 0.6s ease' }}>
-                                    Powered by {activeTech.tech}
-                                </h4>
-                            </div>
-
-
-                            {/* Dynamic In-Depth Description Box */}
-                            <div 
-                                className="p-3 rounded-3 bg-black bg-opacity-60 border mb-4 position-relative"
-                                style={{ 
-                                    backdropFilter: 'blur(8px)', 
-                                    borderColor: activeTech.themeColor,
-                                    maxWidth: '620px', 
-                                    minHeight: '95px',
-                                    transition: 'border-color 0.6s ease'
-                                }}
-                            >
-                                {/* HUD Corner Brackets */}
-                                <div className="vrains-corner vrains-corner-tl" style={{ borderColor: activeTech.themeColor, transition: 'border-color 0.6s ease' }}></div>
-                                <div className="vrains-corner vrains-corner-tr" style={{ borderColor: activeTech.themeColor, transition: 'border-color 0.6s ease' }}></div>
-                                <div className="vrains-corner vrains-corner-bl" style={{ borderColor: activeTech.themeColor, transition: 'border-color 0.6s ease' }}></div>
-                                <div className="vrains-corner vrains-corner-br" style={{ borderColor: activeTech.themeColor, transition: 'border-color 0.6s ease' }}></div>
-
-                                <p className="text-white-50 mb-0 fs-6" style={{ lineHeight: '1.5', fontSize: '0.92rem' }}>
-                                    {activeTech.desc}
-                                </p>
-                            </div>
-
-                            {/* 🎯 CODE TALKER INTERACTIVE SELECTOR PILLS */}
-                            <div className="mb-4">
-                                <div className="d-flex flex-wrap gap-1">
-                                    {techStackSlides.map((slide, idx) => (
-                                        <button
-                                            key={idx}
-                                            onClick={() => setActiveIndex(idx)}
-                                            className={`btn btn-sm terminal-font px-2 py-1 font-monospace ${activeIndex === idx ? 'fw-bold text-dark' : 'btn-outline-secondary text-white-50'}`}
-                                            style={{ 
-                                                fontSize: '0.68rem', 
-                                                transition: 'all 0.3s ease',
-                                                backgroundColor: activeIndex === idx ? slide.themeColor : 'transparent',
-                                                borderColor: activeIndex === idx ? slide.themeColor : 'rgba(255,255,255,0.2)',
-                                                boxShadow: activeIndex === idx ? `0 0 12px ${slide.themeColor}` : 'none'
-                                            }}
-                                        >
-                                            {slide.shortName}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 🎮 RIGHT COLUMN: STACKED CARD ARTWORK (Smooth Opacity Cross-Fade) */}
-                        <div className="col-lg-5 text-center">
-                            <div 
-                                className="vrains-full-card-frame mx-auto position-relative" 
-                                style={{ 
-                                    maxWidth: '290px', 
-                                    height: '410px', 
-                                    borderColor: activeTech.themeColor,
-                                    transition: 'border-color 0.6s ease'
-                                }}
-                            >
-                                {/* HUD Corner Brackets */}
-                                <div className="vrains-corner vrains-corner-tl" style={{ borderColor: activeTech.themeColor, transition: 'border-color 0.6s ease' }}></div>
-                                <div className="vrains-corner vrains-corner-tr" style={{ borderColor: activeTech.themeColor, transition: 'border-color 0.6s ease' }}></div>
-                                <div className="vrains-corner vrains-corner-bl" style={{ borderColor: activeTech.themeColor, transition: 'border-color 0.6s ease' }}></div>
-                                <div className="vrains-corner vrains-corner-br" style={{ borderColor: activeTech.themeColor, transition: 'border-color 0.6s ease' }}></div>
-
-                                {/* ⚡ STACKED CARD IMAGES (Cross-Fades on activeIndex Change) */}
-                                <div className="vrains-card-glow-wrapper w-100 h-100 position-relative">
-                                    {techStackSlides.map((slide, idx) => (
-                                        <img 
-                                            key={idx}
-                                            src={`https://images.ygoprodeck.com/images/cards/${slide.cardId}.jpg`} 
-                                            alt={slide.cardName} 
-                                            className="vrains-card-crossfade-img rounded shadow-lg"
-                                            style={{ 
-                                                opacity: activeIndex === idx ? 1 : 0
-                                            }}
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg';
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-
-                            </div>
-                        </div>
-
+        <div className="md-theme-bg" style={{ backgroundColor: '#06080c', minHeight: '100vh', overflowX: 'hidden', fontFamily: "'Cascadia Mono', monospace" }}>
+            
+            {/* HERO SECTION */}
+            <div className="container-fluid px-4 px-md-5" style={{ paddingTop: '120px' }}>
+                <div className="row align-items-center mb-5 mx-auto" style={{ maxWidth: '1400px' }}>
+                    
+                    {/* LEFT COLUMN: Main Title & CTA */}
+                    <div className="col-lg-6 mb-5 mb-lg-0 pe-lg-5">
+                        <h1 className="fw-extrabold text-white mb-2" style={{ fontSize: 'clamp(3rem, 5vw, 5rem)', lineHeight: '1.1', letterSpacing: '-1px' }}>
+                            Welcome to <br />
+                            <span style={{ color: '#00d2ff', textShadow: '0 0 20px rgba(0, 210, 255, 0.4)' }}>ErreGeTe YGO!</span>
+                        </h1>
+                        <h3 className="text-white-50 mt-4 mb-4 fw-light" style={{ fontSize: '1.5rem' }}>
+                            Your <strong className="text-white border-bottom border-info border-2">Comprehensive Compendium</strong> of Yu-Gi-Oh Meta Strategies and Deck Building.
+                        </h3>
                     </div>
-                </section>
+
+                    {/* RIGHT COLUMN: Media/Promo Player Wrapper holding your Tech Stack Cards */}
+                    <div className="col-lg-6">
+                        <div className="rounded-4 shadow-lg overflow-hidden position-relative" style={{ height: '350px', border: '1px solid rgba(0, 210, 255, 0.3)', backgroundColor: '#0a0d14' }}>
+                            {heroVideos.map((videoSrc, idx) => (
+                                <video
+                                    key={idx}
+                                    autoPlay
+                                    muted
+                                    loop
+                                    playsInline
+                                    style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                        opacity: activeVideoIndex === idx ? 1 : 0,
+                                        transition: 'opacity 1s ease-in-out'
+                                    }}
+                                >
+                                    <source src={videoSrc} type="video/mp4" />
+                                </video>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* RESTORED ALL 8 QUICK NAVIGATION VIDEO CARDS */}
-            <div className="container md-content-panel px-3">
-                <nav className="mb-4 mb-md-5">
-                    <div className="d-flex justify-content-center flex-wrap gap-2 gap-md-3">
-                        {[
-                            { path: "/about", label: "About", img: "/images/thunderbolt.png", video: "/videos/thunderbolt.mp4" },
-                            { path: "/contact", label: "Contact", img: "/images/aluber.png", video: "/videos/aluber.mp4" },
-                            { path: "/deckbuilder", label: "Deck Builder", img: "/images/albaz.jpg", video: "/videos/albaz.mp4" },
-                            { path: "/community", label: "Community", img: "/images/bystialLubellion.png", video: "/videos/bystialLubellion.mp4" },
-                            { path: "/meta-decks", label: "Meta Decks", img: "/images/mirrorjade.jpg", video: "/videos/mirrorjade.mp4" },
-                            { path: "/cardsearch", label: "Card Search", img: "/images/darkdragon.jpg", video: "/videos/darkdragon.mp4" },
-                            { path: "/banlist", label: "Ban List", img: "/images/blazing.png", video: "/videos/blazing.mp4" },
-                            { path: "/generaldiscussion", label: "Forums", img: "/images/sanctifire.png", video: "/videos/sanctifire.mp4" },
-                        ].map((link, idx) => (
-                            <NavVideoCard key={idx} link={link} />
-                        ))}
+            {/* THREE-COLUMN FEATURE ROW */}
+            <div className="border-top border-bottom border-info border-opacity-25 bg-black bg-opacity-50 py-5">
+                <div className="container mx-auto" style={{ maxWidth: '1400px' }}>
+                    <div className="row text-white text-center text-md-start px-3">
+                        <div className="col-md-4 px-4 mb-4 mb-md-0 border-end border-info border-opacity-25">
+                            <h2 className="text-info fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">
+                                Join our community!
+                            </h2>
+                            <p className="text-white-50 mt-3 small">
+                                <strong className="text-white">Connect in general and competitive chats</strong> to share strategies, discuss matchups, and find your next tournament team.
+                            </p>
+                        </div>
+                        <div className="col-md-4 px-4 mb-4 mb-md-0 border-end border-info border-opacity-25">
+                            <h2 className="text-warning fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">
+                                Build like a Pro!
+                            </h2>
+                            <p className="text-white-50 mt-3 small">
+                                <strong className="text-white">Use the interactive deck builder</strong> to construct, refine, and test your custom decklists against live lists effortlessly.
+                            </p>
+                        </div>
+                        <div className="col-md-4 px-4">
+                            <h2 className="text-primary fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">
+                                Stay Up to Date!
+                            </h2>
+                            <p className="text-white-50 mt-3 small">
+                                <strong className="text-white">Check the ban list page</strong> for real-time format shifts, restrictions, and updates across TCG and OCG formats.
+                            </p>
+                        </div>
                     </div>
-                </nav>
+                </div>
+            </div>
 
+            {/* 1. DECK BUILDER BACKGROUND VIDEO SECTION (Button Left, Desc Right) */}
+            <div 
+                className="container md-content-panel position-relative d-flex align-items-center p-0 mt-5 mb-0 shadow-lg"                
+                style={{ backgroundColor: '#0a0d14', overflow: 'hidden', minHeight: '728px', borderRadius: '6px', border: '1px solid rgba(0, 210, 255, 0.3)' }}
+            >
+                {/* ⚡ Added poster for instant rendering */}
+                <video autoPlay muted loop playsInline poster={`${CDN_BASE_URL}/videos/encounter_poster.png`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.35 }}>
+                    <source src={`${CDN_BASE_URL}/videos/encounter_short.mp4`} type="video/mp4" />
+                </video>
+
+                <div className="container position-relative w-100 py-5" style={{ zIndex: 2, maxWidth: '1050px' }}>
+                    <div className="row align-items-center mx-0 w-100">
+                        <div className="col-md-5 mb-4 mb-md-0 d-flex justify-content-center justify-content-md-start">
+                            <div style={{ width: '100%', maxWidth: '400px' }}>
+                                <NavVideoCard link={{ path: "/deckbuilder", label: "DECK BUILDER", img: "/images/albaz.jpg", video: `${CDN_BASE_URL}/videos/albaz.mp4` }} />
+                            </div>
+                        </div>
+                        <div className="col-md-6 offset-md-1 text-center text-md-start">
+                            <h2 className="fw-bold mb-3" style={{ fontSize: '2rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                                <span className="text-warning">Deck Builder</span>
+                            </h2>
+                            <p className="text-white fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                Construct, refine, and validate your custom decks instantly against live OCG and TCG banlists. Seamlessly import your YDK files, analyze card synergies, and optimize your overall strategy with our high-speed integrations.
+                            </p>
+                            <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">
+                                Are you ready to test your meta breakers?
+                            </h5>
+                            <p className="text-white-50 small mt-1 mb-0">Jump in and start crafting your ultimate deck setup now.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. META DECKS BACKGROUND VIDEO SECTION (Button Right, Desc Left) */}
+            <div 
+                className="container md-content-panel position-relative d-flex align-items-center p-0 mt-0 mb-0 shadow-lg"                
+                style={{ backgroundColor: '#0a0d14', overflow: 'hidden', minHeight: '728px', borderRadius: '6px', border: '1px solid rgba(0, 210, 255, 0.3)' }}
+            >
+                {/* ⚡ Added poster for instant rendering */}
+                <video autoPlay muted loop playsInline poster={`${CDN_BASE_URL}/videos/albion_poster.png`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.35 }}>
+                    <source src={`${CDN_BASE_URL}/videos/albion_short.mp4`} type="video/mp4" />
+                </video>
+
+                <div className="container position-relative w-100 py-5" style={{ zIndex: 2, maxWidth: '1050px' }}>
+                    <div className="row align-items-center mx-0 w-100">
+                        <div className="col-md-6 text-center text-md-start mb-4 mb-md-0">
+                            <h1 className="fw-bold mb-3" style={{ fontSize: '2rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                                <span className="text-warning">Meta Decks</span>
+                            </h1>
+                            <p className="text-white fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                Analyze the current tournament tier lists, breakdown championship-winning ratios, and inspect core combo lines. Stay ahead of the shifting meta with precise statistical insights and optimal tech choices.
+                            </p>
+                            <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">
+                                Ready to master the tier 1 strategies?
+                            </h5>
+                            <p className="text-white-50 small mt-1 mb-0">Explore top tournament lists and optimize your competitive matches.</p>
+                        </div>
+                        <div className="col-md-5 offset-md-1 d-flex justify-content-center justify-content-md-end">
+                            <div style={{ width: '100%', maxWidth: '400px' }}>
+                                <NavVideoCard link={{ path: "/meta-decks", label: "META DECKS", img: "/images/mirrorjade.jpg", video: `${CDN_BASE_URL}/videos/mirrorjade.mp4` }} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 3. CARD SEARCH BACKGROUND VIDEO SECTION (Button Left, Desc Right) */}
+            <div 
+                className="container md-content-panel position-relative d-flex align-items-center p-0 mt-0 mb-0 shadow-lg"                
+                style={{ backgroundColor: '#0a0d14', overflow: 'hidden', minHeight: '728px', borderRadius: '6px', border: '1px solid rgba(0, 210, 255, 0.3)' }}
+            >
+                {/* ⚡ Added poster for instant rendering */}
+                <video autoPlay muted loop playsInline poster={`${CDN_BASE_URL}/videos/incredible_poster.png`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.35 }}>
+                    <source src={`${CDN_BASE_URL}/videos/incredible_short.mp4`} type="video/mp4" />
+                </video>
+
+                <div className="container position-relative w-100 py-5" style={{ zIndex: 2, maxWidth: '1050px' }}>
+                    <div className="row align-items-center mx-0 w-100">
+                        <div className="col-md-5 mb-4 mb-md-0 d-flex justify-content-center justify-content-md-start">
+                            <div style={{ width: '100%', maxWidth: '400px' }}>
+                                <NavVideoCard link={{ path: "/cardsearch", label: "CARD SEARCH", img: "/images/darkdragon.jpg", video: `${CDN_BASE_URL}/videos/darkdragon.mp4` }} />
+                            </div>
+                        </div>
+                        <div className="col-md-6 offset-md-1 text-center text-md-start">
+                            <h2 className="fw-bold mb-3" style={{ fontSize: '2rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                                <span className="text-warning">Card Search</span>
+                            </h2>
+                            <p className="text-white fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                Search through thousands of cards instantly using powerful filters for attributes, types, archetypes, and banlist statuses. Find exactly what you need to complete your masterpiece strategy.
+                            </p>
+                            <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">
+                                Looking for the ultimate tech card?
+                            </h5>
+                            <p className="text-white-50 small mt-1 mb-0">Use our high-speed database search to discover hidden synergies.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 4. BAN LIST BACKGROUND VIDEO SECTION (Button Right, Desc Left) */}
+            <div 
+                className="container md-content-panel position-relative d-flex align-items-center p-0 mt-0 mb-0 shadow-lg"                
+                style={{ backgroundColor: '#0a0d14', overflow: 'hidden', minHeight: '728px', borderRadius: '6px', border: '1px solid rgba(0, 210, 255, 0.3)' }}
+            >
+                {/* ⚡ Added poster for instant rendering */}
+                <video autoPlay muted loop playsInline poster={`${CDN_BASE_URL}/videos/iris_poster.png`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.35 }}>
+                    <source src={`${CDN_BASE_URL}/videos/iris_short.mp4`} type="video/mp4" />
+                </video>
+
+                <div className="container position-relative w-100 py-5" style={{ zIndex: 2, maxWidth: '1050px' }}>
+                    <div className="row align-items-center mx-0 w-100">
+                        <div className="col-md-6 text-center text-md-start mb-4 mb-md-0">
+                            <h2 className="fw-bold mb-3" style={{ fontSize: '2rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                                <span className="text-warning">Forbidden/Limited List</span>
+                            </h2>
+                            <p className="text-white fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                Keep your builds legal and tournament-ready with real-time updates for forbidden, limited, and semi-limited cards across both TCG and OCG formats. Never get caught off-guard by a format change again.
+                            </p>
+                            <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">
+                                Check the latest restrictions before you duel?
+                            </h5>
+                            <p className="text-white-50 small mt-1 mb-0">Stay fully informed on current banlist fluctuations and adjustments.</p>
+                        </div>
+                        <div className="col-md-5 offset-md-1 d-flex justify-content-center justify-content-md-end">
+                            <div style={{ width: '100%', maxWidth: '400px' }}>
+                                <NavVideoCard link={{ path: "/banlist", label: "BAN LIST", img: "/images/blazing.png", video: `${CDN_BASE_URL}/videos/blazing.mp4` }} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 5. FORUMS BACKGROUND VIDEO SECTION (Button Left, Desc Right) */}
+            <div 
+                className="container md-content-panel position-relative d-flex align-items-center p-0 mt-0 mb-0 shadow-lg"                
+                style={{ backgroundColor: '#0a0d14', overflow: 'hidden', minHeight: '728px', borderRadius: '6px', border: '1px solid rgba(0, 210, 255, 0.3)' }}
+            >
+                {/* ⚡ Added poster for instant rendering */}
+                <video autoPlay muted loop playsInline poster={`${CDN_BASE_URL}/videos/bond_poster.png`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.35 }}>
+                    <source src={`${CDN_BASE_URL}/videos/bond_short.mp4`} type="video/mp4" />
+                </video>
+
+                <div className="container position-relative w-100 py-5" style={{ zIndex: 2, maxWidth: '1050px' }}>
+                    <div className="row align-items-center mx-0 w-100">
+                        <div className="col-md-5 mb-4 mb-md-0 d-flex justify-content-center justify-content-md-start">
+                            <div style={{ width: '100%', maxWidth: '400px' }}>
+                                <NavVideoCard link={{ path: "/generaldiscussion", label: "FORUMS", img: "/images/sanctifire.png", video: `${CDN_BASE_URL}/videos/sanctifire.mp4` }} />
+                            </div>
+                        </div>
+                        <div className="col-md-6 offset-md-1 text-center text-md-start">
+                            <h2 className="fw-bold mb-3" style={{ fontSize: '2rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                                Duelist <span className="text-warning">Forums</span>
+                            </h2>
+                            <p className="text-white fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                Engage in deep tactical discussions, share innovative deck cores, and connect with other builders. Post your custom replays, exchange side-deck tech ideas, and collaborate on cutting-edge strategies.
+                            </p>
+                            <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">
+                                Have a brilliant deck strategy to share with everyone?
+                            </h5>
+                            <p className="text-white-50 small mt-1 mb-0">Jump into the discussion boards and exchange knowledge with fellow duelists.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 6. COMMUNITY BACKGROUND VIDEO SECTION (Button Right, Desc Left) */}
+            <div 
+                className="container md-content-panel position-relative d-flex align-items-center p-0 mt-0 mb-0 shadow-lg"                
+                style={{ backgroundColor: '#0a0d14', overflow: 'hidden', minHeight: '728px', borderRadius: '6px', border: '1px solid rgba(0, 210, 255, 0.3)' }}
+            >
+                {/* ⚡ Added poster for instant rendering */}
+                <video autoPlay muted loop playsInline poster={`${CDN_BASE_URL}/videos/nexus_poster.png`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.35 }}>
+                    <source src={`${CDN_BASE_URL}/videos/nexus_short.mp4`} type="video/mp4" />
+                </video>
+
+                <div className="container position-relative w-100 py-5" style={{ zIndex: 2, maxWidth: '1050px' }}>
+                    <div className="row align-items-center mx-0 w-100">
+                        <div className="col-md-6 text-center text-md-start mb-4 mb-md-0">
+                            <h2 className="fw-bold mb-3" style={{ fontSize: '2rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                                ErreGeTe <span className="text-warning">Community</span>
+                            </h2>
+                            <p className="text-white fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                Connect with duelists from across the globe in our general forums, or test your skills in dedicated competitive discussions. Share rogue strategies, debate banlist impacts, and find your next tournament crew.
+                            </p>
+                            <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">
+                                Ready to join the discussion and prove your meta knowledge?
+                            </h5>
+                            <p className="text-white-50 small mt-1 mb-0">Dive into the forums and collaborate with top duelists today.</p>
+                        </div>
+                        <div className="col-md-5 offset-md-1 d-flex justify-content-center justify-content-md-end">
+                            <div style={{ width: '100%', maxWidth: '400px' }}>
+                                <NavVideoCard link={{ path: "/community", label: "COMMUNITY", img: "/images/bystialLubellion.png", video: `${CDN_BASE_URL}/videos/bystialLubellion.mp4` }} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 7. ABOUT BACKGROUND VIDEO SECTION (Button Left, Desc Right) */}
+            <div 
+                className="container md-content-panel position-relative d-flex align-items-center p-0 mt-0 mb-0 shadow-lg"                
+                style={{ backgroundColor: '#0a0d14', overflow: 'hidden', minHeight: '728px', borderRadius: '6px', border: '1px solid rgba(0, 210, 255, 0.3)' }}
+            >
+                {/* ⚡ Added poster for instant rendering */}
+                <video autoPlay muted loop playsInline poster={`${CDN_BASE_URL}/videos/brigrand_poster.png`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.35 }}>
+                    <source src={`${CDN_BASE_URL}/videos/brigrand_short.mp4`} type="video/mp4" />
+                </video>
+
+                <div className="container position-relative w-100 py-5" style={{ zIndex: 2, maxWidth: '1050px' }}>
+                    <div className="row align-items-center mx-0 w-100">
+                        <div className="col-md-5 mb-4 mb-md-0 d-flex justify-content-center justify-content-md-start">
+                            <div style={{ width: '100%', maxWidth: '400px' }}>
+                                <NavVideoCard link={{ path: "/about", label: "ABOUT", img: "/images/thunderbolt.png", video: `${CDN_BASE_URL}/videos/thunderbolt.mp4` }} />
+                            </div>
+                        </div>
+                        <div className="col-md-6 offset-md-1 text-center text-md-start">
+                            <h2 className="fw-bold mb-3" style={{ fontSize: '2rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                                <span className="text-warning">Behind the Developer</span>
+                            </h2>
+                            <p className="text-white fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                How long do you spend setting up your coding environment or manually looking up card banlist statuses without being happy? It's time to change that, learn the tricks, features, and meta integrations to speed up your workflow!
+                            </p>
+                            <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">
+                                How often have you optimized your deck structures?
+                            </h5>
+                            <p className="text-white-50 small mt-1 mb-0">Is it time you improved how quickly you craft?</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 8. CONTACT BACKGROUND VIDEO SECTION (Button Right, Desc Left) */}
+            <div 
+                className="container md-content-panel position-relative d-flex align-items-center p-0 mt-0 mb-5 shadow-lg" 
+                style={{ backgroundColor: '#0a0d14', overflow: 'hidden', minHeight: '728px', borderRadius: '6px', border: '1px solid rgba(0, 210, 255, 0.3)' }}
+            >
+                {/* ⚡ Added poster for instant rendering */}
+                <video autoPlay muted loop playsInline poster={`${CDN_BASE_URL}/videos/shuraig_poster.png`} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, opacity: 0.35 }}>
+                    <source src={`${CDN_BASE_URL}/videos/shuraig_short.mp4`} type="video/mp4" />
+                </video>
+
+                <div className="container position-relative w-100 py-5" style={{ zIndex: 2, maxWidth: '1050px' }}>
+                    <div className="row align-items-center mx-0 w-100">
+                        <div className="col-md-6 text-center text-md-start mb-4 mb-md-0">
+                            <h2 className="fw-bold mb-3" style={{ fontSize: '2rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                                <span className="text-warning">Contact & Support</span>
+                            </h2>
+                            <p className="text-white fs-6 mb-3" style={{ lineHeight: '1.6' }}>
+                                Have questions about your deck integrations, API syncing, or need technical support with your environment? Whether you are reporting a bug or requesting a new feature, our team is here to ensure your Master Duel logic runs flawlessly.
+                            </p>
+                            <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">
+                                Encountered a critical error or have a suggestion?
+                            </h5>
+                            <p className="text-white-50 small mt-1 mb-0">Reach out and let us help you optimize your experience.</p>
+                        </div>
+                        <div className="col-md-5 offset-md-1 d-flex justify-content-center justify-content-md-end">
+                            <div style={{ width: '100%', maxWidth: '400px' }}>
+                                <NavVideoCard link={{ path: "/contact", label: "CONTACT", img: "/images/aluber.png", video: `${CDN_BASE_URL}/videos/aluber.mp4` }} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* REST OF YOUR APP (Nav Cards, Ticker, Grid) */}
+            <div className="container md-content-panel px-3">
                 <hr className="border-info opacity-25 mb-4 mb-md-5" />
 
-                <section className="mb-4 mb-md-5">
-                    <LiveTicker />
-                </section>
-
-                {/* DECKS GRID SECTION */}
-                <section className="mb-4 mb-md-5">
-                    <DecksGrid decks={decks} decklist={decklist} toggleDeckList={toggleDeckList} />
-                </section>
-
+                <section className="mb-4 mb-md-5"><LiveTicker /></section>
+                <section className="mb-4 mb-md-5"><DecksGrid decks={decks} decklist={decklist} toggleDeckList={toggleDeckList} /></section>
                 <hr className="border-info opacity-25 mb-4 mb-md-5" />
-
-                {/* TRENDING CARDS SECTION */}
-                <section className="mb-4">
-                    <TrendingCards />
-                </section>
+                <section className="mb-4"><TrendingCards /></section>
             </div>
             
             <Footer />
