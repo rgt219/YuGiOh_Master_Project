@@ -121,9 +121,23 @@ func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 				}
 
 				// 4. EXTRACT PLACEMENT (tournamentPlacement)
-				placement := fmt.Sprintf("%v", item["tournamentPlacement"])
-				if placement == "" || placement == "<nil>" {
-					placement = "Tournament Meta Deck"
+				tPlacement := fmt.Sprintf("%v", item["tournamentPlacement"])
+				if tPlacement == "<nil>" {
+					tPlacement = ""
+				}
+
+				tName := fmt.Sprintf("%v", item["tournamentName"])
+				if tName == "<nil>" {
+					tName = ""
+				}
+
+				placement := "Tournament Meta Deck"
+				if tPlacement != "" && tName != "" {
+					placement = fmt.Sprintf("%s at %s", tPlacement, tName)
+				} else if tPlacement != "" {
+					placement = tPlacement
+				} else if tName != "" {
+					placement = tName
 				}
 
 				// 5. PARSE EMBEDDED CARD LISTS DIRECTLY FROM API JSON

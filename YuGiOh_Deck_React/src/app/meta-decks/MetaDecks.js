@@ -137,6 +137,15 @@ export default function MetaDecks({ mdSound }) {
                 const mainDeck = sampleDeck?.mainDeck || sampleDeck?.MainDeck || [];
                 const extraDeck = sampleDeck?.extraDeck || sampleDeck?.ExtraDeck || [];
                 const sideDeck = sampleDeck?.sideDeck || sampleDeck?.SideDeck || [];
+                // 1. Grab the raw placement string from the database
+                const rawPlacement = deck?.placement || deck?.Placement || 'Tournament Placement';
+
+                // 2. Extract just the year from the existing lastUpdated date
+                const deckYear = (deck?.lastUpdated || deck?.LastUpdated) 
+                  ? new Date(deck.lastUpdated || deck.LastUpdated).getFullYear() 
+                  : new Date().getFullYear();
+
+                const finalBadgeText = `${rawPlacement} ${deckYear}`;
 
                 const fannedCardIds = getFannedCards(mainDeck, extraDeck, sideDeck);
 
@@ -149,9 +158,9 @@ export default function MetaDecks({ mdSound }) {
                             {archetype}
                           </h5>
                           <div className="d-flex align-items-center">
-                            <Badge bg="dark" className="text-light fw-bold px-2 py-1 cascadia-font border border-secondary border-opacity-50" style={{ fontSize: '0.8rem' }}>
-                              {(deck?.placement || deck?.Placement || 'Tournament Placement').replace(/Reached/gi, '').replace(/\bat\b/gi, '@').replace(/\s+/g, ' ').trim()}
-                            </Badge>
+                          <Badge bg="dark" className="text-light fw-bold px-2 py-1 cascadia-font border border-secondary border-opacity-50" style={{ fontSize: '0.8rem' }}>
+                            {finalBadgeText}
+                          </Badge>
                           </div>
                         </div>
                       </Card.Header>

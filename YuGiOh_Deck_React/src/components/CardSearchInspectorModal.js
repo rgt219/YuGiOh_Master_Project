@@ -22,6 +22,8 @@ const renderBanBadge = (status) => {
 export default function CardSearchInspectorModal({ inspectCard, setInspectCard }) {
     if (!inspectCard) return null;
 
+    const largeImageUrl = inspectCard.card_images?.[0]?.image_url || `https://images.ygoprodeck.com/images/cards/${inspectCard.id}.jpg`;
+
     return (
         <Modal
             show={!!inspectCard}
@@ -44,7 +46,7 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                         <div className="text-center">
                             <div className="mx-auto mb-2">
                                 <img 
-                                    src={inspectCard.image} 
+                                    src={largeImageUrl} 
                                     alt={inspectCard.name} 
                                     className="w-100 h-auto rounded"
                                     onError={(e) => {
@@ -93,7 +95,7 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                     </Col>
 
                     <Col md={7} className="d-flex flex-column">
-                        <div className="p-3 rounded bg-black bg-opacity-50 border border-info border-opacity-30 position-relative flex-grow-1 d-flex flex-column">
+                        <div className="p-3 rounded bg-black bg-opacity-50 border border-info border-opacity-30 position-relative d-flex flex-column flex-grow-1">
                             
                             <div className="vrains-corner vrains-corner-tl"></div>
                             <div className="vrains-corner vrains-corner-tr"></div>
@@ -194,7 +196,7 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                 </label>
                                 <div 
                                     className="p-3 rounded bg-black bg-opacity-60 text-white-50 small border border-secondary border-opacity-30 flex-grow-1"
-                                    style={{ minHeight: '110px', maxHeight: '160px', overflowY: 'auto', whiteSpace: 'pre-line', fontSize: '0.82rem', lineHeight: '1.45' }}
+                                    style={{ minHeight: '90px', overflowY: 'auto', whiteSpace: 'pre-line', fontSize: '0.82rem', lineHeight: '1.45' }}
                                 >
                                     {inspectCard.desc}
                                 </div>

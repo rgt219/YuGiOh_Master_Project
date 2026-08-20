@@ -9,6 +9,7 @@ import {
 } from '@/constants/cardSearchConstants';
 import { useCardSearch } from '@/hooks/useCardSearch';
 import CardSearchInspectorModal from '@/components/CardSearchInspectorModal';
+import CardInspectorModal from '@/components/CardInspectorModal';
 import '@/mdstyles.css';
 
 export default function CardSearch() {
@@ -129,12 +130,13 @@ export default function CardSearch() {
                 .vrains-corner-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
                 .vrains-corner-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
                 .vrains-stat-box { background: rgba(0,0,0,0.6); border: 1px solid rgba(0,210,255,0.3); border-radius: 4px; text-align: center; }
-                .md-card-tile { border: 1px solid #1e2638; transition: transform 0.2s, border-color 0.2s; cursor: pointer; }
-                .md-card-tile:hover { transform: translateY(-4px); border-color: #00d2ff !important; box-shadow: 0 0 15px rgba(0,210,255,0.3); }
+                .md-card-tile { transition: transform 0.2s, border-color 0.2s; cursor: pointer; }
+                .md-card-tile:hover { transform: translateY(-4px); box-shadow: 0 0 15px rgba(0,210,255,0.3); }
             `}</style>
 
             <div className="container-fluid px-4" style={{ maxWidth: '1400px' }}>
-                <div className="p-4 rounded-3 bg-dark border border-info border-opacity-25 shadow-lg mb-4" style={{ background: 'rgba(15, 23, 42, 0.9)' }}>
+                {/* 🚀 REMOVED BORDER, BACKGROUND, AND SHADOW CLASSES */}
+                <div className="p-4 rounded-3 mb-4" style={{ background: 'transparent' }}>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h3 className="fw-bold text-info terminal-font m-0 d-flex align-items-center gap-2">
@@ -321,15 +323,16 @@ export default function CardSearch() {
                         <Button variant="outline-info" size="sm" className="terminal-font" onClick={fetchCards}>RETRY_SEARCH</Button>
                     </div>
                 ) : filteredCards.length === 0 ? (
-                    <div className="p-5 text-center bg-dark rounded-3 border border-secondary border-opacity-25 my-4">
+                    <div className="p-5 text-center rounded-3 my-4" style={{ background: 'transparent' }}>
                         <h4 className="text-white-50 terminal-font">NO CARDS MATCH CURRENT FILTER CRITERIA</h4>
                     </div>
                 ) : (
                     <Row className="g-3 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 row-cols-xl-6">
                         {paginatedCards.map(card => (
                             <Col key={card.id}>
-                                <div className="md-card-tile p-2 rounded-3 bg-dark h-100 d-flex flex-column justify-content-between position-relative" onClick={() => setInspectCard(card)}>
-                                    <div className="position-relative overflow-hidden rounded mb-2" style={{ aspectRatio: '59/86', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                                {/* 🚀 REMOVED bg-dark FROM CARD TILE */}
+                                <div className="md-card-tile p-2 rounded-3 h-100 d-flex flex-column justify-content-between position-relative" style={{ background: 'transparent' }} onClick={() => setInspectCard(card)}>
+                                    <div className="position-relative overflow-hidden rounded mb-2" style={{ aspectRatio: '59/86' }}>
                                         <img 
                                             src={card.image} alt={card.name} className="w-100 h-100 rounded" style={{ objectFit: 'cover' }} loading="lazy"
                                             onError={(e) => { e.target.src = card.fallbackImage || "https://ygoprodeck.com/images/cards/back.jpg"; }}

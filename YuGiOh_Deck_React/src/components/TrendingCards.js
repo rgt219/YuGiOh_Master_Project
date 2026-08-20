@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Spinner, Button, ProgressBar } from 'react-bootstrap';
+import CardInspectorModal from './CardInspectorModal'; // 🚀 Import your modal component
 import '../mdstyles.css';
 
 const API_BASE_URL = "https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api"
@@ -12,9 +13,10 @@ export default function TrendingCards({ mdSound }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- PAGINATION STATE ---
+  const [selectedCard, setSelectedCard] = useState(null);
+
   const [currentPage, setCurrentPage] = useState(1);
-  const cardsPerPage = 6; // 6 cards per page (2 rows x 3 cols on desktop)
+  const cardsPerPage = 9; // 6 cards per page (2 rows x 3 cols on desktop)
 
   const formats = [
     { name: 'TCG', variant: 'info' },
@@ -27,9 +29,8 @@ export default function TrendingCards({ mdSound }) {
     let isMounted = true;
     setLoading(true);
     setError(null);
-    setCurrentPage(1); // Reset to page 1 on format change
-
-    fetch(`${API_BASE_URL}/analytics/trending?format=${encodeURIComponent(activeFormat)}&limit=18`)
+    setCurrentPage(1); 
+    fetch(`${API_BASE_URL}/analytics/trending?format=${encodeURIComponent(activeFormat)}&limit=60`)
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load ${activeFormat} analytics`);
         return res.json();
@@ -52,23 +53,55 @@ export default function TrendingCards({ mdSound }) {
             `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${cardIds.join(',')}`
           );
 
-          if (!ygoRes.ok) throw new Error('Failed to fetch card details from YGOProDeck');
+          if (!ygoRes.ok) throw new Error('Failed to fetch card details from YGOPRODeck');
 
           const ygoData = await ygoRes.json();
           const cardMap = {};
 
           if (ygoData?.data) {
             ygoData.data.forEach((card) => {
-              cardMap[card.id.toString()] = card;
+              const priceInfo = card.card_prices?.[0] || {};
+              const banInfo = card.banlist_info || {};
+
+              cardMap[card.id.toString()] = {
+                id: card.id,
+                name: card.name,
+                type: card.type,
+                desc: card.desc,
+                race: card.race,
+                attribute: card.attribute,
+                level: card.level,
+                atk: card.atk,
+                def: card.def,
+                image: card.card_images?.[0]?.image_url || `https://images.ygoprodeck.com/images/cards/${card.id}.jpg`,
+                prices: {
+                  tcgplayer: priceInfo.tcgplayer_price ? `$${priceInfo.tcgplayer_price}` : 'N/A',
+                  cardmarket: priceInfo.cardmarket_price ? `€${priceInfo.cardmarket_price}` : 'N/A',
+                  ebay: priceInfo.ebay_price ? `$${priceInfo.ebay_price}` : 'N/A'
+                },
+                banlist: {
+                  tcg: banInfo.ban_tcg || 'Unlimited',
+                  ocg: banInfo.ban_ocg || 'Unlimited',
+                  masterduel: banInfo.ban_master_duel || 'Unlimited'
+                },
+                genesysPoints: 0
+              };
             });
           }
 
           const hydratedCards = analyticsData.map((item) => {
-            const cardInfo = cardMap[item.cardId] || {};
+            const cardInfo = cardMap[item.cardId] || {
+              id: item.cardId,
+              name: `Card ID #${item.cardId}`,
+              image: `https://images.ygoprodeck.com/images/cards/${item.cardId}.jpg`,
+              prices: { tcgplayer: 'N/A', cardmarket: 'N/A', ebay: 'N/A' },
+              banlist: { tcg: 'Unlimited', ocg: 'Unlimited', masterduel: 'Unlimited' }
+            };
+
             return {
               ...item,
-              name: cardInfo.name || `Card ID #${item.cardId}`,
-              imageUrl: cardInfo?.card_images?.[0]?.image_url || `https://images.ygoprodeck.com/images/cards/${item.cardId}.jpg`
+              ...cardInfo,
+              imageUrl: cardInfo.image
             };
           });
 
@@ -102,7 +135,7 @@ export default function TrendingCards({ mdSound }) {
   const currentCards = trendingCards.slice(indexOfFirstCard, indexOfLastCard);
 
   return (
-    <div className="md-theme-bg min-vh-100 py-5 mt-5">
+    <div className="md-theme-bg h-100 rounded pb-4">
       <Container>
         {/* --- HEADER PANEL --- */}
         <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
@@ -110,7 +143,7 @@ export default function TrendingCards({ mdSound }) {
             <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div>
                 <h3 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px' }}>
-                  🔥 TRENDING STAPLES & META CARDS
+                  TRENDING STAPLES & META CARDS
                 </h3>
                 <span className="small text-white-50">
                   Pre-computed database analytics across tournament meta decklists
@@ -180,7 +213,15 @@ export default function TrendingCards({ mdSound }) {
                 const globalIndex = indexOfFirstCard + idx + 1;
                 return (
                   <Col key={card.cardId || idx}>
-                    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-info border-opacity-30 shadow h-100 md-panel p-3">
+                    <Card 
+                      style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)', cursor: 'pointer' }} 
+                      text="white" 
+                      className="border-info border-opacity-30 shadow h-100 md-panel p-3 card-hover-effect"
+                      onClick={() => {
+                        mdSound?.playClick?.();
+                        setSelectedCard(card);
+                      }}
+                    >
                       <Row className="g-3 align-items-center">
                         <Col xs={4} className="position-relative text-center">
                           <Badge bg="info" className="position-absolute top-0 start-0 text-dark fw-bold terminal-font shadow" style={{ zIndex: 2 }}>
@@ -268,6 +309,12 @@ export default function TrendingCards({ mdSound }) {
           </>
         )}
       </Container>
+
+      {/* --- CARD INSPECTOR MODAL --- */}
+      <CardInspectorModal 
+        selectedCard={selectedCard} 
+        onClose={() => setSelectedCard(null)} 
+      />
     </div>
   );
 }
