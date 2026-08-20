@@ -1,4 +1,4 @@
-import ResetPassword from '/ResetPassword';
+import ResetPassword from './ResetPassword';
 import { Suspense } from 'react';
 
 // ⚡ SEO Metadata

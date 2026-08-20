@@ -1,4 +1,4 @@
-import Register from '/Register';
+import Register from '@/app/register/Register';
 
 export const metadata = {
   title: 'Register Account | ErreGeTeYGO',
