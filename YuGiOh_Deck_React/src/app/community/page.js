@@ -1,4 +1,4 @@
-import CommunityDecks from '@/components/CommunityDecks';
+import CommunityDecks from '@/app/community/CommunityDecks';
 
 export const metadata = {
   title: 'Public Community Deck Archive | ErreGeTeYGO',

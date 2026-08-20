@@ -7,11 +7,11 @@ import ImagePopup from './ImagePopup';
 import ComboPlayer from './ComboPlayer';
 
 // Import combo data
-import { whiteForestCenturIonMain } from './WhiteForestCenturIonCombo';
-import { dracotailMainCombo } from './DracotailCombo';
-import { whiteForestAzaminaCombo } from './WhiteForestAzaminaCombo';
-import { blueEyesCombo } from './BlueEyesCombo';
-import { kewlTuneCombo } from './KewlTuneCombo';
+import { whiteForestCenturIonMain } from './Combos/WhiteForestCenturIonCombo';
+import { dracotailMainCombo } from './Combos/DracotailCombo';
+import { whiteForestAzaminaCombo } from './Combos/WhiteForestAzaminaCombo';
+import { blueEyesCombo } from './Combos/BlueEyesCombo';
+import { kewlTuneCombo } from './Combos/KewlTuneCombo';
 
 
 export default function DeckDetails() {

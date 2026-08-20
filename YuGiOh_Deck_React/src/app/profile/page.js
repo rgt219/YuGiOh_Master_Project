@@ -1,4 +1,4 @@
-import UserProfile from '@/components/UserProfile';
+import UserProfile from '@/app/profile/UserProfile';
 import ProtectedRoute from '@/components/ProtectedRoute'; // 👈 Import your wrapper
 
 // ⚡ Optional SEO Metadata

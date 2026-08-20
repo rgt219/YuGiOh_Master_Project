@@ -1,4 +1,4 @@
-import CardSearch from '@/components/CardSearch';
+import CardSearch from '@/app/cardsearch/CardSearch';
 
 // ⚡ SEO Metadata
 export const metadata = {

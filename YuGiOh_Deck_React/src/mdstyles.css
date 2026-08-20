@@ -1310,3 +1310,21 @@
   transition: opacity 2s ease-in-out;
   pointer-events: none;
 }
+
+@media (min-width: 992px) {
+  .hover-slide-dropdown:hover .dropdown-menu {
+    display: block;
+    animation: slideDownFade 0.2s ease forwards;
+  }
+}
+
+@keyframes slideDownFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,4 +1,4 @@
-import Home from '@/components/Home';
+import Home from '@/app/home/Home';
 
 export const metadata = {
   title: 'ErreGeTeYGO | Yu-Gi-Oh! Deck Builder & Metagame Hub',

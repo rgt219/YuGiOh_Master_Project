@@ -1,4 +1,4 @@
-import Login from '@/components/Login';
+import Login from '@/app/login/Login';
 
 // ⚡ SEO Metadata
 export const metadata = {

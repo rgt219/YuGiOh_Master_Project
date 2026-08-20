@@ -1,4 +1,4 @@
-import MetaDeckProfile from '@/components/MetaDeckProfile';
+import MetaDeckProfile from '@/app/meta-decks/[id]/MetaDeckProfile';
 
 // ⚡ Strictly return the 'id' key to match the [id] folder segment
 const FALLBACK_META_IDS = [{ id: '1' }, { id: '2' }, { id: 'meta-1' }];

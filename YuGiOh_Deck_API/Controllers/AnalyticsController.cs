@@ -33,7 +33,7 @@ namespace YuGiOhDeckApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Index creation note: {ex.Message}");
+                _logger.LogWarning(ex, "Index creation note encountered an issue.");
             }
         }
 

@@ -1,4 +1,4 @@
-import ThreadDetail from '@/components/ThreadDetail';
+import ThreadDetail from '@/app/forum/thread/[id]/ThreadDetail';
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;

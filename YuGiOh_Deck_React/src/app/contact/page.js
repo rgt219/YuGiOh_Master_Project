@@ -1,4 +1,4 @@
-import Contact from '@/components/Contact';
+import Contact from '@/app/contact/Contact';
 
 export const metadata = {
   title: 'Contact Ryan Thomas | ErreGeTeYGO',

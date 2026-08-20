@@ -1,4 +1,4 @@
-import BanList from '@/components/BanList';
+import BanList from '@/app/banlist/BanList';
 
 // ⚡ SEO Metadata
 export const metadata = {

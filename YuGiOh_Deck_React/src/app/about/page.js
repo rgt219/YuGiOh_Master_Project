@@ -1,4 +1,4 @@
-import About from '@/components/About';
+import About from '@/app/about/About';
 
 // ⚡ SEO Metadata for Ryan Thomas / ErreGeTe
 export const metadata = {

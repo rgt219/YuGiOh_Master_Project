@@ -1,4 +1,4 @@
-import DeckBuilder from '@/components/DeckBuilder';
+import DeckBuilder from '@/app/deckbuilder/DeckBuilder';
 
 // ⚡ SEO Metadata
 export const metadata = {

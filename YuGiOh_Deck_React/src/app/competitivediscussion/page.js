@@ -1,4 +1,4 @@
-import CompetitiveDiscussion from '@/components/CompetitiveDiscussion';
+import CompetitiveDiscussion from '@/app/competitivediscussion/CompetitiveDiscussion';
 
 // ⚡ SEO Metadata
 export const metadata = {

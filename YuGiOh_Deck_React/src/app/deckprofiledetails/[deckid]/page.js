@@ -1,4 +1,4 @@
-import DeckProfileDetails from '@/components/DeckProfileDetails';
+import DeckProfileDetails from "./DeckProfileDetails";
 
 // ⚡ Required for static export: matches dynamic folder [deckid]
 const FALLBACK_DECK_IDS = [{ deckid: '1' }, { deckid: '2' }, { deckid: 'deck-1' }];

@@ -532,11 +532,6 @@ input:checked + .slider {
   gap: 5px;
 }
 
-.custom-tooltip {
-  background-color: transparent;
-  background: none;
-}
-
 /* The Outer Container */
 .custom-deck-container {
     background: rgba(0, 0, 0, 0.6); /* Dark transparency */

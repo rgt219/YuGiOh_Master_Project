@@ -82,23 +82,25 @@ export default function NavbarYGO() {
             </Navbar.Brand>
 
             <Nav className="gap-1 gap-lg-2 align-items-lg-center mt-2 mt-lg-0">
-              <NavDropdown title={<span className="fw-bold">Info</span>} id="info-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2">
+              {/* Added hover-slide-dropdown and renderMenuOnMount={true} to all dropdowns */}
+              <NavDropdown renderMenuOnMount={true} title={<span className="fw-bold">Info</span>} id="info-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2 hover-slide-dropdown">
                 <NavDropdown.Item as={Link} href="/about" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>About</NavDropdown.Item>
                 <NavDropdown.Item as={Link} href="/contact" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Contact</NavDropdown.Item>
               </NavDropdown>
 
-              <NavDropdown title={<span className="fw-bold">Decks</span>} id="decks-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2">
+              <NavDropdown renderMenuOnMount={true} title={<span className="fw-bold">Decks</span>} id="decks-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2 hover-slide-dropdown">
                 <NavDropdown.Item as={Link} href="/community" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Community Decks</NavDropdown.Item>
                 <NavDropdown.Item as={Link} href="/meta-decks" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Meta Decks</NavDropdown.Item>
                 <NavDropdown.Item as={Link} href="/deckbuilder" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Deck Builder</NavDropdown.Item>
               </NavDropdown>
 
-              <NavDropdown title={<span className="fw-bold">Card Database</span>} id="card-database-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2">
+              <NavDropdown renderMenuOnMount={true} title={<span className="fw-bold">Card Database</span>} id="card-database-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2 hover-slide-dropdown">
                 <NavDropdown.Item as={Link} href="/cardsearch" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Card Search</NavDropdown.Item>
                 <NavDropdown.Item as={Link} href="/banlist" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Ban List</NavDropdown.Item>
+                <NavDropdown.Item as={Link} href="/packsimulator" className="fw-bold text-info" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Pack Simulator</NavDropdown.Item>
               </NavDropdown>
 
-              <NavDropdown title={<span className="fw-bold">Forums</span>} id="forums-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2">
+              <NavDropdown renderMenuOnMount={true} title={<span className="fw-bold">Forums</span>} id="forums-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2 hover-slide-dropdown">
                 <NavDropdown.Item as={Link} href="/generaldiscussion" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>General Discussion</NavDropdown.Item>
                 <NavDropdown.Item as={Link} href="/competitivediscussion" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Competitive Discussion</NavDropdown.Item>
               </NavDropdown>
@@ -110,10 +112,12 @@ export default function NavbarYGO() {
             {localUser ? (
               <div className="d-flex align-items-center">
                 <NavDropdown 
+                  renderMenuOnMount={true}
                   title={<span className="terminal-user-link fw-bold">{localUser.userName || localUser.username || "USER"}</span>} 
                   id="user-dropdown" 
                   align="end"
                   onMouseEnter={() => mdSound?.playHover?.()}
+                  className="hover-slide-dropdown"
                 >
                   <NavDropdown.Item 
                     as={Link} 

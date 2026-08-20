@@ -1,4 +1,4 @@
-import GeneralDiscussion from '@/components/GeneralDiscussion';
+import GeneralDiscussion from '@/app/generaldiscussion/GeneralDiscussion';
 
 // ⚡ SEO Metadata
 export const metadata = {

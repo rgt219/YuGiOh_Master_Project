@@ -120,11 +120,11 @@ namespace YuGiOh_Analytics_Consumer
 
                             if (activity != null)
                             {
+                                // 🚀 FIX: Unconditionally generate a new ID for the activity log event.
+                                // This ensures MongoDB never crashes with a Duplicate Key error, even if the same deck is saved 100 times.
+                                activity.Id = Guid.NewGuid().ToString();
+
                                 // 1. Save live activity log directly into YuGiOhAnalytics.DeckStats
-                                if (string.IsNullOrEmpty(activity.Id))
-                                {
-                                    activity.Id = Guid.NewGuid().ToString();
-                                }
                                 await _activityCollection.InsertOneAsync(activity, cancellationToken: stoppingToken);
                                 _logger.LogInformation($"[MONGO_SUCCESS] Activity saved for deck: {activity.Title} by {activity.UserName}");
 

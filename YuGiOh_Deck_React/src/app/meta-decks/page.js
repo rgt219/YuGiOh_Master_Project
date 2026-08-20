@@ -1,4 +1,4 @@
-import MetaDecks from '@/components/MetaDecks';
+import MetaDecks from '@/app/meta-decks/MetaDecks';
 
 export const metadata = {
   title: 'Tournament Meta Archive | ErreGeTeYGO',
