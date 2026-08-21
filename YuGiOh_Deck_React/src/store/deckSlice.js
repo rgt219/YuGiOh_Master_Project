@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   mainDeck: [],
   extraDeck: [],
+  sideDeck: [], // 1. Added sideDeck to initial state
   deckName: '',
 };
 
@@ -12,12 +13,19 @@ export const deckSlice = createSlice({
   reducers: {
     // ACTION: Add a card
     addCardToDeck: (state, action) => {
-      const card = action.payload;
+      // 2. Safely extract the payload whether it's the new format {card, isSideDeck} or legacy fallback
+      const card = action.payload.card || action.payload; 
+      const isSideDeck = action.payload.isSideDeck || false;
       
       const isExtra = card.type?.includes("Fusion") || card.type?.includes("Synchro") || 
                       card.type?.includes("Link") || card.type?.includes("XYZ");
 
-      if (isExtra) {
+      // 3. Side Deck logic (Max 15 cards)
+      if (isSideDeck) {
+        if (state.sideDeck.length < 15) {
+          state.sideDeck.push({ ...card, instanceId: Math.random() });
+        }
+      } else if (isExtra) {
         if (state.extraDeck.length < 15) {
           state.extraDeck.push({ ...card, instanceId: Math.random() });
         }
@@ -30,15 +38,14 @@ export const deckSlice = createSlice({
 
     // ACTION: Remove a card
     removeCardFromDeck: (state, action) => {
-        const targetId = action.payload; // Primitive string passed from handleRemoveCard
+        const targetId = action.payload; 
 
         if (state.mainDeck) {
-            // Find index of exact match (by instanceId or card id)
             const mainIndex = state.mainDeck.findIndex(
                 (c) => c.instanceId === targetId || (c.id || c.Id)?.toString() === targetId?.toString()
             );
             if (mainIndex !== -1) {
-                state.mainDeck.splice(mainIndex, 1); // Remove only 1 copy
+                state.mainDeck.splice(mainIndex, 1); 
                 return;
             }
         }
@@ -49,6 +56,17 @@ export const deckSlice = createSlice({
             );
             if (extraIndex !== -1) {
                 state.extraDeck.splice(extraIndex, 1);
+                return; // Added return to stop searching if found
+            }
+        }
+
+        // 4. Added side deck removal logic
+        if (state.sideDeck) {
+            const sideIndex = state.sideDeck.findIndex(
+                (c) => c.instanceId === targetId || (c.id || c.Id)?.toString() === targetId?.toString()
+            );
+            if (sideIndex !== -1) {
+                state.sideDeck.splice(sideIndex, 1);
             }
         }
     },
@@ -58,17 +76,19 @@ export const deckSlice = createSlice({
       state.deckName = action.payload;
     },
 
-    // ACTION: Import YDK (Replaces entire deck)
+    // ACTION: Import YDK 
     importYdkDeck: (state, action) => {
-      state.mainDeck = action.payload.main;
-      state.extraDeck = action.payload.extra;
+      state.mainDeck = action.payload.main || [];
+      state.extraDeck = action.payload.extra || [];
+      state.sideDeck = action.payload.side || []; // 5. Added side deck import support
       state.deckName = action.payload.name;
     },
 
-    // 🚀 ACTION: Clear Deck (Resets all cards and deck name)
+    // ACTION: Clear Deck 
     clearDeck: (state) => {
       state.mainDeck = [];
       state.extraDeck = [];
+      state.sideDeck = []; // 6. Clears side deck
       state.deckName = '';
     }
   },

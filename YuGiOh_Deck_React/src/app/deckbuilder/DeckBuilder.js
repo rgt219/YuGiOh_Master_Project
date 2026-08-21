@@ -21,7 +21,7 @@ import '@/mdstyles.css';
 
 export default function DeckBuilder() {
     const {
-        mainDeck, extraDeck, deckName, dispatch,
+        mainDeck, extraDeck, sideDeck, deckName, dispatch,
         showSaveModal, setShowSaveModal, showAiModal, setShowAiModal,
         isImporting, inspectedCard, setInspectedCard, pinnedCard, setPinnedCard,
         fileInputRef, user, handlePinCard, handleImportYDK, handleExportYDK,
@@ -54,25 +54,36 @@ export default function DeckBuilder() {
                 <Row className="g-4">
                     <Col lg={7}>
                         <CustomDeck 
-                            mainDeck={mainDeck} extraDeck={extraDeck} onDeleteCard={handleDeleteCard}
+                            mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onDeleteCard={handleDeleteCard}
                             onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
                             onPinCard={handlePinCard}
                         />
                     </Col>
                     <Col lg={5}>
-                        <CardApi 
-                            onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
-                            cardList={[...mainDeck, ...extraDeck]}
-                            onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
-                            onPinCard={handlePinCard}
-                        />
+                    
+                        <div style={{ 
+                        position: 'sticky', 
+                        top: '460px', /* 🚀 Increased to perfectly clear the CardInspector's height */
+                        maxHeight: 'calc(100vh - 470px)', /* 🚀 Keeps the search panel from clipping off your monitor */
+                        overflowY: 'auto', /* 🚀 Adds an internal scrollbar if the search results get long */
+                        overflowX: 'hidden',
+                        zIndex: 10 
+                    }}>
+                            <CardApi 
+                                onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
+                                // Don't forget to include sideDeck here so your 3-copy limit badges update!
+                                cardList={[...mainDeck, ...extraDeck, ...sideDeck]}
+                                onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
+                                onPinCard={handlePinCard}
+                            />
+                        </div>
                     </Col>
                 </Row>
             </Container>
 
             <AiCardSuggester 
                 show={showAiModal} onHide={() => setShowAiModal(false)} 
-                mainDeck={mainDeck} extraDeck={extraDeck} onAddCard={handleAddCard} 
+                mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onAddCard={handleAddCard} 
                 onAutoBuildDeck={({ main, extra, name }) => {
                     dispatch(importYdkDeck({ main, extra, name }));
                     setShowAiModal(false);

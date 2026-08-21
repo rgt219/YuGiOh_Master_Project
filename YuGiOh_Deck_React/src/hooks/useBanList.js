@@ -3,6 +3,52 @@ import { useState, useEffect } from 'react';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.REACT_APP_API_URL || 
   'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api';
 
+// 🚀 1. THE GENESYS DICTIONARY (Caches the points)
+let globalGenesysMap = null;
+const getGenesysMap = async () => {
+  if (globalGenesysMap) return globalGenesysMap;
+  try {
+    const res = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?format=genesys&misc=yes');
+    const data = await res.json();
+    const map = {};
+    if (data?.data) {
+      data.data.forEach(card => {
+        map[card.id] = card.misc_info?.[0]?.genesys_points ?? 0;
+      });
+    }
+    globalGenesysMap = map;
+    return map;
+  } catch (err) {
+    console.error("Failed to fetch Genesys dictionary:", err);
+    return {};
+  }
+};
+
+// 🚀 2. THE MASTER DUEL DICTIONARY (Forces your Scraper as the Source of Truth)
+let globalMDBanlistMap = null;
+const getMDBanlistMap = async () => {
+  if (globalMDBanlistMap) return globalMDBanlistMap;
+  try {
+    // Hits your newly refactored C# controller route
+    const res = await fetch(`${API_BASE_URL}/BanList/masterduel`);
+    if (!res.ok) throw new Error("Failed to fetch custom MD banlist");
+    
+    const apiResponse = await res.json();
+    const map = {};
+    
+    if (apiResponse && apiResponse.cards) {
+      apiResponse.cards.forEach(item => {
+        map[item.name] = item.status;
+      });
+    }
+    globalMDBanlistMap = map;
+    return map;
+  } catch (err) {
+    console.error("Failed to fetch custom MD banlist dictionary:", err);
+    return {}; 
+  }
+};
+
 export function useBanList(format) {
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -12,20 +58,19 @@ export function useBanList(format) {
     setIsLoading(true);
     setError(null);
 
-    if (format === 'masterduel') {
-      fetch(`${API_BASE_URL}/BanList/masterduel`)
-        .then((res) => {
-          if (!res.ok) throw new Error("C# API returned HTTP " + res.status);
-          return res.json();
-        })
-        .then((apiResponse) => {
-          const scrapedCards = apiResponse.cards || [];
-          if (scrapedCards.length === 0) throw new Error("No cards returned from Master Duel scraper.");
+    // 🚀 3. Fetch BOTH dictionaries before processing any cards
+    Promise.all([getGenesysMap(), getMDBanlistMap()]).then(([genesysMap, mdBanlistMap]) => {
+      
+      if (format === 'masterduel') {
+          // Since we already fetched the MD map, we can just use it directly!
+          const mdCardNames = Object.keys(mdBanlistMap);
+          
+          if (mdCardNames.length === 0) {
+              setError("No cards returned from Master Duel scraper.");
+              setIsLoading(false);
+              return;
+          }
 
-          const dynamicStatusMap = {};
-          scrapedCards.forEach(item => { dynamicStatusMap[item.name] = item.status; });
-
-          const mdCardNames = Object.keys(dynamicStatusMap);
           const chunks = [];
           for (let i = 0; i < mdCardNames.length; i += 25) {
             chunks.push(mdCardNames.slice(i, i + 25));
@@ -35,7 +80,7 @@ export function useBanList(format) {
             fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${encodeURIComponent(chunk.join('|'))}&misc=yes`)
           );
 
-          return Promise.all(fetchPromises).then(async (responses) => {
+          Promise.all(fetchPromises).then(async (responses) => {
             const jsonResults = await Promise.all(responses.map(r => r.ok ? r.json() : { data: [] }));
             const rawCards = [];
             jsonResults.forEach(res => { if (res.data) rawCards.push(...res.data); });
@@ -43,8 +88,8 @@ export function useBanList(format) {
             const formattedCards = rawCards.map((card) => {
               const priceObj = card.card_prices?.[0] || {};
               const banObj = card.banlist_info || {};
-              const miscObj = card.misc_info?.[0] || {};
-              const mdStatus = dynamicStatusMap[card.name] || "Unlimited";
+              
+              const mdStatus = mdBanlistMap[card.name] || "Unlimited";
               const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
 
               return {
@@ -65,59 +110,69 @@ export function useBanList(format) {
                   cardmarket: priceObj.cardmarket_price ? `€${priceObj.cardmarket_price}` : "N/A",
                   ebay: priceObj.ebay_price ? `$${priceObj.ebay_price}` : "N/A"
                 },
+                // Uses your custom map as the MD source of truth
                 banlist: { masterduel: mdStatus, tcg: banObj.ban_tcg || "Unlimited", ocg: banObj.ban_ocg || "Unlimited" },
                 isLinkOrPendulum,
-                genesysPoints: isLinkOrPendulum ? "N/A" : (miscObj.genesys_points ?? 0)
+                genesysPoints: isLinkOrPendulum ? "N/A" : (genesysMap[card.id] ?? 0)
               };
             });
 
             setCards(formattedCards);
             setIsLoading(false);
+          }).catch((err) => {
+            console.error("Master Duel Live API Fetch Error:", err);
+            setError("Could not load live Master Duel ban list from server.");
+            setIsLoading(false);
           });
-        })
-        .catch((err) => {
-          console.error("Master Duel Live API Fetch Error:", err);
-          setError("Could not load live Master Duel ban list from server.");
-          setIsLoading(false);
-        });
-    } else {
-      fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?banlist=${format}&misc=yes`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch ban list data");
-          return res.json();
-        })
-        .then((data) => {
-          const formattedCards = (data.data || []).map((card) => {
-            const priceObj = card.card_prices?.[0] || {};
-            const banObj = card.banlist_info || {};
-            const miscObj = card.misc_info?.[0] || {};
-            const rawStatus = format === 'ocg' ? banObj.ban_ocg : banObj.ban_tcg;
 
-            let status = "Semi-Limited";
-            if (rawStatus === "Banned" || rawStatus === "Forbidden") status = "Forbidden";
-            if (rawStatus === "Limited") status = "Limited";
+      } else {
+        // TCG & OCG TAB LOGIC
+        fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?banlist=${format}&misc=yes`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to fetch ban list data");
+            return res.json();
+          })
+          .then((data) => {
+            const formattedCards = (data.data || []).map((card) => {
+              const priceObj = card.card_prices?.[0] || {};
+              const banObj = card.banlist_info || {};
+              const rawStatus = format === 'ocg' ? banObj.ban_ocg : banObj.ban_tcg;
 
-            const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
+              let status = "Semi-Limited";
+              if (rawStatus === "Banned" || rawStatus === "Forbidden") status = "Forbidden";
+              if (rawStatus === "Limited") status = "Limited";
 
-            return {
-              id: card.id, name: card.name, type: card.type, race: card.race || "", attribute: card.attribute || "",
-              status: status, desc: card.desc || "No card text available.", atk: card.atk ?? null, def: card.def ?? null,
-              level: card.level ?? card.rank ?? card.linkval ?? null, image: card.card_images?.[0]?.image_url || "",
-              fallbackImage: card.card_images?.[0]?.image_url || "",
-              prices: { tcgplayer: priceObj.tcgplayer_price ? `$${priceObj.tcgplayer_price}` : "N/A", cardmarket: priceObj.cardmarket_price ? `€${priceObj.cardmarket_price}` : "N/A", ebay: priceObj.ebay_price ? `$${priceObj.ebay_price}` : "N/A" },
-              banlist: { masterduel: banObj.ban_masterduel || "Unlimited", tcg: banObj.ban_tcg || "Unlimited", ocg: banObj.ban_ocg || "Unlimited" },
-              isLinkOrPendulum, genesysPoints: isLinkOrPendulum ? "N/A" : (miscObj.genesys_points ?? 0)
-            };
+              const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
+
+              // 🚀 4. THE OVERRIDE: Ignore YGOPRODeck's MD status and inject your Scraper's data instead!
+              const trueMDStatus = mdBanlistMap[card.name] || "Unlimited";
+
+              return {
+                id: card.id, name: card.name, type: card.type, race: card.race || "", attribute: card.attribute || "",
+                status: status, desc: card.desc || "No card text available.", atk: card.atk ?? null, def: card.def ?? null,
+                level: card.level ?? card.rank ?? card.linkval ?? null, image: card.card_images?.[0]?.image_url || "",
+                fallbackImage: card.card_images?.[0]?.image_url || "",
+                prices: { tcgplayer: priceObj.tcgplayer_price ? `$${priceObj.tcgplayer_price}` : "N/A", cardmarket: priceObj.cardmarket_price ? `€${priceObj.cardmarket_price}` : "N/A", ebay: priceObj.ebay_price ? `$${priceObj.ebay_price}` : "N/A" },
+                banlist: { 
+                  masterduel: trueMDStatus, // 🚀 Override applied here
+                  tcg: banObj.ban_tcg || "Unlimited", 
+                  ocg: banObj.ban_ocg || "Unlimited" 
+                },
+                isLinkOrPendulum, 
+                genesysPoints: isLinkOrPendulum ? "N/A" : (genesysMap[card.id] ?? 0)
+              };
+            });
+            setCards(formattedCards);
+            setIsLoading(false);
+          })
+          .catch((err) => {
+            console.error(`${format.toUpperCase()} Fetch Error:`, err);
+            setError(`Could not load live ${format.toUpperCase()} ban list.`);
+            setIsLoading(false);
           });
-          setCards(formattedCards);
-          setIsLoading(false);
-        })
-        .catch((err) => {
-          console.error(`${format.toUpperCase()} Fetch Error:`, err);
-          setError(`Could not load live ${format.toUpperCase()} ban list.`);
-          setIsLoading(false);
-        });
-    }
+      }
+    });
+
   }, [format]);
 
   return { cards, isLoading, error };

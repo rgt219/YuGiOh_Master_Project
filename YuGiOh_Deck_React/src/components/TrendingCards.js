@@ -63,6 +63,9 @@ export default function TrendingCards({ mdSound }) {
               const priceInfo = card.card_prices?.[0] || {};
               const banInfo = card.banlist_info || {};
 
+              const miscInfo = card.misc_info?.[0] || {};
+              const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
+
               cardMap[card.id.toString()] = {
                 id: card.id,
                 name: card.name,
@@ -84,7 +87,8 @@ export default function TrendingCards({ mdSound }) {
                   ocg: banInfo.ban_ocg || 'Unlimited',
                   masterduel: banInfo.ban_master_duel || 'Unlimited'
                 },
-                genesysPoints: 0
+                isLinkOrPendulum,
+                genesysPoints: isLinkOrPendulum ? "N/A" : (miscInfo.genesys_points ?? 0)
               };
             });
           }
@@ -135,7 +139,11 @@ export default function TrendingCards({ mdSound }) {
   const currentCards = trendingCards.slice(indexOfFirstCard, indexOfLastCard);
 
   return (
-    <div className="md-theme-bg h-100 rounded pb-4">
+    <div className="md-theme-bg h-100 rounded pb-4" style={{ fontFamily: "'Cascadia Mono', monospace" }}>
+      <style>{`
+        * { font-family: 'Cascadia Mono', monospace !important; }
+        .terminal-font { font-family: 'Cascadia Mono', monospace !important; }
+      `}</style>
       <Container>
         {/* --- HEADER PANEL --- */}
         <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">

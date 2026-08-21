@@ -9,6 +9,7 @@ import { getFannedCards } from '@/utils/metaDeckHelpers';
 import '@/mdstyles.css';
 
 const DECKS_PER_PAGE = 12;
+const CDN_BASE_URL = 'https://ygocardstore.blob.core.windows.net/card-images';
 
 const formats = [
   { name: 'TCG', variant: 'info' },
@@ -137,16 +138,16 @@ export default function MetaDecks({ mdSound }) {
                 const mainDeck = sampleDeck?.mainDeck || sampleDeck?.MainDeck || [];
                 const extraDeck = sampleDeck?.extraDeck || sampleDeck?.ExtraDeck || [];
                 const sideDeck = sampleDeck?.sideDeck || sampleDeck?.SideDeck || [];
-                // 1. Grab the raw placement string from the database
+                
                 const rawPlacement = deck?.placement || deck?.Placement || 'Tournament Placement';
-
-                // 2. Extract just the year from the existing lastUpdated date
+                const rawTournament = deck?.tournament || deck?.Tournament || deck?.tournamentName || deck?.TournamentName || '';
+                console.log(rawPlacement);
+                console.log(rawTournament);
                 const deckYear = (deck?.lastUpdated || deck?.LastUpdated) 
                   ? new Date(deck.lastUpdated || deck.LastUpdated).getFullYear() 
                   : new Date().getFullYear();
 
                 const finalBadgeText = `${rawPlacement} ${deckYear}`;
-
                 const fannedCardIds = getFannedCards(mainDeck, extraDeck, sideDeck);
 
                 return (
@@ -158,20 +159,21 @@ export default function MetaDecks({ mdSound }) {
                             {archetype}
                           </h5>
                           <div className="d-flex align-items-center">
-                          <Badge bg="dark" className="text-light fw-bold px-2 py-1 cascadia-font border border-secondary border-opacity-50" style={{ fontSize: '0.8rem' }}>
-                            {finalBadgeText}
-                          </Badge>
+                            <Badge bg="dark" className="text-light fw-bold px-2 py-1 cascadia-font border border-secondary border-opacity-50" style={{ fontSize: '0.8rem' }}>
+                              {finalBadgeText}
+                            </Badge>
                           </div>
                         </div>
                       </Card.Header>
 
                       <Card.Body className="d-flex flex-column justify-content-between p-3">
                         <div>
+                          {/* 🚀 FANNED CARDS ROUTED THROUGH AZURE FRONT DOOR CDN */}
                           <div className="my-3 d-flex justify-content-center align-items-center position-relative fanned-container" style={{ height: '220px', width: '100%' }}>
                             <div className="holo-glow"></div>
-                            <img src={`https://images.ygoprodeck.com/images/cards/${fannedCardIds[0]}.jpg`} alt="Card 1" className="border border-info border-opacity-25 card-left" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
-                            <img src={`https://images.ygoprodeck.com/images/cards/${fannedCardIds[2]}.jpg`} alt="Card 3" className="border border-info border-opacity-25 card-right" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
-                            <img src={`https://images.ygoprodeck.com/images/cards/${fannedCardIds[1]}.jpg`} alt="Card 2" className="border border-info card-center" style={{ height: '185px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
+                            <img src={`${CDN_BASE_URL}/${fannedCardIds[0]}.jpg`} alt="Card 1" className="border border-info border-opacity-25 card-left" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = `${CDN_BASE_URL}/images/cards/back_high.jpg`; }} />
+                            <img src={`${CDN_BASE_URL}/${fannedCardIds[2]}.jpg`} alt="Card 3" className="border border-info border-opacity-25 card-right" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = `${CDN_BASE_URL}/images/cards/back_high.jpg`; }} />
+                            <img src={`${CDN_BASE_URL}/${fannedCardIds[1]}.jpg`} alt="Card 2" className="border border-info card-center" style={{ height: '185px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = `${CDN_BASE_URL}/images/cards/back_high.jpg`; }} />
                           </div>
 
                           <div className="d-flex align-items-center mb-2">

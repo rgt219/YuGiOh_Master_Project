@@ -82,27 +82,34 @@ const LiveTicker = () => {
     const displayActivities = (activities || []).slice(0, 5);
 
     return (
-        <Card className="master-duel-card shadow-lg border-info border-opacity-30">
-            <Card.Header className="master-duel-card-header bg-dark text-info d-flex justify-content-between align-items-center py-2 px-3">
-                <h6 className="mb-0 fw-bold" style={{ letterSpacing: '1px' }}>
-                    LIVE ACTIVITY
-                </h6>
-            </Card.Header>
-            <Card.Body className="p-2 bg-black-gradient">
-                {/* Vertical descending list */}
-                <ul className="list-unstyled mb-0 d-flex flex-column gap-2">
-                    {displayActivities.length > 0 ? (
-                        displayActivities.map((activity, idx) => (
-                            <TickerItem key={idx} activity={activity} />
-                        ))
-                    ) : (
-                        <div className="text-muted small p-3 text-center">
-                            Waiting for duelists to publish decklists...
-                        </div>
-                    )}
-                </ul>
-            </Card.Body>
-        </Card>
+        <div style={{ fontFamily: "'Cascadia Mono', monospace" }}>
+            <style>{`
+                * { font-family: 'Cascadia Mono', monospace !important; }
+                .terminal-font { font-family: 'Cascadia Mono', monospace !important; }
+            `}</style>
+
+            <Card className="master-duel-card shadow-lg border-info border-opacity-30">
+                <Card.Header className="master-duel-card-header bg-dark text-info d-flex justify-content-between align-items-center py-2 px-3">
+                    <h6 className="mb-0 fw-bold terminal-font" style={{ letterSpacing: '1px' }}>
+                        LIVE ACTIVITY
+                    </h6>
+                </Card.Header>
+                <Card.Body className="p-2 bg-black-gradient">
+                    {/* Vertical descending list */}
+                    <ul className="list-unstyled mb-0 d-flex flex-column gap-2">
+                        {displayActivities.length > 0 ? (
+                            displayActivities.map((activity, idx) => (
+                                <TickerItem key={idx} activity={activity} />
+                            ))
+                        ) : (
+                            <div className="text-muted small p-3 text-center terminal-font">
+                                Waiting for duelists to publish decklists...
+                            </div>
+                        )}
+                    </ul>
+                </Card.Body>
+            </Card>
+        </div>
     );
 };
 

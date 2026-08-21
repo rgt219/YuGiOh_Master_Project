@@ -132,19 +132,19 @@ export default function CustomDeck({
             </Card>
 
             {/* ⚔️ SIDE DECK CANVAS (IF PRESENT) */}
-            {sideDeck.length > 0 && (
-                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 md-panel">
-                    <Card.Header className="bg-transparent border-bottom border-success border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
-                        <h5 className="m-0 text-success terminal-font fw-bold">
-                            ⚔️ SIDE DECK ({sideDeck.length})
-                        </h5>
-                        <span className="small text-white-50">Left-click: Lock View | Right-click: Remove</span>
-                    </Card.Header>
-                    <Card.Body className="p-1">
-                        {renderCardGrid(sortedSide, 'border-success border-opacity-50')}
-                    </Card.Body>
-                </Card>
-            )}
+           
+            <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 md-panel">
+                <Card.Header className="bg-transparent border-bottom border-success border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
+                    <h5 className="m-0 text-success terminal-font fw-bold">
+                        SIDE DECK ({sideDeck.length})
+                    </h5>
+                    <span className="small text-white-50">Left-click: Lock View | Right-click: Remove</span>
+                </Card.Header>
+                <Card.Body className="p-1">
+                    {renderCardGrid(sortedSide, 'border-success border-opacity-50')}
+                </Card.Body>
+            </Card>
+           
         </div>
     );
 }
