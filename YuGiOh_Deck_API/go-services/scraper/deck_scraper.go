@@ -120,17 +120,42 @@ func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 					pilot = "Unknown Pilot"
 				}
 
-				// 4. EXTRACT PLACEMENT (tournamentPlacement)
+				// 4. EXTRACT PLACEMENT, TOURNAMENT NAME, & YEAR
 				placement := fmt.Sprintf("%v", item["tournamentPlacement"])
 				if placement == "" || placement == "<nil>" {
 					placement = "Tournament Meta Deck"
 				}
 
+				tournamentName := fmt.Sprintf("%v", item["tournamentName"])
+				if tournamentName == "" || tournamentName == "<nil>" {
+					tournamentName = fmt.Sprintf("%v", item["tournament"])
+				}
+				if tournamentName == "" || tournamentName == "<nil>" {
+					tournamentName = "Official Tournament"
+				}
+
+				// Extract year from available date fields with fallback to current year
+				year := ""
+				for _, dateKey := range []string{"tournamentDate", "date", "created_at"} {
+					if dateVal, exists := item[dateKey]; exists && dateVal != nil {
+						dateStr := fmt.Sprintf("%v", dateVal)
+						if len(dateStr) >= 4 {
+							year = dateStr[:4]
+							break
+						}
+					}
+				}
+				if year == "" {
+					year = fmt.Sprintf("%d", time.Now().Year())
+				}
+
+				// Format as: placement + " at " + tournamentName + " " + year
+				formattedPlacement := fmt.Sprintf("%s at %s %s", placement, tournamentName, year)
+
 				// 5. PARSE EMBEDDED CARD LISTS DIRECTLY FROM API JSON
 				parseDeckArray := func(key string) []string {
 					var cards []string
 					if val, exists := item[key]; exists && val != nil {
-						// Unmarshal the stringified JSON array (e.g., "[\"45536531\"]")
 						_ = json.Unmarshal([]byte(fmt.Sprintf("%v", val)), &cards)
 					}
 					return cards
@@ -151,7 +176,7 @@ func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 					Tier:                     "Tier 1",
 					RepresentationPercentage: 15.0,
 					Pilot:                    pilot,
-					Placement:                placement,
+					Placement:                formattedPlacement,
 					LastUpdated:              adjustedTime,
 					SampleDeck: models.DeckList{
 						Title:     archetype,
