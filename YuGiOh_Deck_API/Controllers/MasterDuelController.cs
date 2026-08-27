@@ -1,46 +1,75 @@
 using Microsoft.AspNetCore.Mvc;
 using YuGiOhDeckApi.Services;
 
-[ApiController]
-[Route("api/masterduel")]
-public class MasterDuelController : ControllerBase
+namespace YuGiOhDeckApi.Controllers
 {
-    private readonly IMasterDuelBanListService _cardService;
-
-    public MasterDuelController(IMasterDuelBanListService cardService)
+    [ApiController]
+    [Route("api/masterduel")]
+    public class MasterDuelController : ControllerBase
     {
-        _cardService = cardService;
-    }
+        private readonly IMasterDuelBanListService _masterDuelService;
 
-    [HttpGet("cards")]
-    public async Task<IActionResult> GetAllMasterDuelCards()
-    {
-        var cards = await _cardService.GetAllCardsAsync();
-
-        if (cards == null || cards.Count == 0)
+        public MasterDuelController(IMasterDuelBanListService masterDuelService)
         {
-            return StatusCode(503, new { message = "Master Duel database is not yet populated." });
+            _masterDuelService = masterDuelService;
         }
 
-        return Ok(new
+        [HttpGet("cards")]
+        public async Task<IActionResult> GetAllMasterDuelCards()
         {
-            format = "Master Duel Complete Database",
-            updatedAt = DateTime.UtcNow,
-            count = cards.Count,
-            cards = cards
-        });
-    }
+            var cards = await _masterDuelService.GetAllCardsAsync();
 
-    [HttpPost("sync")]
-    public async Task<IActionResult> SyncMasterDuelDatabase()
-    {
-        var success = await _cardService.TriggerScrapeAndSaveAsync();
+            if (cards == null || cards.Count == 0)
+            {
+                return StatusCode(503, new { message = "Master Duel database is not yet populated." });
+            }
 
-        if (!success)
-        {
-            return StatusCode(500, new { message = "Database sync failed. Check Go Worker logs." });
+            return Ok(new
+            {
+                format = "Master Duel Complete Database",
+                updatedAt = DateTime.UtcNow,
+                count = cards.Count,
+                cards
+            });
         }
 
-        return Ok(new { message = "Master Duel full card database successfully synced and saved to MongoDB." });
+        [HttpGet("banlist")]
+        public async Task<IActionResult> GetMasterDuelBanList()
+        {
+            var data = await _masterDuelService.GetMasterDuelBanListAsync();
+
+            if (data == null || data.Cards == null || data.Cards.Count == 0)
+            {
+                return StatusCode(503, new { message = "Master Duel ban list is not yet populated." });
+            }
+
+            return Ok(data);
+        }
+
+        [HttpPost("sync")]
+        public async Task<IActionResult> SyncMasterDuelDatabase()
+        {
+            var success = await _masterDuelService.TriggerScrapeAndSaveAsync();
+
+            if (!success)
+            {
+                return StatusCode(500, new { message = "Sync failed. Check Go Worker logs for Cloudflare blocks or timeouts." });
+            }
+
+            return Ok(new { message = "Master Duel data successfully synced and saved to MongoDB." });
+        }
+
+        [HttpPost("build-banlist")]
+        public async Task<IActionResult> BuildMasterDuelBanList()
+        {
+            var success = await _masterDuelService.BuildBanListFromDatabaseAsync();
+
+            if (!success)
+            {
+                return StatusCode(500, new { message = "Failed to build ban list. Make sure MasterDuelCards is populated." });
+            }
+
+            return Ok(new { message = "Master Duel Ban List successfully generated from local database (206 cards)." });
+        }
     }
 }

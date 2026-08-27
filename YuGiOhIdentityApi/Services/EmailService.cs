@@ -18,9 +18,14 @@ public class EmailService : IEmailService
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_config["Smtp:FromName"], _config["Smtp:FromEmail"]));
+
+        var fromName = _config["Smtp:FromName"];
+        var fromEmail = _config["Smtp:FromEmail"]
+            ?? throw new InvalidOperationException("SMTP 'FromEmail' configuration is missing.");
+
+        message.From.Add(new MailboxAddress(fromName, fromEmail));
         message.To.Add(new MailboxAddress("", toEmail));
-        message.Subject = "🔑 RESET YOUR ACCESS CODE | ErreGeTe YGO";
+        message.Subject = "Reset password | ErreGeTe YGO";
 
         var resetLink = $"https://erregeteygo.com/reset-password?token={Uri.EscapeDataString(resetToken)}&email={Uri.EscapeDataString(toEmail)}";
 
@@ -41,8 +46,26 @@ public class EmailService : IEmailService
         message.Body = bodyBuilder.ToMessageBody();
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(_config["Smtp:Host"], int.Parse(_config["Smtp:Port"]), SecureSocketOptions.StartTls);
-        await client.AuthenticateAsync(_config["Smtp:Username"], _config["Smtp:Password"]);
+
+        var host = _config["Smtp:Host"]
+            ?? throw new InvalidOperationException("SMTP Host is missing.");
+
+        var portStr = _config["Smtp:Port"]
+            ?? throw new InvalidOperationException("SMTP Port is missing.");
+
+        var username = _config["Smtp:Username"]
+            ?? throw new InvalidOperationException("SMTP Username is missing.");
+
+        var password = _config["Smtp:Password"]
+            ?? throw new InvalidOperationException("SMTP Password is missing.");
+
+        if (!int.TryParse(portStr, out int port))
+        {
+            throw new InvalidOperationException("SMTP Port is not a valid integer.");
+        }
+
+        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(username, password);
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }

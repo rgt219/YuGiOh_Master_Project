@@ -1,6 +1,6 @@
 'use client'; 
 
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Spinner, Button } from 'react-bootstrap';
@@ -17,6 +17,39 @@ const formats = [
   { name: 'MASTER DUEL', variant: 'success' },
   { name: 'GENESYS', variant: 'danger' }
 ];
+
+// 🚀 Custom Badge Component that detects if text is overflowing ("...")
+const OverflowBadge = ({ bg, className, style, title, text }) => {
+  const badgeRef = useRef(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (badgeRef.current) {
+        setIsOverflowing(badgeRef.current.scrollWidth > badgeRef.current.clientWidth);
+      }
+    };
+    
+    // Check on mount and after a slight delay to ensure fonts/layout are rendered
+    checkOverflow();
+    setTimeout(checkOverflow, 100);
+
+    // Re-check if the window is resized
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [text]);
+
+  return (
+    <span 
+      ref={badgeRef}
+      className={`badge bg-${bg} ${className} marquee-wrapper ${isOverflowing ? 'has-overflow' : ''}`} 
+      style={style} 
+      title={title}
+    >
+      <span className="marquee-content">{text}</span>
+    </span>
+  );
+};
 
 export default function MetaDecks({ mdSound }) {
   const {
@@ -75,15 +108,45 @@ export default function MetaDecks({ mdSound }) {
           border-radius: 50%; transition: all 0.5s ease; z-index: 0; opacity: 0;
         }
         .ygo-deck-card:hover .holo-glow { width: 250px; height: 250px; opacity: 1; }
+
+        /* 🚀 Marquee Animation - ONLY triggers if has-overflow is true */
+        .marquee-wrapper {
+          display: inline-block;
+          width: 100%;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          vertical-align: middle;
+        }
+        
+        .ygo-deck-card:hover .marquee-wrapper.has-overflow {
+          text-overflow: clip;
+        }
+        
+        .ygo-deck-card:hover .marquee-wrapper.has-overflow .marquee-content {
+          display: inline-block;
+          animation: text-slide 3.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes text-slide {
+          0%, 15% { transform: translateX(0); }
+          85%, 100% { transform: translateX(-35%); }
+        }
       `}</style>
 
       <Container>
-        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
-          <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-3">
-            <h3 className="m-0 text-info cascadia-font fw-bold" style={{ letterSpacing: '2px' }}>TOURNAMENT META ARCHIVE</h3>
-            <span className="small text-white-50 cascadia-font">Real-time competitive metagame profiles & decklists</span>
-          </Card.Header>
-        </Card>
+        <div className="p-4 rounded-3 mb-4" style={{ background: 'transparent' }}>
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 className="fw-bold text-info cascadia-font m-0 d-flex align-items-center gap-2" style={{ letterSpacing: '1px', textShadow: '0 0 12px rgba(0, 210, 255, 0.4)' }}>
+                TOURNAMENT META ARCHIVE
+              </h2>
+              <span className="text-white-50 small cascadia-font">
+                Real-time competitive metagame profiles & decklists
+              </span>
+            </div>
+          </div>
+        </div>
 
         <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)', position: 'sticky', top: '70px', zIndex: 1000 }} text="white" className="shadow-lg p-3 mb-4 md-panel border-info border-opacity-25">
           <Card.Header className="bg-transparent pb-3 d-flex gap-2 flex-wrap">
@@ -140,35 +203,37 @@ export default function MetaDecks({ mdSound }) {
                 const sideDeck = sampleDeck?.sideDeck || sampleDeck?.SideDeck || [];
                 
                 const rawPlacement = deck?.placement || deck?.Placement || 'Tournament Placement';
-                const rawTournament = deck?.tournament || deck?.Tournament || deck?.tournamentName || deck?.TournamentName || '';
-                console.log(rawPlacement);
-                console.log(rawTournament);
                 const deckYear = (deck?.lastUpdated || deck?.LastUpdated) 
                   ? new Date(deck.lastUpdated || deck.LastUpdated).getFullYear() 
                   : new Date().getFullYear();
 
-                const finalBadgeText = `${rawPlacement} ${deckYear}`;
+                const finalBadgeText = `${rawPlacement}`;
+                const pilotText = `PILOT: ${deck?.pilot || deck?.Author || activeFormat}`;
                 const fannedCardIds = getFannedCards(mainDeck, extraDeck, sideDeck);
 
                 return (
                   <Col key={deckId || archetype}>
                     <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-info border-opacity-50 shadow h-100 md-panel ygo-deck-card d-flex flex-column">
-                      <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 px-3 py-3">
-                        <div className="d-flex flex-column gap-2">
+                      <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 px-3 py-3 overflow-hidden">
+                        <div className="d-flex flex-column gap-2 w-100">
                           <h5 className="m-0 fw-bold text-white cascadia-font" style={{ fontSize: '1.25rem', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2' }} title={archetype}>
                             {archetype}
                           </h5>
-                          <div className="d-flex align-items-center">
-                            <Badge bg="dark" className="text-light fw-bold px-2 py-1 cascadia-font border border-secondary border-opacity-50" style={{ fontSize: '0.8rem' }}>
-                              {finalBadgeText}
-                            </Badge>
+                          <div className="d-flex align-items-center w-100">
+                            {/* 🚀 Replaced standard Badge with OverflowBadge */}
+                            <OverflowBadge 
+                              bg="dark" 
+                              className="text-light fw-bold px-2 py-1 cascadia-font border border-secondary border-opacity-50" 
+                              style={{ fontSize: '0.8rem', maxWidth: '100%' }}
+                              title={finalBadgeText}
+                              text={finalBadgeText}
+                            />
                           </div>
                         </div>
                       </Card.Header>
 
                       <Card.Body className="d-flex flex-column justify-content-between p-3">
                         <div>
-                          {/* 🚀 FANNED CARDS ROUTED THROUGH AZURE FRONT DOOR CDN */}
                           <div className="my-3 d-flex justify-content-center align-items-center position-relative fanned-container" style={{ height: '220px', width: '100%' }}>
                             <div className="holo-glow"></div>
                             <img src={`${CDN_BASE_URL}/${fannedCardIds[0]}.jpg`} alt="Card 1" className="border border-info border-opacity-25 card-left" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = `${CDN_BASE_URL}/images/cards/back_high.jpg`; }} />
@@ -176,10 +241,15 @@ export default function MetaDecks({ mdSound }) {
                             <img src={`${CDN_BASE_URL}/${fannedCardIds[1]}.jpg`} alt="Card 2" className="border border-info card-center" style={{ height: '185px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = `${CDN_BASE_URL}/images/cards/back_high.jpg`; }} />
                           </div>
 
-                          <div className="d-flex align-items-center mb-2">
-                            <span className="badge bg-dark border border-success text-warning px-2 py-1 cascadia-font text-truncate" style={{ fontSize: '0.85rem', maxWidth: '100%' }}>
-                              PILOT: {deck?.pilot || deck?.Author || activeFormat}
-                            </span>
+                          <div className="d-flex align-items-center mb-2 w-100">
+                            {/* 🚀 Replaced pilot span with OverflowBadge */}
+                            <OverflowBadge 
+                              bg="dark"
+                              className="border border-success text-warning px-2 py-1 cascadia-font" 
+                              style={{ fontSize: '0.85rem', maxWidth: '100%' }} 
+                              title={pilotText}
+                              text={pilotText}
+                            />
                           </div>
 
                           <div className="p-2.5 rounded mb-2" style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>

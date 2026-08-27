@@ -78,10 +78,6 @@ namespace YuGiOhDeckApi
                 return database.GetCollection<CardStat>("DeckStats");
             });
 
-
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseInMemoryDatabase("DeckListDb"));
-
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("MyCors", policy =>
@@ -98,7 +94,6 @@ namespace YuGiOhDeckApi
                 });
             });
 
-            builder.Services.AddScoped<IDeckListRepository, DeckListRepository>();
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {

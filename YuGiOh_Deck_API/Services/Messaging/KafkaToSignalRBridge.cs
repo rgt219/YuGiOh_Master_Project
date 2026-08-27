@@ -6,96 +6,98 @@ using System.Text.Json.Serialization;
 using YuGiOhDeckApi.Hubs;
 using YuGiOh_Analytics_Consumer;
 
-
-public class KafkaToSignalRBridge : BackgroundService
+namespace YuGiOhDeckApi.Services
 {
-    private readonly IConfiguration _config;
-    private readonly IHubContext<ActivityHub> _hubContext;
-    private static readonly ConcurrentQueue<object> _recentActivities = new();
-
-    public static List<object> GetRecentActivities()
+    public class KafkaToSignalRBridge : BackgroundService
     {
-        return _recentActivities.Reverse().ToList();
-    }
+        private readonly IConfiguration _config;
+        private readonly IHubContext<ActivityHub> _hubContext;
+        private static readonly ConcurrentQueue<object> _recentActivities = new();
 
-    public KafkaToSignalRBridge(IConfiguration config, IHubContext<ActivityHub> hubContext)
-    {
-        _config = config;
-        _hubContext = hubContext;
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        await Task.Yield();
-        var connString = _config["Kafka:ConnectionString"];
-        if (string.IsNullOrEmpty(connString)) return;
-
-        var config = new ConsumerConfig
+        public static List<object> GetRecentActivities()
         {
-            GroupId = "bridge-v" + Guid.NewGuid().ToString()[..4],
-            BootstrapServers = _config["Kafka:BootstrapServers"],
-            SecurityProtocol = SecurityProtocol.SaslSsl,
-            SaslMechanism = SaslMechanism.Plain,
-            SaslUsername = "$ConnectionString",
-            SaslPassword = connString,
-            AutoOffsetReset = AutoOffsetReset.Latest
-        };
+            return _recentActivities.Reverse().ToList();
+        }
 
-        using var consumer = new ConsumerBuilder<string, string>(config).Build();
-        consumer.Subscribe("deck-updates");
-
-        // 🚀 CRITICAL: Case-insensitive deserialization options
-        var jsonOptions = new JsonSerializerOptions
+        public KafkaToSignalRBridge(IConfiguration config, IHubContext<ActivityHub> hubContext)
         {
-            PropertyNameCaseInsensitive = true
-        };
+            _config = config;
+            _hubContext = hubContext;
+        }
 
-        while (!stoppingToken.IsCancellationRequested)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            try
+            await Task.Yield();
+            var connString = _config["Kafka:ConnectionString"];
+            if (string.IsNullOrEmpty(connString)) return;
+
+            var config = new ConsumerConfig
             {
-                var consumeResult = consumer.Consume(stoppingToken);
-                if (consumeResult?.Message?.Value != null)
+                GroupId = "signalr-consumer",
+                BootstrapServers = _config["Kafka:BootstrapServers"],
+                SecurityProtocol = SecurityProtocol.SaslSsl,
+                SaslMechanism = SaslMechanism.Plain,
+                SaslUsername = "$ConnectionString",
+                SaslPassword = connString,
+                AutoOffsetReset = AutoOffsetReset.Latest
+            };
+
+            using var consumer = new ConsumerBuilder<string, string>(config).Build();
+            consumer.Subscribe("deck-updates");
+
+            // 🚀 CRITICAL: Case-insensitive deserialization options
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
                 {
-                    var rawJson = consumeResult.Message.Value;
-
-                    // Deserialize with case-insensitive option
-                    var parsed = JsonSerializer.Deserialize<UserActivityDto>(rawJson, jsonOptions);
-
-                    if (parsed != null)
+                    var consumeResult = consumer.Consume(stoppingToken);
+                    if (consumeResult?.Message?.Value != null)
                     {
-                        // 🚀 Fallback chain to guarantee display names
+                        var rawJson = consumeResult.Message.Value;
 
-                        string displayUser = !string.IsNullOrWhiteSpace(parsed.UserName)
-                            ? parsed.UserName
-                            : (!string.IsNullOrWhiteSpace(parsed.UserId) ? parsed.UserId : "Anonymous");
+                        // Deserialize with case-insensitive option
+                        var parsed = JsonSerializer.Deserialize<UserActivityDto>(rawJson, jsonOptions);
 
-                        string displayTitle = !string.IsNullOrWhiteSpace(parsed.Title)
-                            ? parsed.Title
-                            : "Unnamed Deck";
-
-                        var payload = new
+                        if (parsed != null)
                         {
-                            username = displayUser,
-                            title = displayTitle,
-                            action = string.IsNullOrWhiteSpace(parsed.Action) ? "published" : parsed.Action,
-                            mainDeck = parsed.MainDeck ?? new List<string>(),
-                            extraDeck = parsed.ExtraDeck ?? new List<string>()
-                        };
+                            // 🚀 Fallback chain to guarantee display names
 
-                        // Add to static 5-item history queue
-                        _recentActivities.Enqueue(payload);
-                        while (_recentActivities.Count > 5) _recentActivities.TryDequeue(out _);
+                            string displayUser = !string.IsNullOrWhiteSpace(parsed.UserName)
+                                ? parsed.UserName
+                                : (!string.IsNullOrWhiteSpace(parsed.UserId) ? parsed.UserId : "Anonymous");
 
-                        // Broadcast via SignalR
-                        await _hubContext.Clients.All.SendAsync("ReceiveActivity", payload, stoppingToken);
+                            string displayTitle = !string.IsNullOrWhiteSpace(parsed.Title)
+                                ? parsed.Title
+                                : "Unnamed Deck";
+
+                            var payload = new
+                            {
+                                username = displayUser,
+                                title = displayTitle,
+                                action = string.IsNullOrWhiteSpace(parsed.Action) ? "published" : parsed.Action,
+                                mainDeck = parsed.MainDeck ?? new List<string>(),
+                                extraDeck = parsed.ExtraDeck ?? new List<string>()
+                            };
+
+                            // Add to static 5-item history queue
+                            _recentActivities.Enqueue(payload);
+                            while (_recentActivities.Count > 5) _recentActivities.TryDequeue(out _);
+
+                            // Broadcast via SignalR
+                            await _hubContext.Clients.All.SendAsync("ReceiveActivity", payload, stoppingToken);
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Bridge Exception: {ex.Message}");
-                await Task.Delay(3000, stoppingToken);
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Bridge Exception: {ex.Message}");
+                    await Task.Delay(3000, stoppingToken);
+                }
             }
         }
     }

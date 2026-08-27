@@ -230,7 +230,7 @@ export default function DeckProfileDetails() {
                                     className="terminal-font fw-bold px-3 py-2 d-inline-flex align-items-center justify-content-center"
                                     onClick={() => setShowCopywriterModal(true)}
                                 >
-                                    DECK ARTICLE
+                                    DECK ARTICLE (Beta)
                                 </Button>
 
                                 <Button 

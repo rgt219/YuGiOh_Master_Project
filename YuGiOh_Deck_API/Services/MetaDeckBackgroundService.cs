@@ -51,6 +51,9 @@ namespace YuGiOhDeckApi.BackgroundServices
                             await mongoDbService.SaveMetaDecksBulkAsync(scrapedDecks);
                             _logger.LogInformation("Successfully saved {Count} meta decks to MongoDB.", scrapedDecks.Count);
 
+                            await mongoDbService.RecomputeCardAnalyticsAsync();
+                            _logger.LogInformation("Successfully recomputed card analytics and deck totals.");
+
                             try
                             {
                                 var cache = scope.ServiceProvider.GetRequiredService<IDistributedCache>();

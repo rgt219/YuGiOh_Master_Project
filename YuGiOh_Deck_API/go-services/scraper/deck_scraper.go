@@ -150,7 +150,7 @@ func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 				}
 
 				// Format as: placement + " at " + tournamentName + " " + year
-				formattedPlacement := fmt.Sprintf("%s at %s %s", placement, tournamentName, year)
+				formattedPlacement := fmt.Sprintf("%s at %s", placement, tournamentName)
 
 				// 5. PARSE EMBEDDED CARD LISTS DIRECTLY FROM API JSON
 				parseDeckArray := func(key string) []string {

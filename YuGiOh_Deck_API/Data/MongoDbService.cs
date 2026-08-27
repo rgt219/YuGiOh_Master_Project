@@ -51,13 +51,13 @@ namespace YuGiOhDeckApi.Data
                 using var http = new HttpClient();
                 http.Timeout = TimeSpan.FromMinutes(2);
 
-                var result = await http.GetFromJsonAsync<YGOProResult>("https://db.ygoprodeck.com/api/v7/cardinfo.php");
+                var result = await http.GetFromJsonAsync<YgoProResult>("https://db.ygoprodeck.com/api/v7/cardinfo.php");
 
                 if (result?.Data != null)
                 {
                     _masterCache = result.Data.Select(c => new CardData
                     {
-                        Id = c.id,
+                        Id = c.Id,
                         Name = c.name,
                         Type = c.type,
                         Desc = c.desc,
@@ -80,7 +80,7 @@ namespace YuGiOhDeckApi.Data
 
         public async Task<HydratedDeckResponse?> GetHydratedDeckAsync(string id)
         {
-            if (_masterCache == null || !_masterCache.Any())
+            if (_masterCache == null || _masterCache.Count == 0)
             {
                 Console.WriteLine("CACHE_EMPTY: Initializing master card data before hydration...");
                 await InitializeCardCache();
@@ -91,19 +91,19 @@ namespace YuGiOhDeckApi.Data
 
             var response = new HydratedDeckResponse
             {
-                Id = thinDeck.Id,
+                Id = thinDeck.Id!,
                 Title = thinDeck.Title,
                 UserId = thinDeck.UserId,
                 MainDeck = thinDeck.MainDeck?.Select(idStr =>
-                    _masterCache.FirstOrDefault(c => c.Id.ToString() == idStr))
+                    _masterCache!.FirstOrDefault(c => c.Id.ToString() == idStr))
                     .Where(c => c != null).ToList()!,
 
                 ExtraDeck = thinDeck.ExtraDeck?.Select(idStr =>
-                    _masterCache.FirstOrDefault(c => c.Id.ToString() == idStr))
+                    _masterCache!.FirstOrDefault(c => c.Id.ToString() == idStr))
                     .Where(c => c != null).ToList()!,
 
                 SideDeck = thinDeck.SideDeck?.Select(idStr =>
-                    _masterCache.FirstOrDefault(c => c.Id.ToString() == idStr))
+                    _masterCache!.FirstOrDefault(c => c.Id.ToString() == idStr))
                     .Where(c => c != null).ToList()!
             };
 
@@ -395,18 +395,15 @@ namespace YuGiOhDeckApi.Data
                 .Select(g => g.First())
                 .ToList();
 
-            // ⚡ FIX 1: Drop the collection instead of DeleteManyAsync
-            // Dropping is instantaneous and avoids the massive RU spike caused by bulk deletions.
             await _mdCardsCollection.Database.DropCollectionAsync("MasterDuelCards");
 
             foreach (var card in uniqueCards)
             {
                 card.UpdatedAt = DateTime.UtcNow;
-                card.Id = null; // Clean ID so MongoDB generates a fresh one
+                card.Id = null;
             }
 
-            // ⚡ FIX 2: Chunk the massive list into smaller batches to respect Cosmos DB limits
-            int batchSize = 400; // A very safe threshold for Cosmos DB
+            int batchSize = 10;
 
             for (int i = 0; i < uniqueCards.Count; i += batchSize)
             {
@@ -414,10 +411,24 @@ namespace YuGiOhDeckApi.Data
 
                 if (batch.Any())
                 {
-                    await _mdCardsCollection.InsertManyAsync(batch);
+                    bool batchSuccess = false;
+                    int retries = 0;
 
-                    // ⚡ Pause for a fraction of a second to let your Azure RU quota refill
-                    await Task.Delay(250);
+                    while (!batchSuccess && retries < 10)
+                    {
+                        try
+                        {
+                            await _mdCardsCollection.InsertManyAsync(batch, new InsertManyOptions { IsOrdered = false });
+                            batchSuccess = true;
+                        }
+                        catch (Exception)
+                        {
+                            retries++;
+                            if (retries >= 10) throw;
+
+                            await Task.Delay(500 * retries);
+                        }
+                    }
                 }
             }
 
@@ -432,27 +443,23 @@ namespace YuGiOhDeckApi.Data
         }
 
         // Internal helper classes for the YGOPro API JSON structure
-        private class YGOProResult { public List<YGOProCard>? Data { get; set; } }
+        private sealed class YgoProResult { public List<YgoProCard>? Data { get; set; } }
 
-        private class YGOProCard
+        private sealed class YgoProCard
         {
-            public int id { get; set; }
+            public int Id { get; set; }
             public string name { get; set; } = "";
             public string type { get; set; } = "";
             public string desc { get; set; } = "";
             public string race { get; set; } = "";
             public string attribute { get; set; } = "";
-
-            // FIX: Make this nullable int so the serializer doesn't crash on Spells/Link monsters
             public int? level { get; set; }
-
-            // Optional: Make these nullable too if you plan to use them later
             public int? atk { get; set; }
             public int? def { get; set; }
 
-            public List<YGOImage> card_images { get; set; } = new();
+            public List<YgoImage> card_images { get; set; } = new();
         }
 
-        private class YGOImage { public string image_url_small { get; set; } = ""; }
+        private class YgoImage { public string image_url_small { get; set; } = ""; }
     }
 }

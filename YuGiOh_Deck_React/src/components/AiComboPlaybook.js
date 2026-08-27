@@ -105,22 +105,22 @@ Output JSON ONLY in this exact structure:
     return (
         <Modal show={show} onHide={onHide} size="xl" centered contentClassName="md-modal border-info">
             <Modal.Header closeButton className="border-info bg-dark text-info">
-                <Modal.Title className="terminal-font">🎮 AI_COMBO_PLAYBOOK // HAND_SIMULATOR</Modal.Title>
+                <Modal.Title className="terminal-font">HAND SIMULATOR</Modal.Title>
             </Modal.Header>
 
             <Modal.Body className="bg-dark text-white p-4">
                 <div className="mb-4 p-3 bg-black bg-opacity-70 rounded border border-info border-opacity-40">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <div>
-                            <h6 className="text-info terminal-font m-0">DRAWN_5_CARD_OPENING_HAND</h6>
+                            <h6 className="text-info terminal-font m-0">OPENING HAND</h6>
                             <small className="text-muted">Simulated turn 1 draw from {mainDeck.length}-card deck</small>
                         </div>
                         <div className="d-flex gap-2">
                             <Button variant="outline-warning" size="sm" className="terminal-font fw-bold" onClick={drawHand} disabled={loading}>
-                                🔄 REDRAW HAND
+                                REDRAW HAND
                             </Button>
                             <Button variant="info" size="sm" className="terminal-font fw-bold text-dark" onClick={handleAnalyzeHand} disabled={loading || drawnHand.length < 5}>
-                                {loading ? <Spinner size="sm" animation="border" /> : "EXECUTE_COMBO_ANALYSIS ⚡"}
+                                {loading ? <Spinner size="sm" animation="border" /> : "EXECUTE COMBO ANALYSIS"}
                             </Button>
                         </div>
                     </div>

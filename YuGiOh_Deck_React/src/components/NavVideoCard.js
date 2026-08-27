@@ -43,7 +43,7 @@ export default function NavVideoCard({ link }) {
                         muted
                         loop
                         playsInline
-                        preload="metadata"
+                        preload="auto" /* 🚀 Changed from "metadata" to "auto" */
                         style={{ 
                             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
                             objectFit: 'cover', opacity: isHovered ? 1 : 0, transition: 'opacity 0.25s ease-in-out', pointerEvents: 'none'

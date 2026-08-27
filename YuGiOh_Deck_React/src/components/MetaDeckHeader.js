@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, Badge, Row, Col } from 'react-bootstrap';
+import { Card, Badge, Row, Col, Button } from 'react-bootstrap';
 
-export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds }) {
+export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds, onExportYDK }) {
   const archetype = deck?.archetype || deck?.Archetype || 'TOURNAMENT META DECK';
   const format = deck?.format || deck?.Format || 'TCG';
   const pilot = deck?.pilot || deck?.Pilot || '--------';
@@ -18,17 +18,24 @@ export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds }) {
   return (
     <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-4 mb-4 md-panel">
       <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-3 mb-4">
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <div>
-            <h2 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px' }}>
-              {archetype}
-            </h2>
-          </div>
-          <div className="d-flex gap-2 flex-wrap">
-            <Badge bg="success" className="text-dark fw-bold px-3 py-2 fs-6">PILOT: {pilot}</Badge>
-            <Badge bg="dark" className="text-light fw-bold px-3 py-2 fs-6">PLACEMENT: {placement}</Badge>
-            <Badge bg="info" className="text-dark fw-bold px-3 py-2 fs-6">FORMAT: {format}</Badge>
-          </div>
+        {/* Top Row: Title & Export Button */}
+        <div className="d-flex justify-content-between align-items-center gap-3 mb-3">
+          <h2 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px' }}>
+            {archetype}
+          </h2>
+
+          {onExportYDK && (
+            <Button variant="outline-secondary" size="sm" className="terminal-font fw-bold text-white px-3 py-2 text-nowrap flex-shrink-0" onClick={onExportYDK}>
+              💾 EXPORT .YDK
+            </Button>
+          )}
+        </div>
+
+        {/* Bottom Row: Metadata Badges */}
+        <div className="d-flex gap-2 align-items-center flex-wrap">
+          <Badge bg="success" className="text-dark fw-bold px-3 py-2" style={{ fontSize: '0.85rem' }}>PILOT: {pilot}</Badge>
+          <Badge bg="dark" className="text-light fw-bold px-3 py-2 border border-secondary" style={{ fontSize: '0.85rem' }}>PLACEMENT: {placement}</Badge>
+          <Badge bg="info" className="text-dark fw-bold px-3 py-2" style={{ fontSize: '0.85rem' }}>FORMAT: {format}</Badge>
         </div>
       </Card.Header>
 

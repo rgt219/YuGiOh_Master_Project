@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
-using MongoDB.Driver;
-using MongoDB.Bson;
+﻿using MongoDB.Driver;
 using YuGiOhIdentityApi.Models;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http.HttpResults;
-using BCrypt.Net;
 
 namespace YuGiOhIdentityApi.Services
 {
@@ -28,13 +20,18 @@ namespace YuGiOhIdentityApi.Services
 
         public async Task CreateAsync(UserRegistration newUser)
         {
-            var existingUser = await GetByEmailAsync(newUser.Email);
-            if (existingUser != null)
+            if (string.IsNullOrWhiteSpace(newUser.Email))
             {
-                throw new Exception("User already exists.");
+                throw new ArgumentException("Email address is required for registration.");
             }
 
-            // --- BCRYPT HASHING ---
+            var existingUser = await GetByEmailAsync(newUser.Email);
+
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException("User already exists.");
+            }
+
             if (!string.IsNullOrEmpty(newUser.Password))
             {
                 newUser.Password = BCrypt.Net.BCrypt.HashPassword(newUser.Password);
@@ -43,16 +40,13 @@ namespace YuGiOhIdentityApi.Services
             await _users.InsertOneAsync(newUser);
         }
 
-        // ⚡ NEW: Update method for Password Resets & Profile Updates
         public async Task UpdateAsync(UserRegistration updatedUser)
         {
-            // Automatically hash the new password if it's plain text (doesn't start with BCrypt salt prefix)
             if (!string.IsNullOrEmpty(updatedUser.Password) && !updatedUser.Password.StartsWith("$2"))
             {
                 updatedUser.Password = BCrypt.Net.BCrypt.HashPassword(updatedUser.Password);
             }
 
-            // Replace the existing document in MongoDB by Email
             await _users.ReplaceOneAsync(u => u.Email == updatedUser.Email, updatedUser);
         }
     }

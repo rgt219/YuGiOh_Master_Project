@@ -64,6 +64,26 @@ export default function MetaDeckProfile() {
     card_images: [{ image_url: `https://images.ygoprodeck.com/images/cards/${mainDeckIds[0] || 'back_high'}.jpg` }]
   };
 
+  // .YDK Export Handler
+  const handleExportYDK = () => {
+    let ydkContent = `#created by erregeteygo meta archive\n#main\n`;
+    mainDeckIds.forEach(id => { ydkContent += `${id}\n`; });
+    ydkContent += `\n#extra\n`;
+    extraDeckIds.forEach(id => { ydkContent += `${id}\n`; });
+    ydkContent += `\n!side\n`;
+    sideDeckIds.forEach(id => { ydkContent += `${id}\n`; });
+
+    const blob = new Blob([ydkContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${archetype.toLowerCase().replace(/[^a-z0-9]/g, '_')}_meta.ydk`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="md-theme-bg min-vh-100 py-5 mt-5">
       <Container fluid="xl">
@@ -73,7 +93,8 @@ export default function MetaDeckProfile() {
           </Button>
         </div>
 
-        <MetaDeckHeader deck={deck} cardCounts={cardCounts} mainDeckIds={mainDeckIds} />
+        {/* 🚀 Passed export handler down to header */}
+        <MetaDeckHeader deck={deck} cardCounts={cardCounts} mainDeckIds={mainDeckIds} onExportYDK={handleExportYDK} />
 
         <Row className="g-4">
           <Col lg={5} className="order-lg-1">

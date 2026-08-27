@@ -89,7 +89,7 @@ Output JSON ONLY in this exact structure:
     return (
         <Modal show={show} onHide={onHide} size="lg" centered contentClassName="md-modal border-info">
             <Modal.Header closeButton className="border-info bg-dark text-info">
-                <Modal.Title className="terminal-font">✍️ AI_DECK_COPYWRITER // PUBLISHING_SUITE</Modal.Title>
+                <Modal.Title className="terminal-font">DECK ARTICLE</Modal.Title>
             </Modal.Header>
 
             <Modal.Body className="bg-dark text-white p-4">
@@ -100,7 +100,7 @@ Output JSON ONLY in this exact structure:
                             The AI will analyze your saved card choices, extract core engine synergies, map out win conditions, and write a complete article ready for Reddit, Discord, or tournament logs.
                         </p>
                         <Button variant="info" className="terminal-font fw-bold text-dark px-4 py-2" onClick={handleGenerateWriteup}>
-                            GENERATE PROFILE WRITE-UP ⚡
+                            GENERATE PROFILE WRITE-UP
                         </Button>
                     </div>
                 )}
@@ -120,12 +120,12 @@ Output JSON ONLY in this exact structure:
                             <Nav variant="pills" activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="bg-black p-1 rounded border border-secondary">
                                 <Nav.Item>
                                     <Nav.Link eventKey="formatted" className="terminal-font py-1 px-3 small">
-                                        📰 FORMATTED_ARTICLE
+                                        FORMATTED ARTICLE
                                     </Nav.Link>
                                 </Nav.Item>
                                 <Nav.Item>
                                     <Nav.Link eventKey="markdown" className="terminal-font py-1 px-3 small">
-                                        📋 RAW_MARKDOWN (REDDIT/DISCORD)
+                                        RAW_MARKDOWN (REDDIT/DISCORD)
                                     </Nav.Link>
                                 </Nav.Item>
                             </Nav>
@@ -136,7 +136,7 @@ Output JSON ONLY in this exact structure:
                                 className="terminal-font fw-bold"
                                 onClick={handleCopyMarkdown}
                             >
-                                {copied ? "✓ COPIED TO CLIPBOARD!" : "📋 COPY MARKDOWN"}
+                                {copied ? "✓ COPIED TO CLIPBOARD!" : "COPY MARKDOWN"}
                             </Button>
                         </div>
 
@@ -171,7 +171,7 @@ Output JSON ONLY in this exact structure:
                                 {articleData.keyWinConditions?.length > 0 && (
                                     <div className="mb-4">
                                         <h6 className="text-success terminal-font border-bottom border-secondary pb-2 mb-2">
-                                            🏆 PRIMARY_WIN_CONDITIONS
+                                            PRIMARY WIN CONDITIONS
                                         </h6>
                                         <ul className="text-white-50 small ps-3 m-0">
                                             {articleData.keyWinConditions.map((win, i) => (
@@ -184,7 +184,7 @@ Output JSON ONLY in this exact structure:
                                 {articleData.budgetSubstitutions?.length > 0 && (
                                     <div>
                                         <h6 className="text-warning terminal-font border-bottom border-secondary pb-2 mb-3">
-                                            💡 BUDGET_ALTERNATIVES
+                                            BUDGET ALTERNATIVES
                                         </h6>
                                         <div className="d-flex flex-column gap-2">
                                             {articleData.budgetSubstitutions.map((sub, i) => (
