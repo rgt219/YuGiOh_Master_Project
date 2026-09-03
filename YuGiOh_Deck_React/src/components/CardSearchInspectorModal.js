@@ -108,7 +108,6 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
 
                             {/* 🚀 Routes to Telemetry with the specific set name and rarity/product ID */}
                             <div className="mt-3">
-                                // Inside CardSearchInspectorModal.js, update the routing button href:
                                 <Button 
                                     as={Link}
                                     href={`/market-listings/${encodeURIComponent(activeSet.set_name)}/${encodeURIComponent(inspectCard.name)}?id=${activeSet.productId || inspectCard.id}&konamiId=${inspectCard.id}&rarity=${encodeURIComponent(activeSet.set_rarity)}`}
@@ -116,7 +115,7 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                     className="w-100 fw-bold terminal-font py-2 shadow"
                                     onClick={() => { setInspectCard(null); setSelectedPrinting(null); }}
                                 >
-                                    See Telemetry ({activeSet.set_rarity})
+                                    See Telemetry
                                 </Button>
                             </div>
                         </Col>
