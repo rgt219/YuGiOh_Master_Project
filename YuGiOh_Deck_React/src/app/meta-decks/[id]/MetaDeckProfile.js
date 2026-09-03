@@ -64,7 +64,6 @@ export default function MetaDeckProfile() {
     card_images: [{ image_url: `https://images.ygoprodeck.com/images/cards/${mainDeckIds[0] || 'back_high'}.jpg` }]
   };
 
-  // .YDK Export Handler
   const handleExportYDK = () => {
     let ydkContent = `#created by erregeteygo meta archive\n#main\n`;
     mainDeckIds.forEach(id => { ydkContent += `${id}\n`; });
@@ -86,65 +85,90 @@ export default function MetaDeckProfile() {
 
   return (
     <div className="md-theme-bg min-vh-100 py-5 mt-5">
-      <Container fluid="xl">
+      <Container fluid className="px-4 px-xxl-5">
         <div className="mb-3">
           <Button as={Link} href="/meta-decks" variant="outline-info" size="sm" className="terminal-font fw-bold">
             ← BACK TO META ARCHIVE
           </Button>
         </div>
 
-        {/* 🚀 Passed export handler down to header */}
-        <MetaDeckHeader deck={deck} cardCounts={cardCounts} mainDeckIds={mainDeckIds} onExportYDK={handleExportYDK} />
+        <Row className="g-4 mb-4 align-items-stretch">
+          <Col xs={12} xxl={8}>
+            <MetaDeckHeader deck={deck} cardCounts={cardCounts} mainDeckIds={mainDeckIds} onExportYDK={handleExportYDK} />
+          </Col>
+          
+          <Col xs={12} xxl={4} className="d-none d-xxl-block">
+            <DeckPriceWidget 
+              mainDeck={mainDeckCards} 
+              extraDeck={extraDeckCards} 
+              sideDeck={sideDeckCards} 
+            />
+          </Col>
+        </Row>
 
         <Row className="g-4">
-          <Col lg={5} className="order-lg-1">
+          <Col lg={5} xxl={4} className="order-lg-1">
             <div style={{ position: 'sticky', top: '90px' }}>
               <MetaDeckInspector 
                 activeCard={activeCard} 
                 pinnedCardData={pinnedCardData} 
                 setPinnedCardData={setPinnedCardData} 
               />
-              <DeckPriceWidget 
-                mainDeck={mainDeckCards} 
-                extraDeck={extraDeckCards} 
-                sideDeck={sideDeckCards} 
-              />
+              
+              <div className="d-xxl-none mt-4">
+                <DeckPriceWidget 
+                  mainDeck={mainDeckCards} 
+                  extraDeck={extraDeckCards} 
+                  sideDeck={sideDeckCards} 
+                />
+              </div>
             </div>
           </Col>
 
-          <Col lg={7} className="order-lg-2">
-            <MetaDeckGrid 
-              title="MAIN DECK" 
-              borderColor="border-info border-opacity-50" 
-              textColor="text-info" 
-              deckIds={mainDeckIds} 
-              cardMap={cardMap} 
-              pinnedCardData={pinnedCardData} 
-              handleCardHover={handleCardHover} 
-              handleCardClick={handleCardClick} 
-            />
+          {/* 🚀 FIXED: Wrapped the Deck Grids inside a nested Row structure */}
+          <Col lg={7} xxl={8} className="order-lg-2">
+            <Row className="g-4">
+                
+              {/* Main Deck takes 100% width on standard screens, 7 columns on ultrawide */}
+              <Col xs={12} xxl={7}>
+                <MetaDeckGrid 
+                  title="MAIN DECK" 
+                  borderColor="border-info border-opacity-50" 
+                  textColor="text-info" 
+                  deckIds={mainDeckIds} 
+                  cardMap={cardMap} 
+                  pinnedCardData={pinnedCardData} 
+                  handleCardHover={handleCardHover} 
+                  handleCardClick={handleCardClick} 
+                />
+              </Col>
 
-            <MetaDeckGrid 
-              title="EXTRA DECK" 
-              borderColor="border-warning border-opacity-50" 
-              textColor="text-warning" 
-              deckIds={extraDeckIds} 
-              cardMap={cardMap} 
-              pinnedCardData={pinnedCardData} 
-              handleCardHover={handleCardHover} 
-              handleCardClick={handleCardClick} 
-            />
+              {/* Extra & Side Decks stack vertically, taking 5 columns on ultrawide */}
+              <Col xs={12} xxl={5} className="d-flex flex-column gap-4">
+                <MetaDeckGrid 
+                  title="EXTRA DECK" 
+                  borderColor="border-warning border-opacity-50" 
+                  textColor="text-warning" 
+                  deckIds={extraDeckIds} 
+                  cardMap={cardMap} 
+                  pinnedCardData={pinnedCardData} 
+                  handleCardHover={handleCardHover} 
+                  handleCardClick={handleCardClick} 
+                />
 
-            <MetaDeckGrid 
-              title="SIDE DECK" 
-              borderColor="border-success border-opacity-50" 
-              textColor="text-success" 
-              deckIds={sideDeckIds} 
-              cardMap={cardMap} 
-              pinnedCardData={pinnedCardData} 
-              handleCardHover={handleCardHover} 
-              handleCardClick={handleCardClick} 
-            />
+                <MetaDeckGrid 
+                  title="SIDE DECK" 
+                  borderColor="border-success border-opacity-50" 
+                  textColor="text-success" 
+                  deckIds={sideDeckIds} 
+                  cardMap={cardMap} 
+                  pinnedCardData={pinnedCardData} 
+                  handleCardHover={handleCardHover} 
+                  handleCardClick={handleCardClick} 
+                />
+              </Col>
+
+            </Row>
           </Col>
         </Row>
       </Container>

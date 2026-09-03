@@ -126,7 +126,7 @@ export default function CompetitiveDiscussion() {
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                         <div>
                             <h2 className="fw-bold text-white m-0 cascadia-font glow-text-comp" style={{ letterSpacing: '1px' }}>
-                                COMPETITIVE_DISCUSSION
+                                COMPETITIVE DISCUSSION
                             </h2>
                             <p className="text-white-50 small mb-0 mt-2 cascadia-font">
                                 High-tier metagame breakdowns, YCS & Regional tournament reports, side deck tech, and ruling discussions.
@@ -170,7 +170,7 @@ export default function CompetitiveDiscussion() {
                 {isLoading ? (
                     <div className="text-center py-5">
                         <Spinner animation="border" variant="danger" />
-                        <p className="text-danger cascadia-font mt-3 small fw-bold">LOADING_COMPETITIVE_THREADS...</p>
+                        <p className="text-danger cascadia-font mt-3 small fw-bold">LOADING COMPETITIVE THREADS...</p>
                     </div>
                 ) : filteredThreads.length === 0 ? (
                     <div className="text-center py-5 rounded-3 bg-dark border border-secondary border-opacity-25">
@@ -249,7 +249,7 @@ export default function CompetitiveDiscussion() {
             >
                 <Modal.Header closeButton closeVariant="white" className="border-secondary bg-black bg-opacity-50">
                     <Modal.Title className="text-danger cascadia-font fw-bold fs-6">
-                        CREATE_COMPETITIVE_THREAD
+                        CREATE COMPETITIVE THREAD
                     </Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleCreateThread}>

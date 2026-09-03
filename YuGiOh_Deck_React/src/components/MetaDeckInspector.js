@@ -51,23 +51,23 @@ export default function MetaDeckInspector({ activeCard, pinnedCardData, setPinne
           </Col>
 
           <div className="col-12 col-sm-7">
-            <h5 className="fw-bold mb-2 text-white" style={{ fontFamily: "Cascadia Mono, monospace", letterSpacing: '1px', fontSize: '1rem' }}>
+            <h5 className="fw-bold mb-2 text-white terminal-font" style={{ letterSpacing: '1px', fontSize: '1rem' }}>
               {activeCard.name}
             </h5>
 
             <div className="d-flex align-items-center mb-2 flex-wrap gap-1">
               {activeCard.type && (
-                <Badge bg="dark" className="border border-secondary text-uppercase fs-7">
+                <Badge bg="dark" className="border border-secondary text-uppercase fs-7 terminal-font">
                   {activeCard.type}
                 </Badge>
               )}
               {activeCard.race && (
-                <Badge bg="dark" className="border border-secondary text-uppercase fs-7">
+                <Badge bg="dark" className="border border-secondary text-uppercase fs-7 terminal-font">
                   {activeCard.race}
                 </Badge>
               )}
               {activeCard.attribute && (
-                <Badge bg={getAttributeColor(activeCard.attribute)} className="ms-auto text-uppercase fs-7 fw-bold">
+                <Badge bg={getAttributeColor(activeCard.attribute)} className="ms-auto text-uppercase fs-7 fw-bold terminal-font">
                   {activeCard.attribute}
                 </Badge>
               )}
@@ -75,27 +75,28 @@ export default function MetaDeckInspector({ activeCard, pinnedCardData, setPinne
 
             {activeCard.level && (
               <div className="mb-2 text-start">
-                <span className="small text-white-50 fw-bold me-2">Level / Rank:</span>
-                <span className="text-info fw-bold">{activeCard.level} ★</span>
+                <span className="small text-white-50 fw-bold me-2 terminal-font">Level / Rank:</span>
+                <span className="text-info fw-bold terminal-font">{activeCard.level} ★</span>
               </div>
             )}
 
             {typeof activeCard.atk === 'number' && (
               <div className="d-flex align-items-center px-3 py-1 mb-2 rounded" style={{ backgroundColor: 'rgba(0, 240, 255, 0.08)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-                <span className="small text-white-50 fw-bold me-2">ATK /</span>
-                <span className="text-white fw-bold me-4">{activeCard.atk}</span>
+                <span className="small text-white-50 fw-bold me-2 terminal-font">ATK /</span>
+                <span className="text-white fw-bold me-4 terminal-font">{activeCard.atk}</span>
                 
-                <span className="small text-white-50 fw-bold me-2">DEF /</span>
-                <span className="text-white fw-bold">{activeCard.def ?? '-'}</span>
+                <span className="small text-white-50 fw-bold me-2 terminal-font">DEF /</span>
+                <span className="text-white fw-bold terminal-font">{activeCard.def ?? '-'}</span>
               </div>
             )}
 
             <div className="text-start p-2 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-              <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2">
+              <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2 terminal-font">
                 Card Effect / Text
               </h6>
+              {/* 🚀 FIXED: Applied terminal-font so it renders in Cascadia Mono */}
               <p 
-                className="text-white-50 m-0" 
+                className="text-white-50 m-0 terminal-font" 
                 style={{ 
                   fontSize: '0.82rem', 
                   lineHeight: '1.45', 

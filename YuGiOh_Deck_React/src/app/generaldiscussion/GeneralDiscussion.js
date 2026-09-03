@@ -117,7 +117,7 @@ export default function GeneralDiscussion() {
                     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                         <div>
                             <h2 className="fw-bold text-white m-0 cascadia-font glow-text-gen" style={{ letterSpacing: '1px' }}>
-                                GENERAL_DISCUSSION
+                                GENERAL DISCUSSION
                             </h2>
                             <p className="text-white-50 small mb-0 mt-2 cascadia-font">
                                 Share deck ideas, discuss game mechanics, news, and meta casual talk.
@@ -161,7 +161,7 @@ export default function GeneralDiscussion() {
                 {isLoading ? (
                     <div className="text-center py-5">
                         <Spinner animation="border" variant="info" />
-                        <p className="text-info cascadia-font mt-3 small fw-bold">LOADING_FORUM_THREADS...</p>
+                        <p className="text-info cascadia-font mt-3 small fw-bold">LOADING FORUM THREADS...</p>
                     </div>
                 ) : filteredThreads.length === 0 ? (
                     <div className="text-center py-5 rounded-3 bg-dark border border-secondary border-opacity-25">

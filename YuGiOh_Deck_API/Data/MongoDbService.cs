@@ -199,8 +199,46 @@ namespace YuGiOhDeckApi.Data
                 updates.Add(upsertModel);
             }
 
-            // 3. Execute bulk write safely
-            await _metaDeckCollection.BulkWriteAsync(updates);
+            // 🚀 FIX: Process the bulk write in smaller batches to avoid Cosmos DB Error 16500 (Rate Limiting)
+            int batchSize = 50;
+
+            for (int i = 0; i < updates.Count; i += batchSize)
+            {
+                var batch = updates.Skip(i).Take(batchSize).ToList();
+
+                if (batch.Any())
+                {
+                    bool batchSuccess = false;
+                    int retries = 0;
+
+                    while (!batchSuccess && retries < 10)
+                    {
+                        try
+                        {
+                            // IsOrdered = false allows Cosmos to process them in parallel and not fail the whole batch if one document errors
+                            await _metaDeckCollection.BulkWriteAsync(batch, new BulkWriteOptions { IsOrdered = false });
+                            batchSuccess = true;
+                        }
+                        catch (MongoBulkWriteException ex) when (ex.WriteErrors.Any(e => e.Code == 16500))
+                        {
+                            // Explicitly catch Cosmos DB rate limit errors
+                            retries++;
+                            if (retries >= 10) throw;
+
+                            // Exponential backoff to give the database time to breathe
+                            await Task.Delay(500 * retries);
+                        }
+                        catch (Exception)
+                        {
+                            // Catch other transient network errors
+                            retries++;
+                            if (retries >= 10) throw;
+
+                            await Task.Delay(500 * retries);
+                        }
+                    }
+                }
+            }
         }
 
         public async Task<List<CardAnalytics>> GetTrendingCardsAsync(string format, int limit = 18)

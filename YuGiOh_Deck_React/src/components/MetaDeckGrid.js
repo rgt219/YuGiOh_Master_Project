@@ -12,7 +12,9 @@ export default function MetaDeckGrid({ title, borderColor, textColor, deckIds, c
         </h5>
       </Card.Header>
       <Card.Body className="p-1">
-        <div className="d-flex flex-wrap gap-2 justify-content-start">
+        
+        {/* Changed from Flexbox to a 10-column CSS Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '6px' }}>
           {deckIds.map((cardId, index) => {
             const cardData = cardMap[cardId.toString()];
             const imgUrl = cardData?.card_images?.[0]?.image_url_small || `https://images.ygoprodeck.com/images/cards_small/${cardId}.jpg`;
@@ -35,7 +37,8 @@ export default function MetaDeckGrid({ title, borderColor, textColor, deckIds, c
                   src={imgUrl}
                   alt={cardData?.name || cardId}
                   className={`rounded border ${isPinned ? 'border-info border-2 shadow-lg' : 'border-secondary'}`}
-                  style={{ width: '62px', height: '90px', objectFit: 'cover' }}
+                  /* Replaced fixed width/height with fluid scaling to fit the grid cells */
+                  style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg';
@@ -45,6 +48,7 @@ export default function MetaDeckGrid({ title, borderColor, textColor, deckIds, c
             );
           })}
         </div>
+        
       </Card.Body>
     </Card>
   );

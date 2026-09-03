@@ -62,12 +62,17 @@ jobs:
           docker build -f YuGiOh_Analytics_Consumer/Dockerfile -t yugiohapidocker.azurecr.io/analytics:${{ github.sha }} .
           docker push yugiohapidocker.azurecr.io/analytics:${{ github.sha }}
 
+          # Build Market Telemetry API
+          docker build -f MarketTelemetry.Service/Dockerfile -t yugiohapidocker.azurecr.io/market-api:${{ github.sha }} .
+          docker push yugiohapidocker.azurecr.io/market-api:${{ github.sha }}
+
       - name: Build and Push Frontend Image
         run: |
           docker build --no-cache \
             --build-arg REACT_APP_IDENTITY_URL=https://identity.azurecontainerapps.io \
             --build-arg REACT_APP_DECK_API_URL=https://api.azurecontainerapps.io \
             --build-arg NEXT_PUBLIC_CDN_URL=https://video-cdn-hsa4fhe3ghhne9e5.z01.azurefd.net \
+            --build-arg NEXT_PUBLIC_MARKET_API_URL=https://market-api.azurecontainerapps.io \
             -t yugiohapidocker.azurecr.io/frontend:${{ github.sha }} ./YuGiOh_Deck_React
           docker push yugiohapidocker.azurecr.io/frontend:${{ github.sha }}
 
@@ -128,7 +133,7 @@ jobs:
           containerAppName: frontend
           resourceGroup: ErreGeTe
           targetPort: 80
-          environmentVariables: NEXT_PUBLIC_CDN_URL=https://video-cdn-hsa4fhe3ghhne9e5.z01.azurefd.net
+          environmentVariables: NEXT_PUBLIC_CDN_URL=https://video-cdn-hsa4fhe3ghhne9e5.z01.azurefd.net, NEXT_PUBLIC_MARKET_API_URL=https://market-api.azurecontainerapps.io
 
       # 9. Deploy Analytics Consumer (Background Worker)
       - name: Deploy Analytics Consumer
@@ -138,6 +143,18 @@ jobs:
           containerAppName: analytics
           resourceGroup: ErreGeTe
           disableIngress: true
+
+      # 10. Deploy Market Telemetry API
+      - name: Deploy Market Telemetry API
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          imageToDeploy: yugiohapidocker.azurecr.io/market-api:${{ github.sha }}
+          containerAppName: market-api
+          resourceGroup: ErreGeTe
+          targetPort: 8080
+          acrName: yugiohapidocker
+          acrUsername: ${{ secrets.ACR_USERNAME }}
+          acrPassword: ${{ secrets.ACR_PASSWORD }}
 
       - name: Force Disable Analytics Ingress
         run: |

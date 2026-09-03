@@ -97,7 +97,8 @@ export default function NavbarYGO() {
               <NavDropdown renderMenuOnMount={true} title={<span className="fw-bold">Card Database</span>} id="card-database-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2 hover-slide-dropdown">
                 <NavDropdown.Item as={Link} href="/cardsearch" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Card Search</NavDropdown.Item>
                 <NavDropdown.Item as={Link} href="/banlist" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Ban List</NavDropdown.Item>
-                <NavDropdown.Item as={Link} href="/packsimulator" className="fw-bold text-info" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Pack Simulator</NavDropdown.Item>
+                <NavDropdown.Item as={Link} href="/market-listings" className="fw-bold" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Market Listings</NavDropdown.Item>
+                {/* <NavDropdown.Item as={Link} href="/packsimulator" className="fw-bold text-info" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Pack Simulator</NavDropdown.Item> */}
               </NavDropdown>
 
               <NavDropdown renderMenuOnMount={true} title={<span className="fw-bold">Forums</span>} id="forums-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-2 hover-slide-dropdown">

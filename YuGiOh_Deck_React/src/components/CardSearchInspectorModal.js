@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Row, Col, Badge } from 'react-bootstrap';
+import { Modal, Row, Col, Badge, Button } from 'react-bootstrap';
+import Link from 'next/link';
 
 const renderLevelStars = (level) => {
     if (!level) return null;
@@ -21,17 +22,26 @@ const renderBanBadge = (status) => {
 
 export default function CardSearchInspectorModal({ inspectCard, setInspectCard }) {
     const [showLargeImage, setShowLargeImage] = useState(false);
+    // Track selected printing/rarity from the TCG Printings table
+    const [selectedPrinting, setSelectedPrinting] = useState(null);
 
     if (!inspectCard) return null;
 
     const largeImageUrl = inspectCard.card_images?.[0]?.image_url || `https://images.ygoprodeck.com/images/cards/${inspectCard.id}.jpg`;
+    
+    // Default to the first available printing or a fallback set name
+    const defaultSet = inspectCard.cardSets?.[0] || { set_name: "Chaos Origins", set_rarity: "Common" };
+    const activeSet = selectedPrinting || defaultSet;
+
+    // 🚀 Rarity Mapping: If your backend links set codes/rarities to TCGPlayer Product IDs, 
+    // you can attach or resolve the specific productId here. If inspectCard already has product bindings, use them.
+    const targetProductId = activeSet.productId || inspectCard.id; 
 
     return (
         <>
-            {/* 🚀 Main Inspector Modal with dynamic blur/fade when large image is open */}
             <Modal
                 show={!!inspectCard}
-                onHide={() => setInspectCard(null)}
+                onHide={() => { setInspectCard(null); setSelectedPrinting(null); }}
                 centered
                 size="lg"
                 contentClassName="bg-dark text-white border border-info shadow-lg rounded-3"
@@ -58,15 +68,7 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                         alt={inspectCard.name} 
                                         className="w-100 h-auto rounded"
                                         style={{ cursor: 'pointer', transition: 'transform 0.2s ease' }}
-                                        title="Click to view full-size image"
                                         onClick={() => setShowLargeImage(true)}
-                                        onError={(e) => {
-                                            if (e.target.src !== inspectCard.fallbackImage && inspectCard.fallbackImage) {
-                                                e.target.src = inspectCard.fallbackImage;
-                                            } else {
-                                                e.target.src = "https://ygoprodeck.com/images/cards/back.jpg";
-                                            }
-                                        }}
                                     />
                                 </div>
                             </div>
@@ -103,16 +105,24 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                     </Col>
                                 </Row>
                             </div>
+
+                            {/* 🚀 Routes to Telemetry with the specific set name and rarity/product ID */}
+                            <div className="mt-3">
+                                // Inside CardSearchInspectorModal.js, update the routing button href:
+                                <Button 
+                                    as={Link}
+                                    href={`/market-listings/${encodeURIComponent(activeSet.set_name)}/${encodeURIComponent(inspectCard.name)}?id=${activeSet.productId || inspectCard.id}&konamiId=${inspectCard.id}&rarity=${encodeURIComponent(activeSet.set_rarity)}`}
+                                    variant="info" 
+                                    className="w-100 fw-bold terminal-font py-2 shadow"
+                                    onClick={() => { setInspectCard(null); setSelectedPrinting(null); }}
+                                >
+                                    See Telemetry ({activeSet.set_rarity})
+                                </Button>
+                            </div>
                         </Col>
 
                         <Col md={7} className="d-flex flex-column">
                             <div className="p-3 rounded bg-black bg-opacity-50 border border-info border-opacity-30 position-relative d-flex flex-column flex-grow-1">
-                                
-                                <div className="vrains-corner vrains-corner-tl"></div>
-                                <div className="vrains-corner vrains-corner-tr"></div>
-                                <div className="vrains-corner vrains-corner-bl"></div>
-                                <div className="vrains-corner vrains-corner-br"></div>
-
                                 <h3 className="fw-bold text-white mb-2" style={{ fontSize: '1.25rem' }}>{inspectCard.name}</h3>
 
                                 <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
@@ -124,11 +134,6 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                     <Badge bg="secondary" className="terminal-font">
                                         {inspectCard.type?.toUpperCase()}
                                     </Badge>
-                                    {inspectCard.race && !inspectCard.type?.toUpperCase().includes(inspectCard.race.toUpperCase()) && (
-                                        <Badge bg="dark" className="border border-secondary text-info terminal-font">
-                                            {inspectCard.race.toUpperCase()}
-                                        </Badge>
-                                    )}
                                 </div>
 
                                 {inspectCard.level && (
@@ -137,96 +142,29 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                     </div>
                                 )}
 
-                                {(inspectCard.atk !== null || inspectCard.def !== null) && (
-                                    <Row className="g-2 mb-2">
-                                        <Col>
-                                            <div className="vrains-stat-box py-1">
-                                                <span className="text-white-50 small terminal-font d-block" style={{ fontSize: '0.65rem' }}>ATK</span>
-                                                <span className="fw-bold text-warning fs-6">
-                                                    {inspectCard.atk ?? "—"}
-                                                </span>
-                                            </div>
-                                        </Col>
-                                        <Col>
-                                            <div className="vrains-stat-box py-1">
-                                                <span className="text-white-50 small terminal-font d-block" style={{ fontSize: '0.65rem' }}>DEF</span>
-                                                <span className="fw-bold text-info fs-6">
-                                                    {inspectCard.def ?? "—"}
-                                                </span>
-                                            </div>
-                                        </Col>
-                                    </Row>
-                                )}
-
-                                <Row className="g-2 mb-2">
-                                    <Col xs={8}>
-                                        <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-25 h-100">
-                                            <div className="text-info small terminal-font mb-1" style={{ fontSize: '0.62rem' }}>
-                                                BANLIST STATUS
-                                            </div>
-                                            <div className="d-flex align-items-center justify-content-between gap-1">
-                                                <div className="text-center flex-grow-1">
-                                                    <span className="text-white-50 d-block" style={{ fontSize: '0.55rem' }}>MD</span>
-                                                    {renderBanBadge(inspectCard.banlist?.masterduel)}
-                                                </div>
-                                                <div className="text-center flex-grow-1">
-                                                    <span className="text-white-50 d-block" style={{ fontSize: '0.55rem' }}>TCG</span>
-                                                    {renderBanBadge(inspectCard.banlist?.tcg)}
-                                                </div>
-                                                <div className="text-center flex-grow-1">
-                                                    <span className="text-white-50 d-block" style={{ fontSize: '0.55rem' }}>OCG</span>
-                                                    {renderBanBadge(inspectCard.banlist?.ocg)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Col>
-
-                                    <Col xs={4}>
-                                        <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-25 h-100 d-flex flex-column justify-content-between text-center">
-                                            <span className="text-info small terminal-font d-block fw-bold" style={{ fontSize: '0.62rem' }}>
-                                                 GENESYS POINTS
-                                            </span>
-                                            <div>
-                                                {inspectCard.isLinkOrPendulum ? (
-                                                    <Badge bg="danger" className="terminal-font px-1 py-1" style={{ fontSize: '0.58rem' }}>
-                                                        N/A (BANNED)
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge bg="info" className="text-dark terminal-font px-2 py-1 fw-bold fs-6">
-                                                        {inspectCard.genesysPoints} PTS
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </Col>
-                                </Row>
-
                                 <div className="mt-1 flex-grow-1 d-flex flex-column">
                                     <label className="text-info small terminal-font mb-1 d-block" style={{ fontSize: '0.7rem' }}>
                                         CARD EFFECT
                                     </label>
                                     <div 
                                         className="p-3 rounded bg-black bg-opacity-60 text-white-50 small border border-secondary border-opacity-30 flex-grow-1"
-                                        style={{ minHeight: '90px', overflowY: 'auto', whiteSpace: 'pre-line', fontSize: '0.82rem', lineHeight: '1.45' }}
+                                        style={{ minHeight: '120px', overflowY: 'auto', whiteSpace: 'pre-line', fontSize: '0.82rem', lineHeight: '1.45' }}
                                     >
                                         {inspectCard.desc}
                                     </div>
                                 </div>
-
                             </div>
                         </Col>
                     </Row>
 
+                    {/* TCG Printings Table: Clicking a row selects that specific rarity/set variant */}
                     <div className="mt-3">
                         <label className="text-info small terminal-font mb-1 d-block" style={{ fontSize: '0.7rem' }}>
-                            TCG PRINTINGS
+                            TCG PRINTINGS (CLICK TO SELECT RARITY VARIANT)
                         </label>
-                        <div 
-                            className="rounded bg-black bg-opacity-60 border border-secondary border-opacity-30 overflow-auto"
-                            style={{ maxHeight: '140px' }}
-                        >
+                        <div className="rounded bg-black bg-opacity-60 border border-secondary border-opacity-30 overflow-auto" style={{ maxHeight: '140px' }}>
                             {inspectCard.cardSets && inspectCard.cardSets.length > 0 ? (
-                                <table className="table table-sm table-dark table-borderless m-0 terminal-font" style={{ fontSize: '0.75rem' }}>
+                                <table className="table table-sm table-dark table-hover table-borderless m-0 terminal-font" style={{ fontSize: '0.75rem', cursor: 'pointer' }}>
                                     <thead style={{ position: 'sticky', top: 0, backgroundColor: '#0a0d14', zIndex: 1 }}>
                                         <tr className="text-info-50" style={{ borderBottom: '1px solid rgba(0, 210, 255, 0.2)' }}>
                                             <th className="py-2 px-2 fw-normal">Set Code</th>
@@ -235,13 +173,23 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {inspectCard.cardSets.map((set, idx) => (
-                                            <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                                <td className="text-warning px-2 align-middle">{set.set_code}</td>
-                                                <td className="text-white-50 px-2 align-middle">{set.set_name}</td>
-                                                <td className="text-info px-2 align-middle">{set.set_rarity}</td>
-                                            </tr>
-                                        ))}
+                                        {inspectCard.cardSets.map((set, idx) => {
+                                            const isSelected = activeSet.set_code === set.set_code && activeSet.set_rarity === set.set_rarity;
+                                            return (
+                                                <tr 
+                                                    key={idx} 
+                                                    onClick={() => setSelectedPrinting(set)}
+                                                    style={{ 
+                                                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                                        backgroundColor: isSelected ? 'rgba(0, 210, 255, 0.15)' : 'transparent'
+                                                    }}
+                                                >
+                                                    <td className="text-warning px-2 align-middle">{set.set_code}</td>
+                                                    <td className="text-white-50 px-2 align-middle">{set.set_name}</td>
+                                                    <td className="text-info px-2 align-middle fw-bold">{set.set_rarity} {isSelected && " ✓"}</td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             ) : (
@@ -252,7 +200,6 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                 </Modal.Body>
             </Modal>
 
-            {/* 🔍 Secondary Modal for Large Image Preview */}
             <Modal show={showLargeImage} onHide={() => setShowLargeImage(false)} centered size="md" contentClassName="bg-transparent border-0 text-center shadow-none">
                 <Modal.Body className="p-0 text-center position-relative">
                     <button type="button" className="btn-close btn-close-white position-absolute top-0 end-0 m-3 z-3 shadow" onClick={() => setShowLargeImage(false)} aria-label="Close" />
@@ -261,7 +208,6 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                         alt={inspectCard.name} 
                         className="img-fluid rounded shadow-lg"
                         style={{ maxHeight: '85vh', objectFit: 'contain' }}
-                        onError={(e) => { e.target.src = "https://ygoprodeck.com/images/cards/back.jpg"; }}
                     />
                 </Modal.Body>
             </Modal>

@@ -42,7 +42,7 @@ export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds, onExport
       <Card.Body>
         <div className="p-3 rounded mb-2" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
           <h5 className="text-info terminal-font fw-bold border-bottom border-info border-opacity-25 pb-2 mb-3">
-            📊 MAIN DECK COMPOSITION RATIO
+            MAIN DECK COMPOSITION RATIO
           </h5>
 
           <Row className="align-items-center g-3">

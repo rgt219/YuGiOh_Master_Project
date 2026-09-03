@@ -49,7 +49,7 @@ export default function DeckBoss({ deck, isDeckListed, toggleDeckList }) {
                             />
                         }
                         loadingOverlay={
-                            <div className="text-info p-2 small">LOADING_PREVIEW...</div>
+                            <div className="text-info p-2 small">LOADING PREVIEW...</div>
                         }
                         loop={true}
                         muted={true}
