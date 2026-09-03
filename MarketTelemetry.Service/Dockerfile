@@ -1,5 +1,5 @@
-# Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Build Stage (Updated to .NET 9.0)
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Restore dependencies
@@ -15,8 +15,8 @@ RUN dotnet build "MarketTelemetry.Service.csproj" -c Release -o /app/build
 FROM build AS publish
 RUN dotnet publish "MarketTelemetry.Service.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Final Run Stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# Final Run Stage (Updated to .NET 9.0 aspnet runtime)
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 EXPOSE 8080
 
