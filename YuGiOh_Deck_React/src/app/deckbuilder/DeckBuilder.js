@@ -37,7 +37,7 @@ export default function DeckBuilder() {
             
             <input type="file" accept=".ydk" ref={fileInputRef} style={{ display: "none" }} onChange={handleImportYDK} />
 
-            <Container className="px-3 mx-auto" style={{ maxWidth: '1400px' }}>
+            <Container fluid className="px-2 px-xxl-4">
                 <DeckHeader 
                     deckName={deckName} dispatch={dispatch} updateDeckName={updateDeckName}
                     isImporting={isImporting} fileInputRef={fileInputRef} handleImportYDK={handleImportYDK}
@@ -45,40 +45,77 @@ export default function DeckBuilder() {
                     handleSave={handleSave} setShowAiModal={setShowAiModal}
                 />
 
-                <CardInspector 
-                    pinnedCard={pinnedCard} setPinnedCard={setPinnedCard}
-                    inspectedCard={inspectedCard} mainDeck={mainDeck}
-                    extraDeck={extraDeck} handlePinCard={handlePinCard}
-                />
+                {/* --- STANDARD / LAPTOP LAYOUT --- */}
+                <div className="d-xxl-none">
+                    <CardInspector 
+                        pinnedCard={pinnedCard} setPinnedCard={setPinnedCard}
+                        inspectedCard={inspectedCard} mainDeck={mainDeck}
+                        extraDeck={extraDeck} handlePinCard={handlePinCard}
+                    />
 
-                <Row className="g-4">
-                    <Col lg={7}>
-                        <CustomDeck 
-                            mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onDeleteCard={handleDeleteCard}
-                            onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
-                            onPinCard={handlePinCard}
-                        />
-                    </Col>
-                    <Col lg={5}>
-                    
-                        <div style={{ 
-                        position: 'sticky', 
-                        top: '460px', /* 🚀 Increased to perfectly clear the CardInspector's height */
-                        maxHeight: 'calc(100vh - 470px)', /* 🚀 Keeps the search panel from clipping off your monitor */
-                        overflowY: 'auto', /* 🚀 Adds an internal scrollbar if the search results get long */
-                        overflowX: 'hidden',
-                        zIndex: 10 
-                    }}>
+                    <Row className="g-4 mt-2">
+                        <Col lg={7}>
+                            <CustomDeck 
+                                mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onDeleteCard={handleDeleteCard}
+                                onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
+                                onPinCard={handlePinCard}
+                            />
+                        </Col>
+                        <Col lg={5}>
+                            <div style={{ 
+                                position: 'sticky', 
+                                top: '100px', 
+                                maxHeight: 'calc(100vh - 120px)', 
+                                overflowY: 'auto', 
+                                overflowX: 'hidden',
+                                zIndex: 10 
+                            }}>
+                                <CardApi 
+                                    onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
+                                    cardList={[...mainDeck, ...extraDeck, ...sideDeck]}
+                                    onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
+                                    onPinCard={handlePinCard}
+                                />
+                            </div>
+                        </Col>
+                    </Row>
+                </div>
+
+                {/* --- ULTRAWIDE 2-ROW LAYOUT --- */}
+                <div className="d-none d-xxl-block">
+                    {/* ROW 1: Inspector & Database Search (Set to align-items-stretch) */}
+                    <Row className="g-4 mb-4 align-items-stretch">
+                        <Col xxl={3}>
+                            <div style={{ position: 'sticky', top: '100px', zIndex: 10 }}>
+                                <CardInspector 
+                                    pinnedCard={pinnedCard} setPinnedCard={setPinnedCard}
+                                    inspectedCard={inspectedCard} mainDeck={mainDeck}
+                                    extraDeck={extraDeck} handlePinCard={handlePinCard}
+                                />
+                            </div>
+                        </Col>
+
+                        <Col xxl={9}>
                             <CardApi 
                                 onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
-                                // Don't forget to include sideDeck here so your 3-copy limit badges update!
                                 cardList={[...mainDeck, ...extraDeck, ...sideDeck]}
                                 onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
                                 onPinCard={handlePinCard}
                             />
-                        </div>
-                    </Col>
-                </Row>
+                        </Col>
+                    </Row>
+
+                    {/* ROW 2: The Deck Sections */}
+                    <Row className="g-4">
+                        <Col xxl={12}>
+                            <CustomDeck 
+                                mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onDeleteCard={handleDeleteCard}
+                                onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
+                                onPinCard={handlePinCard}
+                            />
+                        </Col>
+                    </Row>
+                </div>
             </Container>
 
             <AiCardSuggester 

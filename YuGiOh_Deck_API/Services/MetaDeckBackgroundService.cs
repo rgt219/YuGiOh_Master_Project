@@ -26,7 +26,16 @@ namespace YuGiOhDeckApi.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Meta Deck Background Service initialized.");
+            _logger.LogInformation("Meta Deck Background Service initialized. Waiting 45 seconds for container group stabilization...");
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(45), stoppingToken);
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
 
             using var timer = new PeriodicTimer(_period);
 

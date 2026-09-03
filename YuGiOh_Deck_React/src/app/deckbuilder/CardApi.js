@@ -55,7 +55,6 @@ export default function CardApi({ onAddCard, cardList = [], onInspectCard, onPin
         cacheTime: 1000 * 60 * 60 * 2,
     });
 
-    // --- Complete Search & Filter States ---
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedMainType, setSelectedMainType] = useState('ALL');
     const [selectedAttribute, setSelectedAttribute] = useState('ALL');
@@ -69,7 +68,6 @@ export default function CardApi({ onAddCard, cardList = [], onInspectCard, onPin
     const [selectedScale, setSelectedScale] = useState('ALL');
     const [archetypesList, setArchetypesList] = useState(['ALL']);
 
-    // Fetch Archetypes List
     useEffect(() => {
         fetch("https://db.ygoprodeck.com/api/v7/archetypes.php")
             .then(res => res.json())
@@ -80,7 +78,6 @@ export default function CardApi({ onAddCard, cardList = [], onInspectCard, onPin
             .catch(() => setArchetypesList(["ALL"]));
     }, []);
 
-    // Category options mapping
     const currentRaceOptions = useMemo(() => {
         if (selectedMainType === "SPELL") return SPELL_TYPES;
         if (selectedMainType === "TRAP") return TRAP_TYPES;
@@ -198,14 +195,12 @@ export default function CardApi({ onAddCard, cardList = [], onInspectCard, onPin
             style={{ 
                 backgroundColor: 'rgba(8, 12, 20, 0.98)', 
                 backdropFilter: 'blur(10px)',
-                position: 'sticky', 
-                top: '100px', 
                 zIndex: 100 
             }} 
             text="white" 
-            className="border-info shadow-lg p-3 md-panel"
+            className="border-info shadow-lg p-3 md-panel h-100"
         >            
-            <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2 mb-2 d-flex justify-content-between align-items-center">
+            <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2 mb-3 d-flex justify-content-between align-items-center flex-shrink-0">
                 <h6 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
                     🔍 CARD DATABASE SEARCH
                 </h6>
@@ -222,269 +217,276 @@ export default function CardApi({ onAddCard, cardList = [], onInspectCard, onPin
                 )}
             </Card.Header>
 
-            <Card.Body className="p-1">
-                <Form>
-                    {/* Name / Effect Text Search */}
-                    <Form.Group className="mb-2">
-                        <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>
-                            NAME OR EFFECT TEXT SEARCH
-                        </Form.Label>
-                        <InputGroup size="sm">
-                            <Form.Control
-                                type="search"
-                                placeholder="Search name, 'negate', 'destroy'..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="bg-black text-white border-secondary terminal-font shadow-none"
-                                style={{ fontSize: '0.8rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            />
-                            {searchQuery && (
-                                <Button variant="outline-secondary" onClick={() => setSearchQuery("")} className="terminal-font">
-                                    ✖
-                                </Button>
-                            )}
-                        </InputGroup>
-                    </Form.Group>
+            <Card.Body className="p-0 d-flex flex-column flex-grow-1">
+                <Row className="g-3 h-100">
+                    {/* LEFT COLUMN: Cleanly spaced, larger form elements filling vertical space */}
+                    <Col xs={12} xl={5} className="border-end border-secondary border-opacity-50 pe-xl-3 d-flex flex-column justify-content-between">
+                        <Form className="d-flex flex-column gap-2">
+                            <Form.Group>
+                                <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+                                    NAME OR EFFECT TEXT SEARCH
+                                </Form.Label>
+                                <InputGroup size="md">
+                                    <Form.Control
+                                        type="search"
+                                        placeholder="Search name, 'negate', 'destroy'..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="bg-black text-white border-secondary terminal-font shadow-none py-2"
+                                        style={{ fontSize: '0.9rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    />
+                                    {searchQuery && (
+                                        <Button variant="outline-secondary" onClick={() => setSearchQuery("")} className="terminal-font px-3">
+                                            ✖
+                                        </Button>
+                                    )}
+                                </InputGroup>
+                            </Form.Group>
 
-                    {/* Card Categories (Pills) */}
-                    <Form.Group className="mb-2">
-                        <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>
-                            CARD CATEGORY
-                        </Form.Label>
-                        <div className="d-flex gap-1 flex-wrap">
-                            {MAIN_CARD_TYPES.map(type => (
-                                <Button
-                                    key={type}
-                                    variant={selectedMainType === type ? "info" : "outline-secondary"}
-                                    size="sm"
-                                    className="terminal-font fw-bold flex-grow-1 py-1 px-1"
-                                    style={{ fontSize: '0.7rem' }}
-                                    onClick={() => handleCategoryChange(type)}
-                                >
-                                    {type}
-                                </Button>
-                            ))}
-                        </div>
-                    </Form.Group>
+                            <Form.Group>
+                                <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+                                    CARD CATEGORY
+                                </Form.Label>
+                                <div className="d-flex gap-1 flex-wrap">
+                                    {MAIN_CARD_TYPES.map(type => (
+                                        <Button
+                                            key={type}
+                                            variant={selectedMainType === type ? "info" : "outline-secondary"}
+                                            size="sm"
+                                            className="terminal-font fw-bold flex-grow-1 py-2 px-1"
+                                            style={{ fontSize: '0.75rem' }}
+                                            onClick={() => handleCategoryChange(type)}
+                                        >
+                                            {type}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </Form.Group>
 
-                    {/* Dropdowns Grid */}
-                    <Row className="g-1 mb-3">
-                        <Col xs={6}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>ATTRIBUTE</Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font text-uppercase"
-                                value={selectedAttribute}
-                                onChange={(e) => setSelectedAttribute(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
-                                style={{ fontSize: '0.72rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {ATTRIBUTES.map(attr => (<option key={attr} value={attr}>{attr}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col xs={6}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>ABILITY</Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font"
-                                value={selectedAbility}
-                                onChange={(e) => setSelectedAbility(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedMainType === "NORMAL"}
-                                style={{ fontSize: '0.72rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {MONSTER_ABILITIES.map(ability => (
-                                    <option key={ability} value={ability}>{ability === 'ALL' ? 'ALL ABILITIES' : ability}</option>
-                                ))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col xs={6}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>TYPE</Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font"
-                                value={selectedType}
-                                onChange={(e) => setSelectedType(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
-                                style={{ fontSize: '0.72rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {MONSTER_EXTRA_TYPES.map(type => (
-                                    <option key={type} value={type}>{type === 'ALL' ? 'ALL TYPES' : type}</option>
-                                ))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col xs={6}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>
-                                {selectedMainType === "SPELL" ? "SPELL TYPE" : selectedMainType === "TRAP" ? "TRAP TYPE" : "MONSTER RACE"}
-                            </Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font"
-                                value={selectedRace}
-                                onChange={(e) => setSelectedRace(e.target.value)}
-                                style={{ fontSize: '0.72rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {currentRaceOptions.map(option => (<option key={option} value={option}>{option.toUpperCase()}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col xs={6}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>ARCHETYPE</Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font"
-                                value={selectedArchetype}
-                                onChange={(e) => setSelectedArchetype(e.target.value)}
-                                style={{ fontSize: '0.72rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {archetypesList.map(arch => (<option key={arch} value={arch}>{arch.toUpperCase()}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col xs={6}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>RARITY</Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font"
-                                value={selectedRarity}
-                                onChange={(e) => setSelectedRarity(e.target.value)}
-                                style={{ fontSize: '0.72rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {RARITIES.map(r => (<option key={r} value={r}>{r.toUpperCase()}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col xs={4}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.6rem' }}>LEVEL/RANK</Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font"
-                                value={selectedLevel}
-                                onChange={(e) => setSelectedLevel(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedType === "LINK"}
-                                style={{ fontSize: '0.68rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {LEVELS.map(l => (<option key={l} value={l}>{l === 'ALL' ? 'ALL' : `${l}★`}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col xs={4}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.6rem' }}>LINK ARROWS</Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font"
-                                value={selectedLink}
-                                onChange={(e) => setSelectedLink(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "LINK" && selectedType !== "ALL")}
-                                style={{ fontSize: '0.68rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {LINKS.map(l => (<option key={l} value={l}>{l === 'ALL' ? 'ALL' : `L-${l}`}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col xs={4}>
-                            <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.6rem' }}>PEND. SCALE</Form.Label>
-                            <Form.Select 
-                                size="sm" 
-                                className="bg-black text-info border-secondary terminal-font"
-                                value={selectedScale}
-                                onChange={(e) => setSelectedScale(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "PENDULUM" && selectedType !== "ALL")}
-                                style={{ fontSize: '0.68rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
-                            >
-                                {SCALES.map(s => (<option key={s} value={s}>{s === 'ALL' ? 'ALL' : s}</option>))}
-                            </Form.Select>
-                        </Col>
-                    </Row>
-                </Form>
-
-                {isLoading && (
-                    <div className="text-center py-4">
-                        <Spinner animation="border" variant="info" size="sm" className="mb-2" />
-                        <p className="small text-info terminal-font m-0">ACCESSING_MASTER_DATABASE...</p>
-                    </div>
-                )}
-
-                {isError && (
-                    <p className="small text-danger terminal-font text-center py-3">⚠️ DATABASE_OFFLINE</p>
-                )}
-
-                {!isLoading && (
-                    <div 
-                        style={{ 
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(6, 1fr)',
-                            gap: '8px',
-                            maxHeight: '420px', 
-                            overflowY: 'auto', 
-                            paddingRight: '4px' 
-                        }}
-                    >
-                        {!hasActiveFilters ? (
-                            <p className="small text-white-50 terminal-font text-center py-4" style={{ gridColumn: '1 / -1' }}>
-                                ENTER A SEARCH TERM OR SELECT FILTERS TO FIND CARDS...
-                            </p>
-                        ) : filteredCards.length === 0 ? (
-                            <p className="small text-white-50 terminal-font text-center py-4" style={{ gridColumn: '1 / -1' }}>
-                                NO CARDS MATCHING YOUR SEARCH CRITERIA
-                            </p>
-                        ) : (
-                            filteredCards.map((card) => {
-                                const countInDeck = getCardDeckCount(card.id);
-                                const isMaxedOut = countInDeck >= 3;
-
-                                return (
-                                    <div
-                                        key={card.id}
-                                        className="position-relative card-thumbnail-wrap"
-                                        style={{ 
-                                            cursor: 'pointer', 
-                                            width: '100%',
-                                            transition: 'transform 0.15s ease'
-                                        }}
-                                        onMouseEnter={() => onInspectCard?.(card)}
-                                        onClick={(e) => {
-                                            onInspectCard?.(card);
-                                            if (!isMaxedOut) {
-                                                onAddCard(card, e.shiftKey);
-                                            }
-                                        }}
-                                        onContextMenu={(e) => {
-                                            e.preventDefault();
-                                            if (onPinCard) onPinCard(card);
-                                        }}
-                                        title={isMaxedOut 
-                                            ? "Right-click: Lock Inspector" 
-                                            : "Left-click: Add | Shift+Click: Side Deck | Right-click: Lock"
-                                        }
+                            <Row className="g-2">
+                                <Col xs={6}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.7rem' }}>ATTRIBUTE</Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font text-uppercase py-2"
+                                        value={selectedAttribute}
+                                        onChange={(e) => setSelectedAttribute(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
+                                        style={{ fontSize: '0.8rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
                                     >
-                                        <img
-                                            src={card.image}
-                                            alt={card.name}
-                                            className={`rounded border ${isMaxedOut ? 'border-danger' : 'border-info border-opacity-50'} w-100`}
-                                            style={{ aspectRatio: '421 / 614', objectFit: 'cover' }}
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = card.fallbackImage;
-                                            }}
-                                        />
+                                        {ATTRIBUTES.map(attr => (<option key={attr} value={attr}>{attr}</option>))}
+                                    </Form.Select>
+                                </Col>
 
-                                        {countInDeck > 0 && (
-                                            <Badge 
-                                                bg={isMaxedOut ? "danger" : "success"} 
-                                                className="position-absolute top-0 end-0 m-1 fw-bold shadow-sm"
-                                            >
-                                                {countInDeck}/3
-                                            </Badge>
-                                        )}
-                                    </div>
-                                );
-                            })
+                                <Col xs={6}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.7rem' }}>ABILITY</Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font py-2"
+                                        value={selectedAbility}
+                                        onChange={(e) => setSelectedAbility(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedMainType === "NORMAL"}
+                                        style={{ fontSize: '0.8rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    >
+                                        {MONSTER_ABILITIES.map(ability => (
+                                            <option key={ability} value={ability}>{ability === 'ALL' ? 'ALL ABILITIES' : ability}</option>
+                                        ))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col xs={6}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.7rem' }}>TYPE</Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font py-2"
+                                        value={selectedType}
+                                        onChange={(e) => setSelectedType(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
+                                        style={{ fontSize: '0.8rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    >
+                                        {MONSTER_EXTRA_TYPES.map(type => (
+                                            <option key={type} value={type}>{type === 'ALL' ? 'ALL TYPES' : type}</option>
+                                        ))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col xs={6}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.7rem' }}>
+                                        {selectedMainType === "SPELL" ? "SPELL TYPE" : selectedMainType === "TRAP" ? "TRAP TYPE" : "MONSTER RACE"}
+                                    </Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font py-2"
+                                        value={selectedRace}
+                                        onChange={(e) => setSelectedRace(e.target.value)}
+                                        style={{ fontSize: '0.8rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    >
+                                        {currentRaceOptions.map(option => (<option key={option} value={option}>{option.toUpperCase()}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col xs={6}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.7rem' }}>ARCHETYPE</Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font py-2"
+                                        value={selectedArchetype}
+                                        onChange={(e) => setSelectedArchetype(e.target.value)}
+                                        style={{ fontSize: '0.8rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    >
+                                        {archetypesList.map(arch => (<option key={arch} value={arch}>{arch.toUpperCase()}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col xs={6}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.7rem' }}>RARITY</Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font py-2"
+                                        value={selectedRarity}
+                                        onChange={(e) => setSelectedRarity(e.target.value)}
+                                        style={{ fontSize: '0.8rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    >
+                                        {RARITIES.map(r => (<option key={r} value={r}>{r.toUpperCase()}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col xs={4}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>LVL/RANK</Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font py-2"
+                                        value={selectedLevel}
+                                        onChange={(e) => setSelectedLevel(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedType === "LINK"}
+                                        style={{ fontSize: '0.75rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    >
+                                        {LEVELS.map(l => (<option key={l} value={l}>{l === 'ALL' ? 'ALL' : `${l}★`}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col xs={4}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>LINK</Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font py-2"
+                                        value={selectedLink}
+                                        onChange={(e) => setSelectedLink(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "LINK" && selectedType !== "ALL")}
+                                        style={{ fontSize: '0.75rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    >
+                                        {LINKS.map(l => (<option key={l} value={l}>{l === 'ALL' ? 'ALL' : `L-${l}`}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col xs={4}>
+                                    <Form.Label className="text-info terminal-font mb-1" style={{ fontSize: '0.65rem' }}>SCALE</Form.Label>
+                                    <Form.Select 
+                                        size="md" 
+                                        className="bg-black text-info border-secondary terminal-font py-2"
+                                        value={selectedScale}
+                                        onChange={(e) => setSelectedScale(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "PENDULUM" && selectedType !== "ALL")}
+                                        style={{ fontSize: '0.75rem', backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                    >
+                                        {SCALES.map(s => (<option key={s} value={s}>{s === 'ALL' ? 'ALL' : s}</option>))}
+                                    </Form.Select>
+                                </Col>
+                            </Row>
+                        </Form>
+                    </Col>
+
+                    {/* RIGHT COLUMN: Results Map */}
+                    <Col xs={12} xl={7} className="ps-xl-2 flex-grow-1">
+                        {isLoading && (
+                            <div className="text-center py-4">
+                                <Spinner animation="border" variant="info" size="sm" className="mb-2" />
+                                <p className="small text-info terminal-font m-0">ACCESSING_MASTER_DATABASE...</p>
+                            </div>
                         )}
-                    </div>
-                )}
+
+                        {isError && (
+                            <p className="small text-danger terminal-font text-center py-3">⚠️ DATABASE_OFFLINE</p>
+                        )}
+
+                        {!isLoading && (
+                            <div 
+                                className="custom-scrollbar"
+                                style={{ 
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', 
+                                    gap: '6px',
+                                    height: '560px', 
+                                    overflowY: 'auto', 
+                                    paddingRight: '4px',
+                                    alignContent: 'start' 
+                                }}
+                            >
+                                {!hasActiveFilters ? (
+                                    <p className="small text-white-50 terminal-font text-center py-4" style={{ gridColumn: '1 / -1' }}>
+                                        ENTER A SEARCH TERM OR SELECT FILTERS TO FIND CARDS...
+                                    </p>
+                                ) : filteredCards.length === 0 ? (
+                                    <p className="small text-white-50 terminal-font text-center py-4" style={{ gridColumn: '1 / -1' }}>
+                                        NO CARDS MATCHING YOUR SEARCH CRITERIA
+                                    </p>
+                                ) : (
+                                    filteredCards.map((card) => {
+                                        const countInDeck = getCardDeckCount(card.id);
+                                        const isMaxedOut = countInDeck >= 3;
+
+                                        return (
+                                            <div
+                                                key={card.id}
+                                                className="position-relative card-thumbnail-wrap"
+                                                style={{ 
+                                                    cursor: 'pointer', 
+                                                    width: '100%',
+                                                    transition: 'transform 0.15s ease'
+                                                }}
+                                                onMouseEnter={() => onInspectCard?.(card)}
+                                                onClick={(e) => {
+                                                    onInspectCard?.(card);
+                                                    if (!isMaxedOut) {
+                                                        onAddCard(card, e.shiftKey);
+                                                    }
+                                                }}
+                                                onContextMenu={(e) => {
+                                                    e.preventDefault();
+                                                    if (onPinCard) onPinCard(card);
+                                                }}
+                                                title={isMaxedOut 
+                                                    ? "Right-click: Lock Inspector" 
+                                                    : "Left-click: Add | Shift+Click: Side Deck | Right-click: Lock"
+                                                }
+                                            >
+                                                <img
+                                                    src={card.image}
+                                                    alt={card.name}
+                                                    className={`rounded border ${isMaxedOut ? 'border-danger' : 'border-info border-opacity-50'} w-100`}
+                                                    style={{ aspectRatio: '421 / 614', objectFit: 'cover' }}
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = card.fallbackImage;
+                                                    }}
+                                                />
+
+                                                {countInDeck > 0 && (
+                                                    <Badge 
+                                                        bg={isMaxedOut ? "danger" : "success"} 
+                                                        className="position-absolute top-0 end-0 m-1 fw-bold shadow-sm"
+                                                    >
+                                                        {countInDeck}/3
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        )}
+                    </Col>
+                </Row>
             </Card.Body>
         </Card>
     );

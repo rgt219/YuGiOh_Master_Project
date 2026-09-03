@@ -53,14 +53,14 @@ export default function MarketListings() {
             <Container fluid="xl">
                 {/* Top Header & Pagination */}
                 <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                    <h2 className="text-info fw-bold mb-0">[ MARKET LISTINGS: ALL SETS ]</h2>
+                    <h2 className="text-info fw-bold mb-0">MARKET LISTINGS: ALL SETS</h2>
                     <PaginationControls />
                 </div>
 
                 {loading ? (
                     <div className="text-center py-5">
                         <Spinner animation="border" variant="info" />
-                        <div className="text-info mt-3">[ ACCESSING SET CATALOG... ]</div>
+                        <div className="text-info mt-3">ACCESSING SET CATALOG...</div>
                     </div>
                 ) : (
                     <>
@@ -68,7 +68,17 @@ export default function MarketListings() {
                             {sets.map((set, idx) => (
                                 <Col xs={12} sm={6} md={6} lg={4} xl={3} key={idx}>
                                     <Card className="h-100 shadow-sm border-0" style={{ backgroundColor: '#0a0d14', border: '1px solid rgba(0, 210, 255, 0.2)' }}>
-                                        <div className="position-relative w-100 d-flex align-items-center justify-content-center" style={{ height: '280px', backgroundColor: '#11151d', borderBottom: '1px solid rgba(0, 210, 255, 0.1)' }}>
+                                        {/* Change this wrapper block */}
+                                        <div 
+                                            className="position-relative w-100 d-flex align-items-center justify-content-center" 
+                                            style={{ 
+                                                minHeight: '280px', // Use minHeight instead of height for mobile safety
+                                                height: '280px', 
+                                                backgroundColor: '#11151d', 
+                                                borderBottom: '1px solid rgba(0, 210, 255, 0.1)',
+                                                flexShrink: 0      // Prevent Safari flexbox collapse
+                                            }}
+                                        >
                                             <Image 
                                                 src={set.imageUrl} 
                                                 alt={set.setName}

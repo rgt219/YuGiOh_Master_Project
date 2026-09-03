@@ -47,7 +47,7 @@ function TelemetryContent({ setName, cardName }) {
                         <MarketWatch productId={data.tcgProductId} />
                     ) : (
                         <div className="text-center text-warning py-4 border border-warning border-opacity-25 rounded bg-black bg-opacity-50">
-                            [ NO PRICING DATA FOUND FOR THIS PRODUCT ID ]
+                            NO PRICING DATA FOUND FOR THIS PRODUCT ID
                         </div>
                     )}
                 </Col>
@@ -69,7 +69,7 @@ export default function CardTelemetry({ setName, cardName }) {
             <Suspense fallback={
                 <div className="text-center py-5">
                     <Spinner animation="border" variant="info" />
-                    <div className="text-info mt-3">[ INITIALIZING VIEWPORT... ]</div>
+                    <div className="text-info mt-3">INITIALIZING VIEWPORT...</div>
                 </div>
             }>
                 <TelemetryContent setName={setName} cardName={cardName} />

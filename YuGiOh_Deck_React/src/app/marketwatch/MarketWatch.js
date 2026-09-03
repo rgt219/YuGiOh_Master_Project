@@ -31,11 +31,11 @@ export default function MarketWatch({ productId }) {
     }, [productId]);
 
     if (loading) {
-        return <div className="text-info text-center py-5 fw-bold" style={{ fontFamily: "'Cascadia Mono', monospace" }}>[ INITIALIZING MARKET TELEMETRY... ]</div>;
+        return <div className="text-info text-center py-5 fw-bold" style={{ fontFamily: "'Cascadia Mono', monospace" }}>INITIALIZING MARKET TELEMETRY...</div>;
     }
 
     if (!marketData || marketData.length === 0) {
-        return <div className="text-warning text-center py-5 fw-bold" style={{ fontFamily: "'Cascadia Mono', monospace" }}>[ NO MARKET DATA FOUND ]</div>;
+        return <div className="text-warning text-center py-5 fw-bold" style={{ fontFamily: "'Cascadia Mono', monospace" }}>NO MARKET DATA FOUND</div>;
     }
 
     const currentStats = marketData[marketData.length - 1];

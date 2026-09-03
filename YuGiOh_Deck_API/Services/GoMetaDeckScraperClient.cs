@@ -17,27 +17,40 @@ namespace YuGiOhDeckApi.Services
 
         public async Task<List<MetaDeck>> ScrapeMetaDecksAsync()
         {
-            try
+            int maxRetries = 5;
+            int delaySeconds = 3;
+
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
-                _logger.LogInformation("Sending scrape request to Go worker at {BaseAddress}api/scrape-meta-decks", _httpClient.BaseAddress);
-
-                var response = await _httpClient.PostAsync("api/scrape-meta-decks", null);
-
-                if (!response.IsSuccessStatusCode)
+                try
                 {
+                    _logger.LogInformation("Attempt {Attempt}: Sending scrape request to Go worker at {BaseAddress}api/scrape-meta-decks", attempt, _httpClient.BaseAddress);
+
+                    var response = await _httpClient.PostAsync("api/scrape-meta-decks", null);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<ScrapeResultDto>();
+                        return result?.Decks ?? new List<MetaDeck>();
+                    }
+
                     var errorBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogError("Go worker failed with status {Status}: {Body}", response.StatusCode, errorBody);
-                    return new List<MetaDeck>();
+                    _logger.LogWarning("Go worker returned status {Status} on attempt {Attempt}: {Body}", response.StatusCode, attempt, errorBody);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Connection to Go worker failed on attempt {Attempt}: {Message}. Retrying in {Delay}s...", attempt, ex.Message, delaySeconds);
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<ScrapeResultDto>();
-                return result?.Decks ?? new List<MetaDeck>();
+                if (attempt < maxRetries)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                    delaySeconds *= 2;
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception thrown while communicating with Go worker scraper.");
-                return new List<MetaDeck>();
-            }
+
+            _logger.LogError("All {MaxRetries} attempts to reach the Go worker failed.", maxRetries);
+            return new List<MetaDeck>();
         }
 
         private class ScrapeResultDto

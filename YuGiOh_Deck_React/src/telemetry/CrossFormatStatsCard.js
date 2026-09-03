@@ -36,7 +36,7 @@ export default function CrossFormatStatsCard({ formatStats }) {
                         </div>
                     </>
                 ) : (
-                    <div className="text-center text-white-50 py-3">[ NO DECK ANALYTICS ARCHIVED FOR THIS CARD YET ]</div>
+                    <div className="text-center text-white-50 py-3">NO DECK ANALYTICS ARCHIVED FOR THIS CARD YET</div>
                 )}
             </Card.Body>
         </Card>

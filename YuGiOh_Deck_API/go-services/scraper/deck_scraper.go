@@ -16,7 +16,7 @@ func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 	// Simple HTTP client (no cookie jars or complex sessions needed anymore)
 	client := &http.Client{Timeout: 20 * time.Second}
 	var allMetaDecks []models.MetaDeck
-	maxPages := 10
+	maxPages := 40
 
 	// All 4 formats explicitly routed through the high-speed JSON API
 	apiFormats := map[string]string{

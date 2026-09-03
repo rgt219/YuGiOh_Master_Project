@@ -16,11 +16,11 @@ export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds, onExport
   const spellDeg = monsterDeg + (spellPct / 100) * 360;
 
   return (
-    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-4 mb-4 md-panel">
-      <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-3 mb-4">
+    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)', height: '100%' }} text="white" className="border-info shadow-lg p-4 mb-0 md-panel d-flex flex-column justify-content-between">
+      <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-3 mb-3">
         {/* Top Row: Title & Export Button */}
         <div className="d-flex justify-content-between align-items-center gap-3 mb-3">
-          <h2 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px' }}>
+          <h2 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px', fontSize: '1.6rem' }}>
             {archetype}
           </h2>
 
@@ -39,18 +39,18 @@ export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds, onExport
         </div>
       </Card.Header>
 
-      <Card.Body>
-        <div className="p-3 rounded mb-2" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
+      <Card.Body className="p-0 d-flex flex-column justify-content-center">
+        <div className="p-3 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
           <h5 className="text-info terminal-font fw-bold border-bottom border-info border-opacity-25 pb-2 mb-3">
             MAIN DECK COMPOSITION RATIO
           </h5>
 
           <Row className="align-items-center g-3">
-            <Col sm={4} md={3} className="d-flex justify-content-center">
+            <Col xs={12} sm={4} className="d-flex justify-content-center">
               <div
                 style={{
-                  width: '130px',
-                  height: '130px',
+                  width: '115px',
+                  height: '115px',
                   borderRadius: '50%',
                   background: `conic-gradient(
                     #eab308 0deg ${monsterDeg}deg, 
@@ -66,8 +66,8 @@ export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds, onExport
               >
                 <div
                   style={{
-                    width: '60px',
-                    height: '60px',
+                    width: '54px',
+                    height: '54px',
                     borderRadius: '50%',
                     backgroundColor: 'rgba(8, 12, 20, 0.98)',
                     display: 'flex',
@@ -76,42 +76,38 @@ export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds, onExport
                     flexDirection: 'column'
                   }}
                 >
-                  <span className="small text-white-50 fw-bold" style={{ fontSize: '0.6rem' }}>TOTAL</span>
+                  <span className="small text-white-50 fw-bold" style={{ fontSize: '0.55rem' }}>TOTAL</span>
                   <span className="text-info fw-bold">{mainDeckIds.length || totalCards}</span>
                 </div>
               </div>
             </Col>
 
-            <Col sm={8} md={9}>
-              <Row className="g-2">
-                <Col md={4}>
-                  <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)' }}>
-                    <div className="d-flex align-items-center gap-2">
-                      <span style={{ width: '12px', height: '12px', backgroundColor: '#eab308', borderRadius: '3px', display: 'inline-block' }}></span>
-                      <span className="small text-white fw-bold">MONSTERS</span>
-                    </div>
-                    <span className="text-warning fw-bold">{cardCounts.monsters} ({monsterPct}%)</span>
+            <Col xs={12} sm={8}>
+              <div className="d-flex flex-column gap-2">
+                <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)' }}>
+                  <div className="d-flex align-items-center gap-2">
+                    <span style={{ width: '10px', height: '10px', backgroundColor: '#eab308', borderRadius: '3px', display: 'inline-block' }}></span>
+                    <span className="small text-white fw-bold">MONSTERS</span>
                   </div>
-                </Col>
-                <Col md={4}>
-                  <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                    <div className="d-flex align-items-center gap-2">
-                      <span style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '3px', display: 'inline-block' }}></span>
-                      <span className="small text-white fw-bold">SPELLS</span>
-                    </div>
-                    <span className="text-success fw-bold">{cardCounts.spells} ({spellPct}%)</span>
+                  <span className="text-warning fw-bold">{cardCounts.monsters} ({monsterPct}%)</span>
+                </div>
+
+                <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                  <div className="d-flex align-items-center gap-2">
+                    <span style={{ width: '10px', height: '10px', backgroundColor: '#10b981', borderRadius: '3px', display: 'inline-block' }}></span>
+                    <span className="small text-white fw-bold">SPELLS</span>
                   </div>
-                </Col>
-                <Col md={4}>
-                  <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(236, 72, 153, 0.1)', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
-                    <div className="d-flex align-items-center gap-2">
-                      <span style={{ width: '12px', height: '12px', backgroundColor: '#ec4899', borderRadius: '3px', display: 'inline-block' }}></span>
-                      <span className="small text-white fw-bold">TRAPS</span>
-                    </div>
-                    <span className="text-danger fw-bold">{cardCounts.traps} ({trapPct}%)</span>
+                  <span className="text-success fw-bold">{cardCounts.spells} ({spellPct}%)</span>
+                </div>
+
+                <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(236, 72, 153, 0.1)', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
+                  <div className="d-flex align-items-center gap-2">
+                    <span style={{ width: '10px', height: '10px', backgroundColor: '#ec4899', borderRadius: '3px', display: 'inline-block' }}></span>
+                    <span className="small text-white fw-bold">TRAPS</span>
                   </div>
-                </Col>
-              </Row>
+                  <span className="text-danger fw-bold">{cardCounts.traps} ({trapPct}%)</span>
+                </div>
+              </div>
             </Col>
           </Row>
         </div>

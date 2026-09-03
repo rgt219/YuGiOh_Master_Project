@@ -22,10 +22,10 @@ export default function Providers({ children }) {
   return (
     <Sentry.ErrorBoundary fallback={
       <div className="md-theme-bg min-vh-100 d-flex flex-column justify-content-center align-items-center text-center p-5">
-        <h3 className="text-danger terminal-font">SYSTEM_CRASH_DETECTED</h3>
+        <h3 className="text-danger terminal-font">SYSTEM CRASH DETECTED</h3>
         <p className="text-white-50">An unexpected system exception occurred.</p>
         <button className="md-btn-primary mt-3" onClick={() => window.location.href = '/'}>
-          REBOOT_SYSTEM
+          REBOOT SYSTEM
         </button>
       </div>
     }>

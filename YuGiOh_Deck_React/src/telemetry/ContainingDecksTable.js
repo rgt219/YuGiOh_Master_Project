@@ -84,7 +84,7 @@ export default function ContainingDecksTable({ containingDecks }) {
                         {totalPages > 1 && <PaginationControls />}
                     </>
                 ) : (
-                    <div className="text-center text-white-50 py-3">[ NO SPECIFIC TOURNAMENT DECKS FOUND CONTAINING THIS CARD ]</div>
+                    <div className="text-center text-white-50 py-3">NO SPECIFIC TOURNAMENT DECKS FOUND CONTAINING THIS CARD</div>
                 )}
             </Card.Body>
         </Card>

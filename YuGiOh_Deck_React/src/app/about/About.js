@@ -14,7 +14,7 @@ export default function About() {
         education: {
             degree: "Bachelor of Science - Computer Engineering",
             institution: "Florida State University",
-            icon: "🎓"
+            icon: ""
         },
 
         skillsDeck: [
@@ -75,14 +75,6 @@ export default function About() {
         ]
     };
 
-    const masterDuelLaserCardStyle = {
-        background: 'radial-gradient(circle at 50% 0%, rgba(31, 18, 53, 0.95) 0%, rgba(10, 13, 20, 0.98) 100%)',
-        border: '1px solid #00f2ff',
-        boxShadow: '0 0 20px rgba(0, 242, 255, 0.2), inset 0 0 15px rgba(0, 242, 255, 0.08)',
-        borderRadius: '8px',
-        backdropFilter: 'blur(10px)'
-    };
-
     const textStyleCyan = { color: '#00f2ff', textShadow: '0 0 8px rgba(0,242,255,0.4)' };
     const textStylePurple = { color: '#bd72ff' };
     const textStyleAmber = { color: '#ffaa00' };
@@ -105,77 +97,74 @@ export default function About() {
     };
 
     return (
-        <div style={{ backgroundColor: '#0a0d14', minHeight: "100vh" }} className="py-5 mt-4">
-            <Container className="px-3 mx-auto" style={{ maxWidth: '1400px' }}>
+        <div style={{ backgroundColor: '#06080c', minHeight: "100vh", fontFamily: "'Cascadia Mono', monospace" }} className="py-5 mt-5">
+            <Container fluid className="px-4 px-xxl-5">
                 
-                <div className="p-4 p-md-5 mb-5 rounded-3 position-relative overflow-hidden" style={masterDuelLaserCardStyle}>
-                    <Row className="align-items-center">
-                        <Col xs={12} md={3} className="text-center mb-4 mb-md-0">
-                            <div className="position-relative d-inline-block">
-                                <img 
-                                    src={profileData.profileIcon} 
-                                    alt="Avatar" 
-                                    className="img-fluid rounded border border-2 shadow-lg"
-                                    style={{ 
-                                        borderColor: '#00f2ff', 
-                                        width: '260px', 
-                                        height: '260px', 
-                                        objectFit: 'cover',
-                                        boxShadow: '0 0 25px rgba(0, 242, 255, 0.35)'
-                                    }}
-                                />
-                                <Badge 
-                                    bg="dark" 
-                                    className="position-absolute bottom-0 start-50 translate-middle-x mb-2 border border-info text-info terminal-font px-3 py-1 shadow"
-                                    style={{ letterSpacing: '1px' }}
-                                >
-                                    SR ARCHITECT ★★★★★★★★
-                                </Badge>
-                            </div>
-                        </Col>
+                {/* Hero Profile Banner */}
+                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.75)', backdropFilter: 'blur(0px)' }} className="border-secondary border-opacity-25 shadow-lg p-4 mb-4 md-panel">
+                    <Card.Body className="p-2">
+                        <Row className="align-items-center g-4">
+                            <Col xs={12} md={3} className="text-center">
+                                <div className="position-relative d-inline-block">
+                                    <img 
+                                        src={profileData.profileIcon} 
+                                        alt="Avatar" 
+                                        className="img-fluid rounded border border-secondary shadow-lg"
+                                        style={{ 
+                                            borderColor: 'rgba(255, 255, 255, 0.2)', 
+                                            width: '320px', 
+                                            height: '320px', 
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                </div>
+                            </Col>
 
-                        <Col xs={12} md={9} className="text-start">
-                            <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-                                <Badge bg="dark" className="border border-info text-info terminal-font">
-                                    ATTRIBUTE: C# / REACT / CLOUD
-                                </Badge>
-                                <Badge bg="dark" className="border border-warning text-warning terminal-font">
-                                    EXP: 6+ YEARS
-                                </Badge>
-                            </div>
+                            <Col xs={12} md={9} className="text-start">
+                                <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                    <Badge bg="dark" className="border border-secondary text-info terminal-font" style={{ fontSize: '0.75rem' }}>
+                                        ATTRIBUTE: C# / REACT / CLOUD
+                                    </Badge>
+                                    <Badge bg="dark" className="border border-secondary text-warning terminal-font" style={{ fontSize: '0.75rem' }}>
+                                        EXP: 6+ YEARS
+                                    </Badge>
+                                </div>
 
-                            <h1 className="display-5 fw-bold terminal-font mb-1" style={textStyleCyan}>
-                                {profileData.userName}
-                            </h1>
-                            <h5 className="fw-bold tracking-wider mb-3 terminal-font" style={textStylePurple}>
-                                {profileData.realName.toUpperCase()}
-                            </h5>
+                                <h2 className="display-6 fw-bold terminal-font mb-1" style={textStyleCyan}>
+                                    {profileData.userName}
+                                </h2>
+                                <h5 className="fw-bold tracking-wider mb-3 terminal-font">
+                                    {profileData.realName.toUpperCase()}
+                                </h5>
 
-                            <hr style={{ borderColor: '#00f2ff', opacity: 0.3 }} className="my-3" />
+                                <hr style={{ borderColor: 'rgba(255, 255, 255, 0.15)' }} className="my-3" />
 
-                            <p className="lead text-white-50 fs-6 mb-3" style={{ lineHeight: '1.6' }}>
-                                {profileData.aboutText}
-                            </p>
-                            
-                            <div className="p-2 rounded bg-black bg-opacity-50 border border-secondary border-opacity-30 d-inline-flex align-items-center text-white small">
-                                <span className="fs-5 me-2">{profileData.education.icon}</span>
-                                <span className="fw-bold me-2" style={textStylePurple}>{profileData.education.degree}</span>
-                                <span className="text-white-50 me-2">|</span>
-                                <span className="text-info">{profileData.education.institution}</span>
-                            </div>
-                        </Col>
-                    </Row>
-                </div>
+                                <p className="text-white-50 mb-3" style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
+                                    {profileData.aboutText}
+                                </p>
+                                
+                                <div className="p-2 rounded bg-black bg-opacity-50 border border-secondary border-opacity-30 d-inline-flex align-items-center text-white small">
+                                    <span className="fs-5 me-2">{profileData.education.icon}</span>
+                                    <span className="fw-bold me-2">{profileData.education.degree}</span>
+                                    <span className="text-white-50 me-2">|</span>
+                                    <span className="text-info">{profileData.education.institution}</span>
+                                </div>
+                            </Col>
+                        </Row>
+                    </Card.Body>
+                </Card>
 
+                {/* Content Grid */}
                 <Row className="g-4">
                     <Col lg={5} xs={12}>
-                        <Card className="mb-4" style={masterDuelLaserCardStyle}>
-                            <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
-                                <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStylePurple}>
+                        {/* Software Skillset */}
+                        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.75)', backdropFilter: 'blur(0px)' }} className="border-secondary border-opacity-25 shadow-lg mb-4 md-panel">
+                            <Card.Header className="bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                                <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleCyan}>
                                     SOFTWARE SKILLSET
                                 </h6>
                             </Card.Header>
-                            <Card.Body className="p-3">
+                            <Card.Body className="p-4">
                                 {profileData.skillsDeck.map((deck, idx) => (
                                     <div key={idx} className="mb-3 text-start">
                                         <small className="d-block mb-2 fw-bold text-uppercase terminal-font" style={{ fontSize: '0.72rem', color: '#a69cb5' }}>
@@ -186,8 +175,8 @@ export default function About() {
                                                 <Badge 
                                                     key={i} 
                                                     bg="dark" 
-                                                    className="p-2 border fs-7 text-white shadow-sm" 
-                                                    style={{ borderColor: 'rgba(0, 242, 255, 0.4)', fontSize: '0.75rem' }}
+                                                    className="p-2 border border-secondary border-opacity-50 fs-7 text-white shadow-sm" 
+                                                    style={{ fontSize: '0.75rem' }}
                                                 >
                                                     <span style={{ color: '#00f2ff' }}>{skill}</span>
                                                 </Badge>
@@ -198,13 +187,14 @@ export default function About() {
                             </Card.Body>
                         </Card>
 
-                        <Card style={masterDuelLaserCardStyle}>
-                            <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
+                        {/* Platform Specifications */}
+                        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.75)', backdropFilter: 'blur(0px)' }} className="border-secondary border-opacity-25 shadow-lg md-panel">
+                            <Card.Header className="bg-transparent border-bottom border-secondary border-opacity-25 py-3">
                                 <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleCyan}>
                                     PLATFORM SPECIFICATIONS
                                 </h6>
                             </Card.Header>
-                            <Card.Body className="text-start p-3">
+                            <Card.Body className="text-start p-4">
                                 <ul style={forceVerticalListStyle} className="text-white">
                                     {profileData.platformSpecs.map((spec, index) => (
                                         <li 
@@ -221,9 +211,10 @@ export default function About() {
                     </Col>
 
                     <Col lg={7} xs={12}>
-                        <Card style={masterDuelLaserCardStyle}>
-                            <Card.Header className="bg-dark bg-opacity-75 border-bottom border-info border-opacity-30 py-3">
-                                <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleAmber}>
+                        {/* Professional Deployment History */}
+                        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.75)', backdropFilter: 'blur(0px)' }} className="border-secondary border-opacity-25 shadow-lg md-panel">
+                            <Card.Header className="bg-transparent border-bottom border-secondary border-opacity-25 py-3">
+                                <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleCyan}>
                                     PROFESSIONAL DEPLOYMENT HISTORY
                                 </h6>
                             </Card.Header>
@@ -236,7 +227,7 @@ export default function About() {
                                                 <h6 className="fw-semibold" style={textStyleAmber}>{job.role}</h6>
                                             </Col>
                                             <Col xs={12} md={4} className="text-md-end small mt-1 mt-md-0">
-                                                <Badge bg="dark" className="border border-purple text-purple terminal-font px-2 py-1" style={{ color: '#bd72ff', borderColor: '#bd72ff' }}>
+                                                <Badge bg="dark" className="border border-secondary text-purple terminal-font px-2 py-1" style={{ color: '#bd72ff', fontSize: '0.75rem' }}>
                                                     {job.duration}
                                                 </Badge>
                                                 <div className="text-white-50 small mt-1">{job.location}</div>
