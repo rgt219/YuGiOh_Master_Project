@@ -115,7 +115,7 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                     className="w-100 fw-bold terminal-font py-2 shadow"
                                     onClick={() => { setInspectCard(null); setSelectedPrinting(null); }}
                                 >
-                                    See Telemetry
+                                    See Telemetry ({activeSet.set_rarity})
                                 </Button>
                             </div>
                         </Col>

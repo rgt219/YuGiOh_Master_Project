@@ -69,10 +69,10 @@ jobs:
       - name: Build and Push Frontend Image
         run: |
           docker build --no-cache \
-            --build-arg REACT_APP_IDENTITY_URL=https://identity.azurecontainerapps.io \
-            --build-arg REACT_APP_DECK_API_URL=https://api.azurecontainerapps.io \
+            --build-arg REACT_APP_IDENTITY_URL=https://identity.happybush-e43d89b2.eastus.azurecontainerapps.io \
+            --build-arg REACT_APP_DECK_API_URL=https://api.happybush-e43d89b2.eastus.azurecontainerapps.io \
             --build-arg NEXT_PUBLIC_CDN_URL=https://video-cdn-hsa4fhe3ghhne9e5.z01.azurefd.net \
-            --build-arg NEXT_PUBLIC_MARKET_API_URL=https://market-api.azurecontainerapps.io \
+            --build-arg NEXT_PUBLIC_MARKET_API_URL=https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io \
             -t yugiohapidocker.azurecr.io/frontend:${{ github.sha }} ./YuGiOh_Deck_React
           docker push yugiohapidocker.azurecr.io/frontend:${{ github.sha }}
 

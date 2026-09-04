@@ -30,7 +30,7 @@ namespace YuGiOhDeckApi.BackgroundServices
 
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(45), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(120), stoppingToken);
             }
             catch (TaskCanceledException)
             {
