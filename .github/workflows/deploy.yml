@@ -133,7 +133,7 @@ jobs:
           containerAppName: frontend
           resourceGroup: ErreGeTe
           targetPort: 80
-          environmentVariables: NEXT_PUBLIC_CDN_URL=https://video-cdn-hsa4fhe3ghhne9e5.z01.azurefd.net, NEXT_PUBLIC_MARKET_API_URL=https://market-api.azurecontainerapps.io
+          environmentVariables: NEXT_PUBLIC_CDN_URL=https://video-cdn-hsa4fhe3ghhne9e5.z01.azurefd.net, NEXT_PUBLIC_MARKET_API_URL=https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io
 
       # 9. Deploy Analytics Consumer (Background Worker)
       - name: Deploy Analytics Consumer
