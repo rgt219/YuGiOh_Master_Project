@@ -51,8 +51,8 @@ builder.Services.AddSingleton<MarketDbService>();
 //     options.InstanceName = "MarketCache_";
 // });
 
-// 5. HttpClient for worker ingestion
-builder.Services.AddHttpClient();
+// 5. HttpClient for worker ingestion (Typed Client for DI)
+builder.Services.AddHttpClient<TcgCsvIngestionWorker>();
 
 // 6. Register Background ETL Service
 builder.Services.AddHostedService<TcgCsvIngestionWorker>();

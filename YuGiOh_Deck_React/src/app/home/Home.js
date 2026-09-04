@@ -34,7 +34,7 @@ const panelsData = [
         navVideo: "thunderbolt.mp4", 
         bgVideo: "brigrand_short.mp4", 
         bgPoster: "brigrand_poster.png",
-        title: <>Live <span className="text-warning">Market Listings</span></>,
+        title: <>Market Listings</>,
         desc: "Track real-time card prices, market fluctuations, and printing values across major exchanges. Whether you are optimizing a budget build or monitoring the value of your ultimate collection, our live pricing widgets ensure you never overpay for your tech cards.",
         subTitle: "Want to secure your staples before the next buyout?", 
         subDesc: "Analyze live pricing trends and build without breaking the bank.",
