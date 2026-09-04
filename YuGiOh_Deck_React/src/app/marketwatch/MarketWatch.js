@@ -9,7 +9,7 @@ export default function MarketWatch({ productId }) {
     const [marketData, setMarketData] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const MARKET_API = process.env.NEXT_PUBLIC_MARKET_API_URL || "http://localhost:5165";
+    const MARKET_API = process.env.NEXT_PUBLIC_MARKET_API_URL;
 
     useEffect(() => {
         if (!productId) return;

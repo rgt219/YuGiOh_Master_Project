@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Container, Row, Col, Card, Button, Spinner } from 'react-bootstrap';
 
-const MARKET_API = process.env.NEXT_PUBLIC_MARKET_API_URL || "http://localhost:5165";
+const MARKET_API = process.env.NEXT_PUBLIC_MARKET_API_URL;
 
 export default function MarketListings() {
     const [sets, setSets] = useState([]);
