@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using MarketTelemetry.Service.Data;
 using MarketTelemetry.Service.Models;
 using System.Net.Http.Json;
+using System.Net.Http;
 
 namespace MarketTelemetry.Service.Workers
 {
@@ -13,12 +14,11 @@ namespace MarketTelemetry.Service.Workers
         private readonly HttpClient _httpClient;
         private const int YugiohCategoryId = 2;
 
-        public TcgCsvIngestionWorker(ILogger<TcgCsvIngestionWorker> logger, MarketDbService dbService, HttpClient httpClient)
+        public TcgCsvIngestionWorker(ILogger<TcgCsvIngestionWorker> logger, MarketDbService dbService, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _dbService = dbService;
-            _httpClient = httpClient;
-
+            _httpClient = httpClientFactory.CreateClient();
             // This User-Agent now satisfies both TCGCSV and the Yugipedia MediaWiki API!
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "ErregeteygoMarketWorker/1.0");
         }

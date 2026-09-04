@@ -52,7 +52,7 @@ builder.Services.AddSingleton<MarketDbService>();
 // });
 
 // 5. HttpClient for worker ingestion (Typed Client for DI)
-builder.Services.AddHttpClient<TcgCsvIngestionWorker>();
+builder.Services.AddHttpClient();
 
 // 6. Register Background ETL Service
 builder.Services.AddHostedService<TcgCsvIngestionWorker>();
