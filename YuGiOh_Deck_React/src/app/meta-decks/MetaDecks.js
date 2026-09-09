@@ -9,7 +9,7 @@ import { getFannedCards } from '@/utils/metaDeckHelpers';
 import '@/mdstyles.css';
 
 const DECKS_PER_PAGE = 12;
-const CDN_BASE_URL = 'https://ygocardstore.blob.core.windows.net/card-images';
+const CDN_BASE_URL = 'https://cards.erregeteygo.com/card-images';
 
 const formats = [
   { name: 'TCG', variant: 'info' },
@@ -148,7 +148,7 @@ export default function MetaDecks({ mdSound }) {
           </div>
         </div>
 
-        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)', position: 'sticky', top: '70px', zIndex: 1000 }} text="white" className="shadow-lg p-3 mb-4 md-panel border-info border-opacity-25">
+        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(0px)', position: 'sticky', top: '70px', zIndex: 1000 }} text="white" className="shadow-lg p-3 mb-4 md-panel border-info border-opacity-25">
           <Card.Header className="bg-transparent pb-3 d-flex gap-2 flex-wrap">
             {formats.map((fmt) => {
               const isActive = activeFormat === fmt.name;
@@ -169,7 +169,7 @@ export default function MetaDecks({ mdSound }) {
 
         {loading ? (
           <div className="d-flex justify-content-center align-items-center mt-5">
-            <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)', maxWidth: '30rem' }} className="border-info p-4 text-center md-panel shadow-lg">
+            <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)', maxWidth: '30rem' }} className="border-info p-4 text-center md-panel shadow-lg">
               <Card.Body>
                 <Spinner animation="border" variant="info" className="mb-3" style={{ width: '3rem', height: '3rem' }} />
                 <h5 className="text-info cascadia-font fw-bold m-0" style={{ letterSpacing: '1px' }}>ACCESSING METAGAME DATABASE...</h5>
@@ -179,7 +179,7 @@ export default function MetaDecks({ mdSound }) {
           </div>
         ) : error ? (
           <div className="d-flex justify-content-center align-items-center mt-5">
-            <Card style={{ backgroundColor: 'rgba(20, 8, 8, 0.95)', backdropFilter: 'blur(10px)', maxWidth: '32rem' }} className="border-danger p-4 text-center md-panel shadow-lg text-white">
+            <Card style={{ backgroundColor: 'rgba(20, 8, 8, 0.95)', backdropFilter: 'blur(0px)', maxWidth: '32rem' }} className="border-danger p-4 text-center md-panel shadow-lg text-white">
               <Card.Body>
                 <h4 className="text-danger cascadia-font fw-bold mb-3" style={{ letterSpacing: '2px' }}>CONNECTION FAILURE</h4>
                 <p className="text-white-50 mb-3 cascadia-font">{error}</p>
@@ -213,7 +213,7 @@ export default function MetaDecks({ mdSound }) {
 
                 return (
                   <Col key={deckId || archetype}>
-                    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-info border-opacity-50 shadow h-100 md-panel ygo-deck-card d-flex flex-column">
+                    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-info border-opacity-50 shadow h-100 md-panel ygo-deck-card d-flex flex-column">
                       <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 px-3 py-3 overflow-hidden">
                         <div className="d-flex flex-column gap-2 w-100">
                           <h5 className="m-0 fw-bold text-white cascadia-font" style={{ fontSize: '1.25rem', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2' }} title={archetype}>
@@ -236,9 +236,9 @@ export default function MetaDecks({ mdSound }) {
                         <div>
                           <div className="my-3 d-flex justify-content-center align-items-center position-relative fanned-container" style={{ height: '220px', width: '100%' }}>
                             <div className="holo-glow"></div>
-                            <img src={`${CDN_BASE_URL}/${fannedCardIds[0]}.jpg`} alt="Card 1" className="border border-info border-opacity-25 card-left" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = `${CDN_BASE_URL}/images/cards/back_high.jpg`; }} />
-                            <img src={`${CDN_BASE_URL}/${fannedCardIds[2]}.jpg`} alt="Card 3" className="border border-info border-opacity-25 card-right" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = `${CDN_BASE_URL}/images/cards/back_high.jpg`; }} />
-                            <img src={`${CDN_BASE_URL}/${fannedCardIds[1]}.jpg`} alt="Card 2" className="border border-info card-center" style={{ height: '185px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = `${CDN_BASE_URL}/images/cards/back_high.jpg`; }} />
+                            <img src={`${CDN_BASE_URL}/${fannedCardIds[0]}.jpg`} alt="Card 1" className="border border-info border-opacity-25 card-left" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
+                            <img src={`${CDN_BASE_URL}/${fannedCardIds[2]}.jpg`} alt="Card 3" className="border border-info border-opacity-25 card-right" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
+                            <img src={`${CDN_BASE_URL}/${fannedCardIds[1]}.jpg`} alt="Card 2" className="border border-info card-center" style={{ height: '185px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
                           </div>
 
                           <div className="d-flex align-items-center mb-2 w-100">

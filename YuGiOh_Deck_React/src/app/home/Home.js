@@ -156,7 +156,7 @@ export default function Home({ user }) {
             {/* 🚀 HIDDEN PRELOADER FOR NAV VIDEO CARDS (Eliminates first-hover delay) */}
             <div style={{ display: 'none', position: 'absolute', width: 0, height: 0, overflow: 'hidden', zIndex: -1 }}>
                 {panelsData.map((panel) => (
-                    <video key={`preload-${panel.id}`} src={`${CDN_BASE_URL}/videos/${panel.navVideo}`} preload="auto" muted playsInline />
+                    <video key={`preload-${panel.id}`} src={`${CDN_BASE_URL}/videos/${panel.navVideo}`} preload="auto" muted playsInline crossOrigin="anonymous" />
                 ))}
             </div>
 
@@ -170,6 +170,7 @@ export default function Home({ user }) {
                     muted
                     loop
                     playsInline
+                    crossOrigin="anonymous"
                     style={{
                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                         objectFit: 'cover',
@@ -188,6 +189,7 @@ export default function Home({ user }) {
                         muted
                         loop
                         playsInline
+                        crossOrigin="anonymous"
                         style={{
                             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                             objectFit: 'cover',
@@ -283,6 +285,7 @@ export default function Home({ user }) {
                                     muted
                                     loop
                                     playsInline
+                                    crossOrigin="anonymous"
                                     style={{
                                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                                         objectFit: 'cover', opacity: activeHeroVideoIndex === idx ? 1 : 0, transition: 'opacity 1s ease-in-out'

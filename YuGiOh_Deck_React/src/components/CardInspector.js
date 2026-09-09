@@ -23,7 +23,7 @@ export default function CardInspector({ pinnedCard, setPinnedCard, inspectedCard
     };
 
     const activeImageUrl = activeCard.image || activeCard.card_images?.[0]?.image_url ||
-        ((activeCard.id || activeCard.Id) ? `https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images/${activeCard.id || activeCard.Id}.jpg` : 'https://images.ygoprodeck.com/images/cards/back_high.jpg');
+        ((activeCard.id || activeCard.Id) ? `https://cards.erregeteygo.com/card-images/${activeCard.id || activeCard.Id}.jpg` : 'https://images.ygoprodeck.com/images/cards/back_high.jpg');
 
     return (
         /* 🚀 Removed the outer wrapper div and applied h-100 directly to the Card so it stretches exactly like CardApi does */

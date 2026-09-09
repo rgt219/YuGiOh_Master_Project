@@ -115,7 +115,7 @@ export function useDeckBuilder() {
                         cardMap[card.id.toString()] = {
                             ...card, //[cite: 14]
                             isExtraDeck, //[cite: 14]
-                            image: `https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images/${card.id}.jpg`, //[cite: 14]
+                            image: `cards.erregeteygo.com/card-images/${card.id}.jpg`, //[cite: 14]
                             fallbackImage: card.card_images?.[0]?.image_url_small || `https://images.ygoprodeck.com/images/cards_small/${card.id}.jpg` //[cite: 14]
                         };
                     });

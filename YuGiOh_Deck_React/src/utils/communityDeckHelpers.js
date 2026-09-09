@@ -1,5 +1,5 @@
 // utils/deckHelpers.js
-const AZURE_BLOB_BASE_URL = "https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images";
+const AZURE_BLOB_BASE_URL = "https://cards.erregeteygo.com/card-images";
 
 export const getFannedCards = (main = [], extra = [], side = []) => {
   const combined = [...main, ...extra, ...side].filter(Boolean);

@@ -14,7 +14,19 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'static.wikia.nocookie.net',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'ygoprodeck.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.yugioh-card.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.ygorganization.com',
+      },
     ],
   },
 }

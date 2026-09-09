@@ -50,6 +50,19 @@ func main() {
 		})
 	})
 
+	r.POST("/api/scrape-news", func(c *gin.Context) {
+		articles, err := scraper.ScrapeNewsFeeds()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"count":    len(articles),
+			"articles": articles,
+		})
+	})
+
 	r.POST("/api/v1/sync-card-images", func(c *gin.Context) {
 		blobConnStr := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 		var req ImageSyncRequest

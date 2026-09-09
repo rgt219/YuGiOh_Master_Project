@@ -65,7 +65,7 @@ export default function CustomDeck({
                         ? card.image
                         : (typeof card === 'object' && card.card_images?.[0]?.image_url_small)
                             ? card.card_images[0].image_url_small
-                            : `https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images/${cardId}.jpg`;
+                            : `cards.erregeteygo.com/card-images/${cardId}.jpg`;
 
                     return (
                         <div
@@ -109,7 +109,7 @@ export default function CustomDeck({
         <Row className="g-4 align-items-stretch">
             {/* 🚀 Main Deck: Scroll removed, body flexes to fill total container height */}
             <Col lg={12} xl={6}>
-                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 md-panel h-100 d-flex flex-column">
+                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-info shadow-lg p-3 md-panel h-100 d-flex flex-column">
                     <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                         <h5 className="m-0 text-info terminal-font fw-bold">
                             MAIN DECK ({mainDeck.length})
@@ -125,7 +125,7 @@ export default function CustomDeck({
 
             {/* 🚀 Extra & Side Decks: justify-content-between forces Extra to the top and Side to the absolute bottom */}
             <Col lg={12} xl={6} className="d-flex flex-column justify-content-between">
-                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-warning border-opacity-50 shadow-lg p-3 md-panel">
+                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-warning border-opacity-50 shadow-lg p-3 md-panel">
                     <Card.Header className="bg-transparent border-bottom border-warning border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                         <h5 className="m-0 text-warning terminal-font fw-bold">
                             EXTRA DECK ({extraDeck.length})
@@ -137,7 +137,7 @@ export default function CustomDeck({
                     </Card.Body>
                 </Card>
 
-                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 md-panel mt-4">
+                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 md-panel mt-4">
                     <Card.Header className="bg-transparent border-bottom border-success border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                         <h5 className="m-0 text-success terminal-font fw-bold">
                             SIDE DECK ({sideDeck.length})

@@ -55,7 +55,7 @@ export default function ImagePopup({archetype, image, effect, yugipedia})
                 <div class="card" bg-color="#2f6a9d" style={{width: "80%", paddingTop: "-100px"}}>
                   <SplitPane>
                     <div class="left-content">
-                      <p style={{paddingBottom: "5px"}}><b>[ {archetype.cardType} / {archetype.cardSuperType} ]</b></p>
+                      <p style={{paddingBottom: "5px"}}><b>{archetype.cardType} / {archetype.cardSuperType}</b></p>
                     </div>
                     <div class="right-content">
                      {
@@ -68,7 +68,7 @@ export default function ImagePopup({archetype, image, effect, yugipedia})
                   <p>{cardEffect}</p>
                 </div>
                 <div class="card" bg-color="#812fde" style={{width: "80%"}}>
-                  <p style={{paddingBottom: "5px"}}><b>[ {archetype.cardType} / {archetype.cardSuperType} ]</b></p>
+                  <p style={{paddingBottom: "5px"}}><b>{archetype.cardType} / {archetype.cardSuperType}</b></p>
                 </div>
                 
               </div>

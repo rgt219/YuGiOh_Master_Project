@@ -40,6 +40,17 @@ namespace YuGiOhDeckApi
 
             builder.Services.AddHttpClient<IMasterDuelBanListService, MasterDuelBanListService>();
 
+            builder.Services.AddHttpClient<INewsScraperService, GoNewsScraperClient>(client =>
+            {
+                var baseUrl = builder.Configuration["GoWorker:ConnectionString"]
+                        ?? builder.Configuration["GoWorker:BaseUrl"]
+                        ?? "http://localhost:8080";
+                client.BaseAddress = new Uri(baseUrl);
+                client.Timeout = TimeSpan.FromMinutes(2);
+            });
+
+            builder.Services.AddHostedService<NewsBackgroundService>();
+
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
             builder.Services.AddHostedService<MetaDeckBackgroundService>();
 

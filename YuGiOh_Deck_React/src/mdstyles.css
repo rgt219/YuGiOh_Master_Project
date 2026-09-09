@@ -10,7 +10,7 @@
 /* Glassmorphism Panel with Cyan Border */
 .md-panel {
     background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(0px);
     border: 1px solid rgba(0, 212, 255, 0.2);
     border-radius: 4px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
@@ -63,7 +63,7 @@
 /* Glassmorphism Panel for the Content Area */
 .md-content-panel {
     background: rgba(16, 18, 27, 0.7);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(0px);
     border: 1px solid rgba(0, 212, 255, 0.2);
     border-radius: 8px;
     padding: 40px;
@@ -837,7 +837,7 @@
 /* Master Duel Glass Panels */
 .md-glass-panel {
     background: rgba(15, 25, 35, 0.7);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(0px);
     border: 1px solid rgba(0, 212, 255, 0.2);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
@@ -906,7 +906,7 @@
 .md-filter-panel {
   background: var(--md-panel-bg);
   border: 1px solid var(--md-border-color);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(0px);
   clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
   padding: 18px 24px;
   margin-bottom: 30px;
@@ -1199,7 +1199,7 @@
   border-radius: 6px;
   padding: 8px 12px;
   text-align: center;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(0px);
 }
 
 /* Attribute Color Badges */
@@ -1268,7 +1268,7 @@
   background: rgba(5, 10, 20, 0.85);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(0px);
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
 }
@@ -1327,4 +1327,103 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ========================================================== */
+/* --- CYBERPUNK NAVBAR STYLING --- */
+/* ========================================================== */
+.cyber-navbar {
+  font-family: 'Cascadia Mono', monospace;
+  backdrop-filter: blur(0px);
+  background-color: rgba(6, 8, 12, 0.75) !important; /* 🚀 Lowered opacity here */
+  border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(0, 242, 255, 0.1) inset;
+}
+
+.cyber-brand {
+  color: #00f2ff !important;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+  transition: text-shadow 0.3s ease;
+}
+
+.cyber-brand:hover {
+  text-shadow: 0 0 16px rgba(0, 242, 255, 0.8);
+}
+
+.cyber-navbar .navbar-nav .nav-link, 
+.cyber-navbar .navbar-nav .dropdown-toggle {
+  color: rgba(255, 255, 255, 0.75) !important;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.cyber-navbar .navbar-nav .nav-link:hover, 
+.cyber-navbar .navbar-nav .nav-link:focus,
+.cyber-navbar .navbar-nav .dropdown-toggle:hover, 
+.cyber-navbar .navbar-nav .dropdown-toggle:focus {
+  color: #00f2ff !important;
+  text-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
+}
+
+.cyber-navbar .dropdown-menu {
+  background-color: rgba(8, 12, 20, 0.98) !important;
+  backdrop-filter: blur(0px);
+  border: 1px solid rgba(0, 242, 255, 0.3) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 242, 255, 0.15) !important;
+  border-radius: 6px;
+  padding: 8px 0;
+  margin-top: 0 !important; /* 🚀 FIX: Removes the gap causing the dropdown to close */
+}
+
+.cyber-navbar .dropdown-item {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-family: 'Cascadia Mono', monospace;
+  font-size: 0.85rem;
+  padding: 8px 20px;
+  transition: all 0.2s ease;
+}
+
+.cyber-navbar .dropdown-item:hover, 
+.cyber-navbar .dropdown-item:focus {
+  background-color: rgba(0, 242, 255, 0.12) !important;
+  color: #00f2ff !important;
+  padding-left: 24px;
+}
+
+.cyber-navbar .dropdown-divider {
+  border-color: rgba(0, 242, 255, 0.15) !important;
+}
+
+.cyber-btn-outline {
+  border-color: rgba(0, 242, 255, 0.5) !important;
+  color: #00f2ff !important;
+  background: transparent;
+  font-family: 'Cascadia Mono', monospace;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.cyber-btn-outline:hover {
+  background-color: rgba(0, 242, 255, 0.15) !important;
+  border-color: #00f2ff !important;
+  box-shadow: 0 0 12px rgba(0, 242, 255, 0.4);
+  color: #fff !important;
+}
+
+.cyber-btn-solid {
+  background-color: #00f2ff !important;
+  border-color: #00f2ff !important;
+  color: #06080c !important;
+  font-weight: bold;
+  font-family: 'Cascadia Mono', monospace;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.cyber-btn-solid:hover {
+  background-color: #33f5ff !important;
+  box-shadow: 0 0 18px rgba(0, 242, 255, 0.7);
+  color: #06080c !important;
 }

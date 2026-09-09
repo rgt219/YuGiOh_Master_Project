@@ -27,5 +27,7 @@ namespace YuGiOhDeckApi.Repositories
         Task<MasterDuelCardDocument?> GetMasterDuelCardByGameIdAsync(string gameId);
         Task<bool> SaveMasterDuelDatabaseAsync(MasterDuelDatabaseSyncResponseDto syncPayload);
         Task<List<MasterDuelCardDocument>> GetRestrictedMasterDuelCardsAsync();
+        Task<List<NewsArticle>> GetLatestNewsAsync(int limit = 20);
+        Task SaveNewsArticlesBulkAsync(List<NewsArticle> articles);
     }
 }

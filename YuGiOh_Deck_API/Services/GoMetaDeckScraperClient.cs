@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using YuGiOhDeckApi.Models;
 
@@ -20,6 +21,11 @@ namespace YuGiOhDeckApi.Services
             int maxRetries = 5;
             int delaySeconds = 3;
 
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
             for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
                 try
@@ -30,7 +36,8 @@ namespace YuGiOhDeckApi.Services
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var result = await response.Content.ReadFromJsonAsync<ScrapeResultDto>();
+                        // 🚀 Apply the options here
+                        var result = await response.Content.ReadFromJsonAsync<ScrapeResultDto>(jsonOptions);
                         return result?.Decks ?? new List<MetaDeck>();
                     }
 

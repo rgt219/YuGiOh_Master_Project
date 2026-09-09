@@ -18,7 +18,7 @@ export const deckList = {
     userId: ''
 };
 
-const AZURE_BLOB_BASE_URL = "https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images";
+const AZURE_BLOB_BASE_URL = "https://cards.erregeteygo.com/card-images";
 
 const fetchYgoCards = async () => {
     const response = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes');
@@ -194,7 +194,7 @@ export default function CardApi({ onAddCard, cardList = [], onInspectCard, onPin
         <Card 
             style={{ 
                 backgroundColor: 'rgba(8, 12, 20, 0.98)', 
-                backdropFilter: 'blur(10px)',
+                backdropFilter: 'blur(0px)',
                 zIndex: 100 
             }} 
             text="white" 
@@ -202,7 +202,7 @@ export default function CardApi({ onAddCard, cardList = [], onInspectCard, onPin
         >            
             <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2 mb-3 d-flex justify-content-between align-items-center flex-shrink-0">
                 <h6 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
-                    🔍 CARD DATABASE SEARCH
+                    CARD DATABASE SEARCH
                 </h6>
                 {hasActiveFilters && (
                     <Button 

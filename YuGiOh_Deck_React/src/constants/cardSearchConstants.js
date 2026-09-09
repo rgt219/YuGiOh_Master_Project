@@ -1,6 +1,6 @@
 export const CARDS_PER_PAGE = 30; 
 
-export const AZURE_BLOB_CONTAINER_URL = "https://ygocardstore-images-gpctdecsa6a6ctfc.z01.azurefd.net/card-images";
+export const AZURE_BLOB_CONTAINER_URL = "https://cards.erregeteygo.com/card-images";
 
 export const ATTRIBUTES = ['ALL', 'DARK', 'LIGHT', 'EARTH', 'WATER', 'FIRE', 'WIND', 'DIVINE'];
 export const MAIN_CARD_TYPES = ['ALL', 'NORMAL', 'EFFECT', 'SPELL', 'TRAP']; 
