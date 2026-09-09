@@ -63,6 +63,15 @@ export default function MetaDecks({ mdSound }) {
   } = useMetaDecks();
 
   const sortedMetaDecks = [...metaDecks].sort((a, b) => {
+    const idA = Number(a?.Id || a?.['_id'] || a?.['id'] || 0);
+    const idB = Number(b?.Id || b?.['_id'] || b?.['id'] || 0);
+    
+    // Sort by YGOPRODeck ID descending (newer decks have higher IDs)
+    if (idB !== idA) {
+      return idB - idA;
+    }
+    
+    // Fallback to timestamp if IDs are somehow missing or equal
     const dateA = new Date(a.lastUpdated || a.LastUpdated || 0);
     const dateB = new Date(b.lastUpdated || b.LastUpdated || 0);
     return dateB - dateA; 
