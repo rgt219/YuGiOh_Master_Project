@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // Fetch the data server-side
 async function getNews() {
   try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5276';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.happybush-e43d89b2.eastus.azurecontainerapps.io';
     const targetUrl = new URL('/api/news?limit=24', API_URL).toString();
     
     const res = await fetch(targetUrl, {
