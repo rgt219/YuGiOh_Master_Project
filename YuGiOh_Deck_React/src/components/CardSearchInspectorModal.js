@@ -29,6 +29,13 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
 
     const largeImageUrl = inspectCard.card_images?.[0]?.image_url || `https://images.ygoprodeck.com/images/cards/${inspectCard.id}.jpg`;
     
+    // Resolve Master Duel ban status safely across different possible property shapes
+    const mdBanStatus = 
+      inspectCard.banlist?.ban_master_duel || 
+      inspectCard.banlist?.master_duel || 
+      inspectCard.banlist?.masterduel || 
+      "Unlimited";
+
     // Default to the first available printing or a fallback set name
     const defaultSet = inspectCard.cardSets?.[0] || { set_name: "Chaos Origins", set_rarity: "Common" };
     const activeSet = selectedPrinting || defaultSet;
@@ -140,6 +147,48 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                                         {renderLevelStars(inspectCard.level)}
                                     </div>
                                 )}
+
+                                {(inspectCard.atk !== null || inspectCard.def !== null) && (
+                                    <Row className="g-2 mb-2">
+                                        <Col>
+                                            <div className="vrains-stat-box py-1">
+                                                <span className="text-white-50 small terminal-font d-block" style={{ fontSize: '0.65rem' }}>ATK</span>
+                                                <span className="fw-bold text-warning fs-6">{inspectCard.atk ?? "—"}</span>
+                                            </div>
+                                        </Col>
+                                        <Col>
+                                            <div className="vrains-stat-box py-1">
+                                                <span className="text-white-50 small terminal-font d-block" style={{ fontSize: '0.65rem' }}>DEF</span>
+                                                <span className="fw-bold text-warning fs-6">{inspectCard.def ?? "—"}</span>
+                                            </div>
+                                        </Col>
+                                    </Row>
+                                )}
+
+                                <Row className="g-2 mb-2">
+                                    <Col xs={8}>
+                                        <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-25 h-100">
+                                            <div className="text-info small terminal-font mb-1" style={{ fontSize: '0.62rem' }}>BANLIST STATUS</div>
+                                            <div className="d-flex align-items-center justify-content-between gap-1">
+                                                <div className="text-center flex-grow-1"><span className="text-white-50 d-block" style={{ fontSize: '0.55rem' }}>MD</span>{renderBanBadge(mdBanStatus)}</div>
+                                                <div className="text-center flex-grow-1"><span className="text-white-50 d-block" style={{ fontSize: '0.55rem' }}>TCG</span>{renderBanBadge(inspectCard.banlist?.tcg)}</div>
+                                                <div className="text-center flex-grow-1"><span className="text-white-50 d-block" style={{ fontSize: '0.55rem' }}>OCG</span>{renderBanBadge(inspectCard.banlist?.ocg)}</div>
+                                            </div>
+                                        </div>
+                                    </Col>
+                                    <Col xs={4}>
+                                        <div className="p-2 rounded bg-black bg-opacity-60 border border-info border-opacity-25 h-100 d-flex flex-column justify-content-between text-center">
+                                            <span className="text-info small terminal-font d-block fw-bold" style={{ fontSize: '0.62rem' }}>GENESYS POINTS</span>
+                                            <div>
+                                                {inspectCard.isLinkOrPendulum ? (
+                                                    <Badge bg="danger" className="terminal-font px-1 py-1" style={{ fontSize: '0.58rem' }}>N/A (BANNED)</Badge>
+                                                ) : (
+                                                    <Badge bg="info" className="text-dark terminal-font px-2 py-1 fw-bold fs-6">{inspectCard.genesysPoints ?? 0} PTS</Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </Col>
+                                </Row>
 
                                 <div className="mt-1 flex-grow-1 d-flex flex-column">
                                     <label className="text-info small terminal-font mb-1 d-block" style={{ fontSize: '0.7rem' }}>

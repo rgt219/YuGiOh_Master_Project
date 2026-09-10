@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef, Link } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Link from 'next/link';
 import { Offcanvas, Button } from 'react-bootstrap';
 import NavVideoCard from "@/components/NavVideoCard";
 import DecksGrid from "@/components/DecksGrid";
@@ -117,7 +118,7 @@ export default function Home({ user }) {
                     if (!isNaN(index)) setActivePanelIndex(index);
                 }
             });
-        }, { threshold: 0.5 }); 
+        }, { threshold: 0.3 }); 
 
         sectionRefs.current.forEach(ref => { if (ref) observer.observe(ref); });
         if (heroRef.current) observer.observe(heroRef.current);
@@ -153,17 +154,15 @@ export default function Home({ user }) {
     return (
         <div className="md-theme-bg" style={{ backgroundColor: '#06080c', minHeight: '100vh', overflowX: 'hidden', fontFamily: "'Cascadia Mono', monospace", position: 'relative' }}>
             
-            {/* 🚀 HIDDEN PRELOADER FOR NAV VIDEO CARDS (Eliminates first-hover delay) */}
+            {/* 🚀 HIDDEN PRELOADER FOR NAV VIDEO CARDS */}
             <div style={{ display: 'none', position: 'absolute', width: 0, height: 0, overflow: 'hidden', zIndex: -1 }}>
                 {panelsData.map((panel) => (
                     <video key={`preload-${panel.id}`} src={`${CDN_BASE_URL}/videos/${panel.navVideo}`} preload="auto" muted playsInline crossOrigin="anonymous" />
                 ))}
             </div>
 
-            {/* 🚀 GLOBAL BACKGROUND VIDEO CONTROLLER */}
+            {/* 🚀 GLOBAL BACKGROUND VIDEO CONTROLLER (Active on all screen sizes) */}
             <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none' }}>
-                
-                {/* HERO BACKGROUND VIDEO */}
                 <video
                     ref={heroBgVideoRef}
                     src={`${CDN_BASE_URL}/videos/temple.mp4`}
@@ -174,12 +173,11 @@ export default function Home({ user }) {
                     style={{
                         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                         objectFit: 'cover',
-                        opacity: activePanelIndex === -1 ? 0.30 : 0, 
+                        opacity: activePanelIndex === -1 ? 0.22 : 0, 
                         transition: 'opacity 1s ease-in-out'
                     }}
                 />
 
-                {/* DYNAMIC PANEL BACKGROUND VIDEOS */}
                 {panelsData.map((panel, idx) => (
                     <video
                         key={panel.id}
@@ -193,34 +191,34 @@ export default function Home({ user }) {
                         style={{
                             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                             objectFit: 'cover',
-                            opacity: activePanelIndex === idx ? 0.30 : 0, 
+                            opacity: activePanelIndex === idx ? 0.22 : 0, 
                             transition: 'opacity 1s ease-in-out' 
                         }}
                     />
                 ))}
             </div>
 
-            {/* Left Edge Tab */}
+            {/* Desktop Left Edge Tab */}
             <Button 
                 variant="info" 
-                className="position-fixed shadow-lg border border-info border-start-0" 
+                className="position-fixed shadow-lg border border-info border-start-0 d-none d-md-block" 
                 style={{ top: '50%', left: '0', transform: 'translateY(-50%)', zIndex: 1040, writingMode: 'vertical-rl', textOrientation: 'mixed', borderRadius: '0 8px 8px 0', padding: '15px 5px', letterSpacing: '2px', backgroundColor: 'rgba(8, 12, 20, 0.9)' }}
                 onClick={() => setShowTickerDrawer(true)}
             >
                 LIVE ACTIVITY ⏵
             </Button>
 
-            {/* Right Edge Tab */}
+            {/* Desktop Right Edge Tab */}
             <Button 
                 variant="warning" 
-                className="position-fixed shadow-lg border border-warning border-end-0" 
+                className="position-fixed shadow-lg border border-warning border-end-0 d-none d-md-block" 
                 style={{ top: '50%', right: '0', transform: 'translateY(-50%) rotate(180deg)', zIndex: 1040, writingMode: 'vertical-rl', textOrientation: 'mixed', borderRadius: '0 8px 8px 0', padding: '15px 5px', letterSpacing: '2px', backgroundColor: 'rgba(8, 12, 20, 0.9)', color: '#ffc107' }}
                 onClick={() => setShowTrendingDrawer(true)}
             >
                 ⏴ TRENDING CARDS
             </Button>
 
-            <Offcanvas show={showTickerDrawer} onHide={() => setShowTickerDrawer(false)} placement="start" style={{ backgroundColor: '#0a0d14', borderRight: '1px solid #00f2ff', width: '50vw' }}>
+            <Offcanvas show={showTickerDrawer} onHide={() => setShowTickerDrawer(false)} placement="start" style={{ backgroundColor: '#0a0d14', borderRight: '1px solid #00f2ff', width: '85vw', maxWidth: '400px' }}>
                 <Offcanvas.Header closeButton closeVariant="white">
                     <Offcanvas.Title className="text-info fw-bold" style={{ letterSpacing: '1px' }}>LIVE ACTIVITY</Offcanvas.Title>
                 </Offcanvas.Header>
@@ -229,7 +227,7 @@ export default function Home({ user }) {
                 </Offcanvas.Body>
             </Offcanvas>
 
-            <Offcanvas show={showTrendingDrawer} onHide={() => setShowTrendingDrawer(false)} placement="end" style={{ backgroundColor: '#0a0d14', borderLeft: '1px solid #ffc107', width: '50vw' }}>
+            <Offcanvas show={showTrendingDrawer} onHide={() => setShowTrendingDrawer(false)} placement="end" style={{ backgroundColor: '#0a0d14', borderLeft: '1px solid #ffc107', width: '85vw', maxWidth: '400px' }}>
                 <Offcanvas.Header closeButton closeVariant="white">
                     <Offcanvas.Title className="text-warning fw-bold" style={{ letterSpacing: '1px' }}>TRENDING METAGAME</Offcanvas.Title>
                 </Offcanvas.Header>
@@ -239,21 +237,21 @@ export default function Home({ user }) {
             </Offcanvas>
 
             {/* HERO SECTION */}
-            <div ref={heroRef} data-index={-1} className="container-fluid px-4 px-md-5 position-relative" style={{ paddingTop: '120px', zIndex: 1 }}>
-                <div className="row align-items-center mb-5 mx-auto" style={{ maxWidth: '1400px' }}>
+            <div ref={heroRef} data-index={-1} className="container-fluid px-3 px-md-5 position-relative" style={{ paddingTop: '90px', zIndex: 1 }}>
+                <div className="row align-items-center mb-4 mb-md-5 mx-auto" style={{ maxWidth: '1400px' }}>
                     
-                    <div className="col-lg-6 mb-5 mb-lg-0 pe-lg-5">
-                        <h1 className="fw-extrabold text-white mb-2" style={{ fontSize: 'clamp(3rem, 5vw, 5rem)', lineHeight: '1.1', letterSpacing: '-1px' }}>
+                    <div className="col-lg-6 mb-4 mb-lg-0 pe-lg-5 text-center text-lg-start">
+                        <h1 className="fw-extrabold text-white mb-2" style={{ fontSize: 'clamp(2.2rem, 5vw, 5rem)', lineHeight: '1.1', letterSpacing: '-1px' }}>
                             Master the Meta with <br />
                             <span style={{ color: '#00d2ff', textShadow: '0 0 20px rgba(0, 210, 255, 0.4)' }}>ErreGeTe YGO!</span>
                         </h1>
                         
-                        <h3 className="text-white-50 mt-4 mb-5 fw-light" style={{ fontSize: '1.5rem' }}>
+                        <h3 className="text-white-50 mt-3 mb-4 fw-light fs-5 fs-md-4">
                             Your <strong className="text-white border-bottom border-info border-2">Comprehensive Compendium</strong> of Yu-Gi-Oh Meta Strategies and Deck Building.
                         </h3>
                         
-                        {/* 🚀 New CTA Buttons */}
-                        <div className="d-flex flex-wrap gap-3 mb-5">
+                        {/* CTA Buttons */}
+                        <div className="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3 mb-4">
                             <Button as={Link} href={'/deckbuilder'} variant="outline-info" size="lg" className="fw-bold terminal-font shadow-lg px-4 py-3" style={{ letterSpacing: '1px' }}>
                                 START DECK BUILDER
                             </Button>
@@ -262,22 +260,32 @@ export default function Home({ user }) {
                             </Button>
                         </div>
 
-                        {/* 🚀 New Trust Signals */}
-                        <div className="d-flex flex-wrap align-items-center gap-4 pt-4 border-top border-secondary border-opacity-25">
-                            <div className="text-white-50 small d-flex align-items-center gap-2">
-                                <span className="text-info fs-5">✓</span> Live Banlist Sync
+                        {/* Mobile Quick-Access Action Bar for Drawers */}
+                        <div className="d-flex d-md-none justify-content-center gap-2 mb-4">
+                            <Button variant="outline-info" size="sm" className="terminal-font" onClick={() => setShowTickerDrawer(true)}>
+                                LIVE ACTIVITY
+                            </Button>
+                            <Button variant="outline-warning" size="sm" className="terminal-font" onClick={() => setShowTrendingDrawer(true)}>
+                                TRENDING CARDS
+                            </Button>
+                        </div>
+
+                        {/* Trust Signals */}
+                        <div className="d-flex flex-wrap justify-content-center justify-content-lg-start align-items-center gap-3 pt-3 border-top border-secondary border-opacity-25">
+                            <div className="text-white-50 small d-flex align-items-center gap-1">
+                                <span className="text-info">✓</span> Live Banlist
                             </div>
-                            <div className="text-white-50 small d-flex align-items-center gap-2">
-                                <span className="text-info fs-5">✓</span> Real-Time Card Prices
+                            <div className="text-white-50 small d-flex align-items-center gap-1">
+                                <span className="text-info">✓</span> Live Prices
                             </div>
-                            <div className="text-white-50 small d-flex align-items-center gap-2">
-                                <span className="text-info fs-5">✓</span> 12K+ Card Database
+                            <div className="text-white-50 small d-flex align-items-center gap-1">
+                                <span className="text-info">✓</span> 12K+ Cards
                             </div>
                         </div>
                     </div>
 
                     <div className="col-lg-6">
-                        <div className="rounded-4 shadow-lg overflow-hidden position-relative" style={{ height: '350px', border: '1px solid rgba(0, 210, 255, 0.3)', backgroundColor: '#0a0d14' }}>
+                        <div className="rounded-4 shadow-lg overflow-hidden position-relative" style={{ height: '260px', minHeight: '260px', border: '1px solid rgba(0, 210, 255, 0.3)', backgroundColor: '#0a0d14' }}>
                             {heroVideos.map((videoSrc, idx) => (
                                 <video
                                     key={idx}
@@ -300,27 +308,27 @@ export default function Home({ user }) {
             </div>
 
             {/* THREE-COLUMN FEATURE ROW */}
-            <div className="border-top border-bottom border-info border-opacity-25 bg-black bg-opacity-75 py-5 position-relative" style={{ zIndex: 1 }}>
+            <div className="border-top border-bottom border-info border-opacity-25 bg-black bg-opacity-75 py-4 py-md-5 position-relative" style={{ zIndex: 1 }}>
                 <div className="container mx-auto" style={{ maxWidth: '1400px' }}>
-                    <div className="row text-white text-center text-md-start px-3">
-                        <div className="col-md-4 px-4 mb-4 mb-md-0 border-end border-info border-opacity-25">
-                            <h2 className="text-info fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">Join our community!</h2>
-                            <p className="text-white-50 mt-3 small"><strong className="text-white">Connect in general and competitive chats</strong> to share strategies, discuss matchups, and find your next tournament team.</p>
+                    <div className="row text-white text-center text-md-start px-2 px-md-3">
+                        <div className="col-md-4 px-3 mb-4 mb-md-0 border-end-md border-info border-opacity-25">
+                            <h5 className="text-info fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">Join our community!</h5>
+                            <p className="text-white-50 mt-2 small"><strong className="text-white">Connect in general chats</strong> to share strategies, discuss matchups, and find your tournament crew.</p>
                         </div>
-                        <div className="col-md-4 px-4 mb-4 mb-md-0 border-end border-info border-opacity-25">
-                            <h2 className="text-warning fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">Build like a Pro!</h2>
-                            <p className="text-white-50 mt-3 small"><strong className="text-white">Use the interactive deck builder</strong> to construct, refine, and test your custom decklists against live lists effortlessly.</p>
+                        <div className="col-md-4 px-3 mb-4 mb-md-0 border-end-md border-info border-opacity-25">
+                            <h5 className="text-warning fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">Build like a Pro!</h5>
+                            <p className="text-white-50 mt-2 small"><strong className="text-white">Use the interactive builder</strong> to construct, refine, and test your decklists effortlessly.</p>
                         </div>
-                        <div className="col-md-4 px-4">
-                            <h2 className="text-primary fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">Stay Up to Date!</h2>
-                            <p className="text-white-50 mt-3 small"><strong className="text-white">Check the ban list page</strong> for real-time format shifts, restrictions, and updates across TCG and OCG formats.</p>
+                        <div className="col-md-4 px-3">
+                            <h5 className="text-primary fw-bold d-flex align-items-center justify-content-center justify-content-md-start gap-2">Stay Up to Date!</h5>
+                            <p className="text-white-50 mt-2 small"><strong className="text-white">Check the ban list page</strong> for real-time format shifts and restrictions across TCG/OCG.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* DYNAMIC SCROLL PANELS */}
-            <div className="container-fluid px-4 px-xxl-5 mt-5 position-relative" style={{ zIndex: 1 }}>
+            <div className="container-fluid px-3 px-xxl-5 mt-4 mt-md-5 position-relative" style={{ zIndex: 1 }}>
                 <div className="row justify-content-center">
                     <div className="col-12 col-xl-11 col-xxl-10 mb-5">
                         
@@ -329,44 +337,44 @@ export default function Home({ user }) {
                                 key={panel.id}
                                 ref={(el) => (sectionRefs.current[idx] = el)}
                                 data-index={idx}
-                                className="container-fluid md-content-panel position-relative d-flex align-items-center p-0 mb-5 shadow-lg" 
+                                className="container-fluid md-content-panel position-relative d-flex align-items-center p-0 mb-4 mb-md-5 shadow-lg" 
                                 style={{ 
                                     borderRadius: '8px', 
                                     border: '1px solid rgba(0, 210, 255, 0.2)', 
-                                    backgroundColor: 'rgba(10, 13, 20, 0.75)',
-                                    backdropFilter: 'blur(8px)',
+                                    backgroundColor: 'rgba(10, 13, 20, 0.85)',
+                                    backdropFilter: 'blur(2px)',
                                     overflow: 'hidden'
                                 }}
                             >
-                                <div className="container position-relative w-100 py-5 py-xl-6" style={{ maxWidth: '1400px' }}>
+                                <div className="container position-relative w-100 py-4 py-md-5 py-xl-6" style={{ maxWidth: '1400px' }}>
                                     <div className="row align-items-center mx-0 w-100">
                                         
                                         {!panel.imgRight ? (
                                             <>
-                                                <div className="col-md-5 mb-4 mb-md-0 d-flex justify-content-center justify-content-md-start">
-                                                    <div style={{ width: '100%', maxWidth: '400px' }}>
+                                                <div className="col-md-5 mb-3 mb-md-0 d-flex justify-content-center justify-content-md-start order-1 order-md-1">
+                                                    <div style={{ width: '100%', maxWidth: '360px' }}>
                                                         <NavVideoCard link={{ path: panel.navPath, label: panel.navLabel, img: panel.navImg, video: `${CDN_BASE_URL}/videos/${panel.navVideo}` }} />
                                                     </div>
                                                 </div>
-                                                <div className="col-md-6 offset-md-1 text-center text-md-start">
-                                                    <h2 className="fw-bold mb-3" style={{ fontSize: '2.5rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>{panel.title}</h2>
-                                                    <p className="text-white fs-5 mb-4" style={{ lineHeight: '1.6' }}>{panel.desc}</p>
-                                                    <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">{panel.subTitle}</h5>
+                                                <div className="col-md-6 offset-md-1 text-center text-md-start order-2 order-md-2">
+                                                    <h2 className="fw-bold mb-2 mb-md-3 fs-3 fs-md-2" style={{ color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>{panel.title}</h2>
+                                                    <p className="text-white fs-6 fs-md-5 mb-3 mb-md-4" style={{ lineHeight: '1.6' }}>{panel.desc}</p>
+                                                    <h6 className="text-white fw-bold mb-2 border-bottom border-info border-2 d-inline-block pb-1">{panel.subTitle}</h6>
                                                     <p className="text-white-50 small mt-1 mb-0">{panel.subDesc}</p>
                                                 </div>
                                             </>
                                         ) : (
                                             <>
-                                                <div className="col-md-6 text-center text-md-start mb-4 mb-md-0">
-                                                    <h2 className="fw-bold mb-3" style={{ fontSize: '2.5rem', color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>{panel.title}</h2>
-                                                    <p className="text-white fs-5 mb-4" style={{ lineHeight: '1.6' }}>{panel.desc}</p>
-                                                    <h5 className="text-white fw-bold mb-3 border-bottom border-info border-2 d-inline-block pb-2">{panel.subTitle}</h5>
-                                                    <p className="text-white-50 small mt-1 mb-0">{panel.subDesc}</p>
-                                                </div>
-                                                <div className="col-md-5 offset-md-1 d-flex justify-content-center justify-content-md-end">
-                                                    <div style={{ width: '100%', maxWidth: '400px' }}>
+                                                <div className="col-md-5 offset-md-1 d-flex justify-content-center justify-content-md-end mb-3 mb-md-0 order-1 order-md-2">
+                                                    <div style={{ width: '100%', maxWidth: '360px' }}>
                                                         <NavVideoCard link={{ path: panel.navPath, label: panel.navLabel, img: panel.navImg, video: `${CDN_BASE_URL}/videos/${panel.navVideo}` }} />
                                                     </div>
+                                                </div>
+                                                <div className="col-md-6 text-center text-md-start order-2 order-md-1">
+                                                    <h2 className="fw-bold mb-2 mb-md-3 fs-3 fs-md-2" style={{ color: '#00d2ff', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>{panel.title}</h2>
+                                                    <p className="text-white fs-6 fs-md-5 mb-3 mb-md-4" style={{ lineHeight: '1.6' }}>{panel.desc}</p>
+                                                    <h6 className="text-white fw-bold mb-2 border-bottom border-info border-2 d-inline-block pb-1">{panel.subTitle}</h6>
+                                                    <p className="text-white-50 small mt-1 mb-0">{panel.subDesc}</p>
                                                 </div>
                                             </>
                                         )}
@@ -381,8 +389,8 @@ export default function Home({ user }) {
             </div>
 
             {/* BOTTOM SECTION: Decks Grid */}
-            <div className="container-fluid px-4 px-xxl-5 mt-2 pt-5 position-relative" style={{ zIndex: 1, backgroundColor: '#06080c' }}>
-                <hr className="border-info opacity-25 mb-5" />
+            <div className="container-fluid px-3 px-xxl-5 mt-2 pt-4 pt-md-5 position-relative" style={{ zIndex: 1, backgroundColor: '#06080c' }}>
+                <hr className="border-info opacity-25 mb-4 mb-md-5" />
                 <section className="mb-4">
                     <DecksGrid decks={decks} decklist={decklist} toggleDeckList={toggleDeckList} />
                 </section>

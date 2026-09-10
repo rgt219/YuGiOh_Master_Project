@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; 
-import { Form, Button, Modal } from 'react-bootstrap';
+import { Form, Button, Modal, Card, Spinner, Row, Col } from 'react-bootstrap';
 import { API_URLS } from "@/config";
 import "@/mdstyles.css";
 
@@ -15,6 +15,8 @@ export default function Register() {
     const [password, setPassword] = useState("");
     const [confirmedPassword, setConfirmedPassword] = useState("");
     const [validated, setValidated] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -22,6 +24,7 @@ export default function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setErrorMessage("");
 
         const form = e.currentTarget;
 
@@ -29,7 +32,9 @@ export default function Register() {
             e.stopPropagation();
             setValidated(true);
 
-            if (password !== confirmedPassword) alert("PASSWORDS_DO_NOT_MATCH");
+            if (password !== confirmedPassword) {
+                setErrorMessage("PASSWORDS_DO_NOT_MATCH");
+            }
             return;
         }
 
@@ -42,6 +47,8 @@ export default function Register() {
             password: password
         };
 
+        setIsLoading(true);
+
         try {
             const baseUrl = API_URLS?.IDENTITY || "";
             const response = await fetch(`${baseUrl}/register`, {
@@ -51,153 +58,184 @@ export default function Register() {
             });
 
             if (response.ok) {
-                console.log("DATABASE_UPLINK_SUCCESSFUL");
                 setShowSuccessModal(true);
             } else {
                 const error = await response.json();
-                console.error("UPLINK_DENIED: ", error.message);
+                setErrorMessage(error.message || "REGISTRATION_FAILED");
             }
         } catch (error) {
-            console.error("SYSTEM_OFFLINE: ", error);
+            setErrorMessage("SYSTEM_OFFLINE: UNABLE_TO_REACH_SERVER");
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="md-theme-bg d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
-            <div className="login-terminal-panel">
-                <div className="terminal-header">
-                    <div className="terminal-dot red"></div>
-                    <div className="terminal-dot yellow"></div>
-                    <div className="terminal-dot green"></div>
-                    <span className="terminal-title">ENCRYPTED_REGISTRATION</span>
-                </div>
+        <div className="md-theme-bg d-flex align-items-center justify-content-center px-3 py-5" style={{ minHeight: "100vh", fontFamily: "'Cascadia Mono', monospace" }}>
+            <style>{`
+                .terminal-input:focus {
+                    background-color: rgba(0, 0, 0, 0.8) !important;
+                    border-color: #00f2ff !important;
+                    box-shadow: 0 0 12px rgba(0, 242, 255, 0.25) !important;
+                    color: #fff !important;
+                }
+            `}</style>
 
-                <Form noValidate validated={validated} onSubmit={handleSubmit} className="login-form">
-                    <h2 className="login-branding">ErreGeTe <span className="text-info">YGO</span></h2>
-
-                    {/* First Name Field */}
-                    <Form.Group className="input-hud-group mb-4">
-                        <Form.Label className="hud-label">FIRST NAME</Form.Label>
-                        <Form.Control
-                            required
-                            type="text"
-                            className="md-input-field"
-                            placeholder="FIRST_NAME"
-                            value={fName}
-                            onChange={(e) => setFName(e.target.value)}
-                        />
-                    </Form.Group>
-
-                    {/* Last Name Field */}
-                    <Form.Group className="input-hud-group mb-4">
-                        <Form.Label className="hud-label">LAST NAME</Form.Label>
-                        <Form.Control
-                            required
-                            type="text"
-                            className="md-input-field"
-                            placeholder="LAST_NAME"
-                            value={lName}
-                            onChange={(e) => setLName(e.target.value)}
-                        />
-                    </Form.Group>
-
-                    {/* Username Field */}
-                    <Form.Group className="input-hud-group mb-4">
-                        <Form.Label className="hud-label">USERNAME</Form.Label>
-                        <Form.Control
-                            required
-                            type="text"
-                            className="md-input-field"
-                            placeholder="USERNAME"
-                            value={userName}
-                            onChange={(e) => setuserName(e.target.value)}
-                        />
-                    </Form.Group>
+            <div style={{ width: '100%', maxWidth: '480px' }}>
+                <Card style={{ backgroundColor: 'rgba(10, 13, 20, 0.75)', backdropFilter: 'blur(8px)' }} className="border-info border-opacity-50 shadow-lg p-4 p-md-5 rounded-4 md-panel">
                     
-                    {/* Identifier Field */}
-                    <Form.Group className="input-hud-group mb-4" controlId="validationEmail">
-                        <Form.Label className="hud-label">EMAIL</Form.Label>
-                        <Form.Control 
-                            required
-                            type="email" 
-                            placeholder="NAME@DOMAIN.COM"
-                            className="md-input-field"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <Form.Control.Feedback type="invalid" className="terminal-error">
-                            ! ERROR: INVALID_IDENTIFIER_FORMAT
-                        </Form.Control.Feedback>
-                    </Form.Group>
-
-                    {/* Password Field */}
-                    <Form.Group className="input-hud-group mb-4" controlId="validationPassword">
-                        <Form.Label className="hud-label">PASSWORD</Form.Label>
-                        <Form.Control 
-                            required
-                            type="password" 
-                            placeholder="********"
-                            className="md-input-field"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            minLength={8}
-                        />
-                        <Form.Control.Feedback type="invalid" className="terminal-error">
-                            ! ERROR: CODE_MIN_LENGTH_8
-                        </Form.Control.Feedback>
-                    </Form.Group>
-
-                    {/* Confirm Password */}
-                    <Form.Group className="input-hud-group mb-4" controlId="validationConfirmPassword">
-                        <Form.Label className="hud-label">CONFIRM PASSWORD</Form.Label>
-                        <Form.Control 
-                            required 
-                            type="password" 
-                            className="md-input-field"
-                            placeholder="********"
-                            value={confirmedPassword} 
-                            onChange={(e) => setConfirmedPassword(e.target.value)}
-                            minLength={8}
-                        />
-                    </Form.Group>
-
-                    <Button type="submit" className="md-btn-primary mt-4 w-100">
-                        REGISTER
-                    </Button>
-
-                    <div className="login-footer mt-4">
-                        <Link href="/" className="terminal-link">HOME PAGE</Link>
-                        <span className="terminal-divider">|</span>
-                        <Link href="/contact" className="terminal-link">CONTACT</Link>
+                    <div className="text-center mb-4">
+                        <span className="badge bg-black bg-opacity-60 border border-info border-opacity-50 text-info px-3 py-1 mb-3 terminal-font" style={{ fontSize: '0.65rem', letterSpacing: '2px' }}>
+                            VRAINS REGISTRATION GATEWAY
+                        </span>
+                        <h2 className="fw-bold text-white m-0 cascadia-font" style={{ fontSize: '1.75rem', letterSpacing: '1px', textShadow: '0 0 15px rgba(0,210,255,0.3)' }}>
+                            ErreGeTe <span className="text-info">YGO</span>
+                        </h2>
+                        <p className="text-white-50 small mt-1 terminal-font" style={{ fontSize: '0.75rem' }}>
+                            Initialize your duelist profile credentials
+                        </p>
                     </div>
-                </Form>
+
+                    {errorMessage && (
+                        <div className="alert alert-danger bg-black bg-opacity-75 border border-danger text-danger py-2 px-3 small terminal-font rounded-2 mb-4" role="alert" style={{ fontSize: '0.8rem' }}>
+                            ⚠️ {errorMessage}
+                        </div>
+                    )}
+
+                    <Form noValidate validated={validated} onSubmit={handleSubmit}>
+                        <Row className="g-2 mb-3">
+                            <Col md={6}>
+                                <Form.Label className="text-info terminal-font small fw-bold mb-1" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>
+                                    FIRST NAME
+                                </Form.Label>
+                                <Form.Control
+                                    required
+                                    type="text"
+                                    className="bg-black text-white border-secondary terminal-font py-2 terminal-input"
+                                    style={{ backgroundColor: 'rgba(0,0,0,0.6)', fontSize: '0.85rem' }}
+                                    placeholder="First Name"
+                                    value={fName}
+                                    onChange={(e) => setFName(e.target.value)}
+                                />
+                            </Col>
+                            <Col md={6}>
+                                <Form.Label className="text-info terminal-font small fw-bold mb-1" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>
+                                    LAST NAME
+                                </Form.Label>
+                                <Form.Control
+                                    required
+                                    type="text"
+                                    className="bg-black text-white border-secondary terminal-font py-2 terminal-input"
+                                    style={{ backgroundColor: 'rgba(0,0,0,0.6)', fontSize: '0.85rem' }}
+                                    placeholder="Last Name"
+                                    value={lName}
+                                    onChange={(e) => setLName(e.target.value)}
+                                />
+                            </Col>
+                        </Row>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label className="text-info terminal-font small fw-bold mb-1" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+                                USERNAME
+                            </Form.Label>
+                            <Form.Control
+                                required
+                                type="text"
+                                className="bg-black text-white border-secondary terminal-font py-2 terminal-input"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)', fontSize: '0.9rem' }}
+                                placeholder="duelist_handle"
+                                value={userName}
+                                onChange={(e) => setuserName(e.target.value)}
+                            />
+                        </Form.Group>
+                        
+                        <Form.Group className="mb-3" controlId="validationEmail">
+                            <Form.Label className="text-info terminal-font small fw-bold mb-1" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+                                EMAIL ADDRESS
+                            </Form.Label>
+                            <Form.Control 
+                                required
+                                type="email" 
+                                placeholder="duelist@domain.com"
+                                className="bg-black text-white border-secondary terminal-font py-2 terminal-input"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)', fontSize: '0.9rem' }}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3" controlId="validationPassword">
+                            <Form.Label className="text-info terminal-font small fw-bold mb-1" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+                                PASSWORD (MIN 8 CHARS)
+                            </Form.Label>
+                            <Form.Control 
+                                required
+                                type="password" 
+                                placeholder="••••••••"
+                                className="bg-black text-white border-secondary terminal-font py-2 terminal-input"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)', fontSize: '0.9rem' }}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                minLength={8}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-4" controlId="validationConfirmPassword">
+                            <Form.Label className="text-info terminal-font small fw-bold mb-1" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+                                CONFIRM PASSWORD
+                            </Form.Label>
+                            <Form.Control 
+                                required 
+                                type="password" 
+                                className="bg-black text-white border-secondary terminal-font py-2 terminal-input"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)', fontSize: '0.9rem' }}
+                                placeholder="••••••••"
+                                value={confirmedPassword} 
+                                onChange={(e) => setConfirmedPassword(e.target.value)}
+                                minLength={8}
+                            />
+                        </Form.Group>
+
+                        <Button type="submit" variant="outline-info" className="w-100 fw-bold terminal-font py-2.5 shadow-sm" style={{ letterSpacing: '1px', fontSize: '0.95rem' }} disabled={isLoading}>
+                            {isLoading ? <Spinner animation="border" size="sm" /> : "REGISTER UPLINK"}
+                        </Button>
+                    </Form>
+
+                    <div className="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center terminal-font" style={{ fontSize: '0.75rem' }}>
+                        <Link href="/" className="text-white-50 text-decoration-none">HOME PAGE</Link>
+                        <span className="text-secondary">•</span>
+                        <Link href="/login" className="text-info text-decoration-none fw-bold">ALREADY REGISTERED? LOGIN</Link>
+                    </div>
+                </Card>
             </div>
 
-            {/* ⚡ Registration Success Modal */}
             <Modal 
                 show={showSuccessModal} 
                 onHide={() => router.push("/login")} 
                 centered
                 backdrop="static"
-                contentClassName="bg-dark text-white border border-info shadow-lg"
+                contentClassName="bg-dark text-white border border-info shadow-lg rounded-3"
+                style={{ backgroundColor: 'rgba(10, 13, 20, 0.85)', backdropFilter: 'blur(8px)' }}
             >
-                <Modal.Header className="border-secondary bg-black bg-opacity-50">
+                <Modal.Header className="border-secondary bg-black bg-opacity-70 py-2">
                     <Modal.Title className="text-info terminal-font fw-bold fs-6">
                         SYSTEM_UPLINK_SUCCESS
                     </Modal.Title>
                 </Modal.Header>
 
-                <Modal.Body className="text-center py-4">
+                <Modal.Body className="text-center py-4 bg-dark bg-opacity-75">
                     <div className="fs-1 mb-2">🎉</div>
-                    <h4 className="fw-bold text-white mb-2">Successfully registered!</h4>
-                    <p className="text-white-50 small mb-0">
+                    <h4 className="fw-bold text-white mb-2 cascadia-font">Successfully registered!</h4>
+                    <p className="text-white-50 small mb-0 terminal-font">
                         Your account has been created. Click below to sign into the system.
                     </p>
                 </Modal.Body>
 
-                <Modal.Footer className="border-secondary bg-black bg-opacity-50 justify-content-center">
+                <Modal.Footer className="border-secondary bg-black bg-opacity-70 justify-content-center py-2">
                     <Button 
-                        className="md-btn-primary px-4" 
+                        variant="outline-info" 
+                        size="sm" 
+                        className="terminal-font fw-bold px-4 py-2" 
                         onClick={() => router.push("/login")}
                     >
                         PROCEED TO LOGIN

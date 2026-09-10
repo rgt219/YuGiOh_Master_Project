@@ -1,7 +1,7 @@
 'use client'; 
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Form, Button, Spinner, Row, Col, InputGroup } from 'react-bootstrap';
+import { Form, Button, Spinner, Row, Col, InputGroup, Collapse } from 'react-bootstrap';
 import { 
     CARDS_PER_PAGE, ATTRIBUTES, MAIN_CARD_TYPES, MONSTER_ABILITIES, 
     MONSTER_EXTRA_TYPES, MONSTER_RACES, SPELL_TYPES, TRAP_TYPES, 
@@ -9,7 +9,6 @@ import {
 } from '@/constants/cardSearchConstants';
 import { useCardSearch } from '@/hooks/useCardSearch';
 import CardSearchInspectorModal from '@/components/CardSearchInspectorModal';
-import CardInspectorModal from '@/components/CardInspectorModal';
 import '@/mdstyles.css';
 
 export default function CardSearch() {
@@ -27,6 +26,9 @@ export default function CardSearch() {
     const [selectedLink, setSelectedLink] = useState("ALL");
     const [selectedScale, setSelectedScale] = useState("ALL");
     const [archetypesList, setArchetypesList] = useState(["ALL"]);
+    
+    // 🚀 Collapsible Filter Drawer State for Mobile Optimization
+    const [openFilters, setOpenFilters] = useState(false);
 
     // Pass active filters to the custom hook
     const { rawCards, isLoading, hasError, fetchCards } = useCardSearch({
@@ -46,6 +48,35 @@ export default function CardSearch() {
         else if (newCategory === "TRAP") setSelectedRace("ALL TRAP TYPES");
         else if (newCategory === "NORMAL" || newCategory === "EFFECT") setSelectedRace("ALL MONSTER TYPES");
         else setSelectedRace("ALL RACES / TYPES");
+    };
+
+    // Calculate active filters count for the badge indicator
+    const activeFilterCount = useMemo(() => {
+        return [
+            selectedAttribute !== "ALL",
+            selectedAbility !== "ALL",
+            selectedType !== "ALL",
+            selectedRace && !selectedRace.startsWith("ALL"),
+            selectedArchetype !== "ALL",
+            selectedRarity !== "ALL",
+            selectedLevel !== "ALL",
+            selectedLink !== "ALL",
+            selectedScale !== "ALL"
+        ].filter(Boolean).length;
+    }, [selectedAttribute, selectedAbility, selectedType, selectedRace, selectedArchetype, selectedRarity, selectedLevel, selectedLink, selectedScale]);
+
+    const handleResetFilters = () => {
+        setSelectedAttribute("ALL");
+        setSelectedAbility("ALL");
+        setSelectedType("ALL");
+        setSelectedRace("ALL RACES / TYPES");
+        setSelectedArchetype("ALL");
+        setSelectedRarity("ALL");
+        setSelectedLevel("ALL");
+        setSelectedLink("ALL");
+        setSelectedScale("ALL");
+        setSearchQuery("");
+        setSelectedMainType("ALL");
     };
 
     useEffect(() => {
@@ -102,7 +133,7 @@ export default function CardSearch() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, selectedMainType, selectedAttribute, selectedAbility, selectedType, selectedRace]);
+    }, [searchQuery, selectedMainType, selectedAttribute, selectedAbility, selectedType, selectedRace, selectedRarity, selectedArchetype, selectedLevel, selectedLink, selectedScale]);
 
     const totalPages = Math.ceil(filteredCards.length / CARDS_PER_PAGE) || 1;
 
@@ -112,7 +143,7 @@ export default function CardSearch() {
     }, [filteredCards, currentPage]);
 
     return (
-        <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '95px', paddingBottom: '60px', backgroundColor: '#0a0d14', fontFamily: "'Cascadia Mono', monospace" }}>
+        <div className="md-theme-bg min-vh-100 text-white" style={{ paddingTop: '90px', paddingBottom: '60px', backgroundColor: '#0a0d14', fontFamily: "'Cascadia Mono', monospace" }}>
             <style>{`
                 * { font-family: 'Cascadia Mono', monospace !important; }
                 .terminal-font { font-family: 'Cascadia Mono', monospace !important; }
@@ -124,32 +155,46 @@ export default function CardSearch() {
                 .attr-FIRE { background-color: #b83326; color: #fff; }
                 .attr-WIND { background-color: #28804a; color: #fff; }
                 .attr-DIVINE { background-color: #c98018; color: #fff; }
-                .vrains-corner { position: absolute; width: 8px; height: 8px; border-color: #00d2ff; border-style: solid; }
-                .vrains-corner-tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
-                .vrains-corner-tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
-                .vrains-corner-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
-                .vrains-corner-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
-                .vrains-stat-box { background: rgba(0,0,0,0.6); border: 1px solid rgba(0,210,255,0.3); border-radius: 4px; text-align: center; }
                 .md-card-tile { transition: transform 0.2s, border-color 0.2s; cursor: pointer; }
                 .md-card-tile:hover { transform: translateY(-4px); box-shadow: 0 0 15px rgba(0,210,255,0.3); }
             `}</style>
 
-            <div className="container-fluid px-4" style={{ maxWidth: '1400px' }}>
-                {/* 🚀 REMOVED BORDER, BACKGROUND, AND SHADOW CLASSES */}
-                <div className="p-4 rounded-3 mb-4" style={{ background: 'transparent' }}>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="container-fluid px-3 px-md-4" style={{ maxWidth: '1400px' }}>
+                <div className="p-3 p-md-4 rounded-3 mb-3" style={{ background: 'transparent' }}>
+                    
+                    {/* Header & Match Count */}
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                         <div>
-                            <h3 className="fw-bold text-info terminal-font m-0 d-flex align-items-center gap-2">
+                            <h3 className="fw-bold text-info terminal-font m-0 d-flex align-items-center gap-2 fs-4 fs-md-3">
                                 CARD DATABASE
                             </h3>
                             <span className="text-white-50 small terminal-font">
                                 FOUND {filteredCards.length} MATCHES • PAGE {currentPage} OF {totalPages}
                             </span>
                         </div>
+
+                        {/* 🚀 Mobile Filter Toggle Button */}
+                        <Button 
+                            variant="outline-info" 
+                            size="sm" 
+                            className="terminal-font fw-bold d-flex align-items-center justify-content-center gap-2 py-2 mt-2 mt-md-0"
+                            onClick={() => setOpenFilters(!openFilters)}
+                            aria-controls="advanced-filters-collapse"
+                            aria-expanded={openFilters}
+                        >
+                            <span>ADVANCED FILTERS</span>
+                            {activeFilterCount > 0 && (
+                                <span className="badge bg-info text-dark rounded-pill px-2">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                            <span className="ms-1">{openFilters ? '▲' : '▼'}</span>
+                        </Button>
                     </div>
 
-                    <Row className="g-3">
-                        <Col lg={4} md={12}>
+                    {/* Always Visible: Search Bar & Primary Category Tabs */}
+                    <Row className="g-3 mb-2">
+                        <Col lg={5} md={12}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
                                 NAME OR EFFECT TEXT SEARCH
                             </Form.Label>
@@ -170,7 +215,7 @@ export default function CardSearch() {
                             </InputGroup>
                         </Col>
 
-                        <Col lg={8} md={12}>
+                        <Col lg={7} md={12}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
                                 CARD CATEGORY
                             </Form.Label>
@@ -180,7 +225,7 @@ export default function CardSearch() {
                                         key={type}
                                         variant={selectedMainType === type ? "info" : "outline-secondary"}
                                         size="sm"
-                                        className="terminal-font fw-bold flex-grow-1"
+                                        className="terminal-font fw-bold flex-grow-1 py-2"
                                         onClick={() => handleCategoryChange(type)}
                                     >
                                         {type}
@@ -188,127 +233,143 @@ export default function CardSearch() {
                                 ))}
                             </div>
                         </Col>
-
-                        <Col lg={3} md={6}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">ATTRIBUTE</Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font text-uppercase"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedAttribute}
-                                onChange={(e) => setSelectedAttribute(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
-                            >
-                                {ATTRIBUTES.map(attr => (<option key={attr} value={attr}>{attr}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col lg={3} md={6}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">ABILITY</Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedAbility}
-                                onChange={(e) => setSelectedAbility(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedMainType === "NORMAL"}
-                            >
-                                {MONSTER_ABILITIES.map(ability => (
-                                    <option key={ability} value={ability}>{ability === 'ALL' ? 'ALL ABILITIES' : ability}</option>
-                                ))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col lg={3} md={6}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">TYPE</Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedType}
-                                onChange={(e) => setSelectedType(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
-                            >
-                                {MONSTER_EXTRA_TYPES.map(type => (
-                                    <option key={type} value={type}>{type === 'ALL' ? 'ALL TYPES' : type}</option>
-                                ))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col lg={3} md={6}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">
-                                {selectedMainType === "SPELL" ? "SPELL TYPE" : selectedMainType === "TRAP" ? "TRAP TYPE" : "MONSTER RACE"}
-                            </Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedRace}
-                                onChange={(e) => setSelectedRace(e.target.value)}
-                            >
-                                {currentRaceOptions.map(option => (<option key={option} value={option}>{option.toUpperCase()}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col lg={3} md={6}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">ARCHETYPE</Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedArchetype}
-                                onChange={(e) => setSelectedArchetype(e.target.value)}
-                            >
-                                {archetypesList.map(arch => (<option key={arch} value={arch}>{arch.toUpperCase()}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col lg={3} md={6}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">RARITY</Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedRarity}
-                                onChange={(e) => setSelectedRarity(e.target.value)}
-                            >
-                                {RARITIES.map(r => (<option key={r} value={r}>{r.toUpperCase()}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col lg={2} md={4}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">LEVEL / RANK</Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedLevel}
-                                onChange={(e) => setSelectedLevel(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedType === "LINK"}
-                            >
-                                {LEVELS.map(l => (<option key={l} value={l}>{l === 'ALL' ? 'ALL LEVELS' : l}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col lg={2} md={4}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">LINK ARROWS</Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedLink}
-                                onChange={(e) => setSelectedLink(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "LINK" && selectedType !== "ALL")}
-                            >
-                                {LINKS.map(l => (<option key={l} value={l}>{l === 'ALL' ? 'ALL LINKS' : l}</option>))}
-                            </Form.Select>
-                        </Col>
-
-                        <Col lg={2} md={4}>
-                            <Form.Label className="hud-label text-info small terminal-font mb-1">PEND. SCALE</Form.Label>
-                            <Form.Select 
-                                className="bg-black text-info border-secondary terminal-font"
-                                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-                                value={selectedScale}
-                                onChange={(e) => setSelectedScale(e.target.value)}
-                                disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "PENDULUM" && selectedType !== "ALL")}
-                            >
-                                {SCALES.map(s => (<option key={s} value={s}>{s === 'ALL' ? 'ALL SCALES' : s}</option>))}
-                            </Form.Select>
-                        </Col>
                     </Row>
+
+                    {/* 🚀 Collapsible Advanced Filters Drawer */}
+                    <Collapse in={openFilters}>
+                        <div id="advanced-filters-collapse" className="pt-3 border-top border-secondary border-opacity-25 mt-3">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <span className="text-info small terminal-font fw-bold">GRANULAR FILTERS & ATTRIBUTES</span>
+                                {activeFilterCount > 0 && (
+                                    <Button variant="link" size="sm" className="text-danger text-decoration-none p-0 terminal-font small" onClick={handleResetFilters}>
+                                        [ RESET ALL FILTERS ]
+                                    </Button>
+                                )}
+                            </div>
+
+                            <Row className="g-3">
+                                <Col lg={3} md={6}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">ATTRIBUTE</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font text-uppercase"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedAttribute}
+                                        onChange={(e) => setSelectedAttribute(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
+                                    >
+                                        {ATTRIBUTES.map(attr => (<option key={attr} value={attr}>{attr}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col lg={3} md={6}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">ABILITY</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedAbility}
+                                        onChange={(e) => setSelectedAbility(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedMainType === "NORMAL"}
+                                    >
+                                        {MONSTER_ABILITIES.map(ability => (
+                                            <option key={ability} value={ability}>{ability === 'ALL' ? 'ALL ABILITIES' : ability}</option>
+                                        ))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col lg={3} md={6}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">TYPE</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedType}
+                                        onChange={(e) => setSelectedType(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP"}
+                                    >
+                                        {MONSTER_EXTRA_TYPES.map(type => (
+                                            <option key={type} value={type}>{type === 'ALL' ? 'ALL TYPES' : type}</option>
+                                        ))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col lg={3} md={6}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">
+                                        {selectedMainType === "SPELL" ? "SPELL TYPE" : selectedMainType === "TRAP" ? "TRAP TYPE" : "MONSTER RACE"}
+                                    </Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedRace}
+                                        onChange={(e) => setSelectedRace(e.target.value)}
+                                    >
+                                        {currentRaceOptions.map(option => (<option key={option} value={option}>{option.toUpperCase()}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col lg={3} md={6}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">ARCHETYPE</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedArchetype}
+                                        onChange={(e) => setSelectedArchetype(e.target.value)}
+                                    >
+                                        {archetypesList.map(arch => (<option key={arch} value={arch}>{arch.toUpperCase()}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col lg={3} md={6}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">RARITY</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedRarity}
+                                        onChange={(e) => setSelectedRarity(e.target.value)}
+                                    >
+                                        {RARITIES.map(r => (<option key={r} value={r}>{r.toUpperCase()}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col lg={2} md={4}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">LEVEL / RANK</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedLevel}
+                                        onChange={(e) => setSelectedLevel(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || selectedType === "LINK"}
+                                    >
+                                        {LEVELS.map(l => (<option key={l} value={l}>{l === 'ALL' ? 'ALL LEVELS' : l}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col lg={2} md={4}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">LINK ARROWS</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedLink}
+                                        onChange={(e) => setSelectedLink(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "LINK" && selectedType !== "ALL")}
+                                    >
+                                        {LINKS.map(l => (<option key={l} value={l}>{l === 'ALL' ? 'ALL LINKS' : l}</option>))}
+                                    </Form.Select>
+                                </Col>
+
+                                <Col lg={2} md={4}>
+                                    <Form.Label className="hud-label text-info small terminal-font mb-1">PEND. SCALE</Form.Label>
+                                    <Form.Select 
+                                        className="bg-black text-info border-secondary terminal-font"
+                                        style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                                        value={selectedScale}
+                                        onChange={(e) => setSelectedScale(e.target.value)}
+                                        disabled={selectedMainType === "SPELL" || selectedMainType === "TRAP" || (selectedType !== "PENDULUM" && selectedType !== "ALL")}
+                                    >
+                                        {SCALES.map(s => (<option key={s} value={s}>{s === 'ALL' ? 'ALL SCALES' : s}</option>))}
+                                    </Form.Select>
+                                </Col>
+                            </Row>
+                        </div>
+                    </Collapse>
                 </div>
 
                 {isLoading ? (
@@ -327,10 +388,9 @@ export default function CardSearch() {
                         <h4 className="text-white-50 terminal-font">NO CARDS MATCH CURRENT FILTER CRITERIA</h4>
                     </div>
                 ) : (
-                    <Row className="g-3 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 row-cols-xl-6">
+                    <Row className="g-2 g-md-3 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 row-cols-xl-6">
                         {paginatedCards.map(card => (
                             <Col key={card.id}>
-                                {/* 🚀 REMOVED bg-dark FROM CARD TILE */}
                                 <div className="md-card-tile p-2 rounded-3 h-100 d-flex flex-column justify-content-between position-relative" style={{ background: 'transparent' }} onClick={() => setInspectCard(card)}>
                                     <div className="position-relative overflow-hidden rounded mb-2" style={{ aspectRatio: '59/86' }}>
                                         <img 
@@ -350,9 +410,9 @@ export default function CardSearch() {
 
                 {totalPages > 1 && (
                     <div className="d-flex align-items-center justify-content-center gap-3 mt-4 pt-3 border-top border-secondary border-opacity-25">
-                        <Button variant="outline-info" size="sm" className="terminal-font fw-bold px-4" disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(p - 1, 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>◄ PREVIOUS_PAGE</Button>
+                        <Button variant="outline-info" size="sm" className="terminal-font fw-bold px-3 px-md-4" disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(p - 1, 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>◄ PREVIOUS</Button>
                         <span className="text-info terminal-font small fw-bold px-2">PAGE {currentPage} OF {totalPages}</span>
-                        <Button variant="outline-info" size="sm" className="terminal-font fw-bold px-4" disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => Math.min(p + 1, totalPages)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>NEXT_PAGE ►</Button>
+                        <Button variant="outline-info" size="sm" className="terminal-font fw-bold px-3 px-md-4" disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => Math.min(p + 1, totalPages)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>NEXT ►</Button>
                     </div>
                 )}
             </div>
