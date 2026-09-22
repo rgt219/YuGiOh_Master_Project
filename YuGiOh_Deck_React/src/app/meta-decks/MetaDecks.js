@@ -1,6 +1,6 @@
 'use client'; 
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Spinner, Button } from 'react-bootstrap';
@@ -62,26 +62,42 @@ export default function MetaDecks({ mdSound }) {
     setCurrentPage
   } = useMetaDecks();
 
-  const sortedMetaDecks = [...metaDecks].sort((a, b) => {
-    const idA = Number(a?.Id || a?.['_id'] || a?.['id'] || 0);
-    const idB = Number(b?.Id || b?.['_id'] || b?.['id'] || 0);
-    
-    // Sort by YGOPRODeck ID descending (newer decks have higher IDs)
-    if (idB !== idA) {
-      return idB - idA;
-    }
-    
-    // Fallback to timestamp if IDs are somehow missing or equal
-    const dateA = new Date(a.lastUpdated || a.LastUpdated || 0);
-    const dateB = new Date(b.lastUpdated || b.LastUpdated || 0);
-    return dateB - dateA; 
-  });
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const totalPages = Math.ceil(sortedMetaDecks.length / DECKS_PER_PAGE) || 1;
-  const paginatedDecks = sortedMetaDecks.slice(
-    (currentPage - 1) * DECKS_PER_PAGE, 
-    currentPage * DECKS_PER_PAGE
-  );
+  const filteredAndSortedDecks = useMemo(() => {
+    const query = searchTerm.toLowerCase().trim();
+
+    return metaDecks
+      .filter((deck) => {
+        if (!query) return true;
+
+        const archetype = (deck?.archetype || deck?.Archetype || '').toLowerCase();
+        const pilot = (deck?.pilot || deck?.Author || '').toLowerCase();
+        const placement = (deck?.placement || deck?.Placement || '').toLowerCase();
+
+        // Matches if the term is found in Archetype name, Pilot name, or Placement
+        return archetype.includes(query) || pilot.includes(query) || placement.includes(query);
+      })
+      .sort((a, b) => {
+        const idA = Number(a?.Id || a?.['_id'] || a?.['id'] || 0);
+        const idB = Number(b?.Id || b?.['_id'] || b?.['id'] || 0);
+        
+        if (idB !== idA) {
+          return idB - idA;
+        }
+        
+        const dateA = new Date(a.lastUpdated || a.LastUpdated || 0);
+        const dateB = new Date(b.lastUpdated || b.LastUpdated || 0);
+        return dateB - dateA; 
+      });
+  }, [metaDecks, searchTerm]); // Only recalculates when the fetched decks or search term change!
+
+// Pagination calculates off the filtered list
+const totalPages = Math.ceil(filteredAndSortedDecks.length / DECKS_PER_PAGE) || 1;
+const paginatedDecks = filteredAndSortedDecks.slice(
+  (currentPage - 1) * DECKS_PER_PAGE, 
+  currentPage * DECKS_PER_PAGE
+);
 
   return (
     <div className="md-theme-bg min-vh-100 py-5 mt-5" style={{ fontFamily: "'Cascadia Mono', monospace" }}>
@@ -167,13 +183,55 @@ export default function MetaDecks({ mdSound }) {
                   variant={isActive ? fmt.variant : `outline-${fmt.variant}`}
                   className="flex-fill fw-bold cascadia-font text-nowrap py-2"
                   onMouseEnter={() => mdSound?.playHover?.()}
-                  onClick={() => { mdSound?.playClick?.(); setActiveFormat(fmt.name); }}
+                  onClick={() => { 
+                    mdSound?.playClick?.(); 
+                    setActiveFormat(fmt.name); 
+                    setSearchTerm(''); // Clear search when switching format
+                  }}
                 >
                   {fmt.name}
                 </Button>
               );
             })}
           </Card.Header>
+
+          {/* ⚡ Instant Holographic Search Bar */}
+          <div className="pt-2 px-1">
+            <div className="position-relative">
+              <input
+                type="text"
+                className="form-control bg-black text-white border-secondary terminal-font py-2"
+                placeholder="SEARCH ARCHETYPE, PILOT, OR PLACEMENT (E.G. 'SNAKE-EYE', '1ST PLACE')..."
+                style={{
+                  fontFamily: "'Cascadia Mono', monospace",
+                  fontSize: '0.85rem',
+                  borderColor: 'rgba(0, 242, 255, 0.3)',
+                  boxShadow: 'none'
+                }}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // Reset to page 1 so results don't render off-screen
+                }}
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+                  className="btn btn-sm text-white-50 position-absolute end-0 top-50 translate-middle-y me-2"
+                  style={{ border: 'none', background: 'transparent', fontSize: '0.8rem' }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {searchTerm && (
+              <div className="text-white-50 small mt-2 cascadia-font d-flex justify-content-between">
+                <span>QUERY: "{searchTerm.toUpperCase()}"</span>
+                <span className="text-info">{filteredAndSortedDecks.length} DECK(S) FOUND</span>
+              </div>
+            )}
+          </div>
         </Card>
 
         {loading ? (
@@ -199,6 +257,18 @@ export default function MetaDecks({ mdSound }) {
         ) : metaDecks.length === 0 ? (
           <div className="text-center py-5 text-white-50 cascadia-font">
             <h5>NO DECKS ARCHIVED FOR {activeFormat} FORMAT YET</h5>
+          </div>
+        ) : filteredAndSortedDecks.length === 0 ? (
+          <div className="text-center py-5 text-white-50 cascadia-font">
+            <h5>NO DECKS MATCHED "{searchTerm.toUpperCase()}" FOR {activeFormat} FORMAT</h5>
+            <Button 
+              variant="outline-info" 
+              size="sm" 
+              className="mt-3 cascadia-font" 
+              onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+            >
+              CLEAR SEARCH QUERY
+            </Button>
           </div>
         ) : (
           <>
