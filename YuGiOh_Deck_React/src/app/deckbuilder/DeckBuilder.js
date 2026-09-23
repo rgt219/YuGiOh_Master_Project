@@ -45,77 +45,46 @@ export default function DeckBuilder() {
                     handleSave={handleSave} setShowAiModal={setShowAiModal}
                 />
 
-                {/* --- STANDARD / LAPTOP LAYOUT --- */}
-                <div className="d-xxl-none">
-                    <CardInspector 
-                        pinnedCard={pinnedCard} setPinnedCard={setPinnedCard}
-                        inspectedCard={inspectedCard} mainDeck={mainDeck}
-                        extraDeck={extraDeck} handlePinCard={handlePinCard}
-                    />
-
-                    <Row className="g-4 mt-2">
-                        <Col lg={7}>
-                            <CustomDeck 
-                                mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onDeleteCard={handleDeleteCard}
-                                onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
-                                onPinCard={handlePinCard}
+                {/* ROW 1: Inspector & Database Search */}
+                <Row className="g-4 mb-4 align-items-stretch mt-2">
+                    {/* Inspector takes up 4 columns on laptops, 3 on ultrawides */}
+                    <Col xs={12} lg={4} xxl={3}>
+                        <div style={{ position: 'sticky', top: '100px', zIndex: 10 }}>
+                            <CardInspector 
+                                pinnedCard={pinnedCard} 
+                                setPinnedCard={setPinnedCard}
+                                inspectedCard={inspectedCard} 
+                                mainDeck={mainDeck}
+                                extraDeck={extraDeck}
+                                sideDeck={sideDeck}               
+                                onAddCard={handleAddCard}         
+                                onDeleteCard={handleDeleteCard}   
+                                handlePinCard={handlePinCard}
                             />
-                        </Col>
-                        <Col lg={5}>
-                            <div style={{ 
-                                position: 'sticky', 
-                                top: '100px', 
-                                maxHeight: 'calc(100vh - 120px)', 
-                                overflowY: 'auto', 
-                                overflowX: 'hidden',
-                                zIndex: 10 
-                            }}>
-                                <CardApi 
-                                    onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
-                                    cardList={[...mainDeck, ...extraDeck, ...sideDeck]}
-                                    onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
-                                    onPinCard={handlePinCard}
-                                />
-                            </div>
-                        </Col>
-                    </Row>
-                </div>
+                        </div>
+                    </Col>
 
-                {/* --- ULTRAWIDE 2-ROW LAYOUT --- */}
-                <div className="d-none d-xxl-block">
-                    {/* ROW 1: Inspector & Database Search (Set to align-items-stretch) */}
-                    <Row className="g-4 mb-4 align-items-stretch">
-                        <Col xxl={3}>
-                            <div style={{ position: 'sticky', top: '100px', zIndex: 10 }}>
-                                <CardInspector 
-                                    pinnedCard={pinnedCard} setPinnedCard={setPinnedCard}
-                                    inspectedCard={inspectedCard} mainDeck={mainDeck}
-                                    extraDeck={extraDeck} handlePinCard={handlePinCard}
-                                />
-                            </div>
-                        </Col>
+                    {/* Card API takes up the remaining 8 columns on laptops, 9 on ultrawides */}
+                    <Col xs={12} lg={8} xxl={9}>
+                        <CardApi 
+                            onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
+                            cardList={[...mainDeck, ...extraDeck, ...sideDeck]}
+                            onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
+                            onPinCard={handlePinCard}
+                        />
+                    </Col>
+                </Row>
 
-                        <Col xxl={9}>
-                            <CardApi 
-                                onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
-                                cardList={[...mainDeck, ...extraDeck, ...sideDeck]}
-                                onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
-                                onPinCard={handlePinCard}
-                            />
-                        </Col>
-                    </Row>
-
-                    {/* ROW 2: The Deck Sections */}
-                    <Row className="g-4">
-                        <Col xxl={12}>
-                            <CustomDeck 
-                                mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onDeleteCard={handleDeleteCard}
-                                onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
-                                onPinCard={handlePinCard}
-                            />
-                        </Col>
-                    </Row>
-                </div>
+                {/* ROW 2: Custom Deck (Takes 100% width, uses internal 50/50 split) */}
+                <Row className="g-4 mb-5">
+                    <Col xs={12}>
+                        <CustomDeck 
+                            mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onDeleteCard={handleDeleteCard}
+                            onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
+                            onPinCard={handlePinCard}
+                        />
+                    </Col>
+                </Row>
             </Container>
 
             <AiCardSuggester 

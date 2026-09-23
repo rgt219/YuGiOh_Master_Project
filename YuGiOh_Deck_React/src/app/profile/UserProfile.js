@@ -292,7 +292,7 @@ export default function UserProfile() {
                         
                         <Col>
                             <h2 className="text-info m-0" style={{ fontFamily: 'Cascadia Mono' }}>
-                                {localUser?.firstName?.toUpperCase()}_{localUser?.lastName?.toUpperCase()}
+                                {localUser?.firstName?.toUpperCase()} {localUser?.lastName?.toUpperCase()}
                             </h2>
                             <p className="m-0 text-white-50 small">RANK: DUELIST // ID: {localUser?.id}</p>
                             {aceMonsterCard?.name && (

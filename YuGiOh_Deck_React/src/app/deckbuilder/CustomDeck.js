@@ -51,10 +51,11 @@ export default function CustomDeck({
             <div 
                 style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(10, minmax(0, 1fr))',
+                    // Force cards to be at least 85px wide
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))',
                     gap: '6px',
                     width: '100%',
-                    alignContent: 'start' // Ensures cards stay at the top if there's empty space
+                    alignContent: 'start'
                 }}
             >
                 {cardList.map((card, index) => {
@@ -65,7 +66,7 @@ export default function CustomDeck({
                         ? card.image
                         : (typeof card === 'object' && card.card_images?.[0]?.image_url_small)
                             ? card.card_images[0].image_url_small
-                            : `cards.erregeteygo.com/card-images/${cardId}.jpg`;
+                            : `https://cards.erregeteygo.com/card-images/${cardId}.jpg`;
 
                     return (
                         <div
@@ -106,25 +107,24 @@ export default function CustomDeck({
     };
 
     return (
-        <Row className="g-4 align-items-stretch">
-            {/* 🚀 Main Deck: Scroll removed, body flexes to fill total container height */}
-            <Col lg={12} xl={6}>
+        <Row className="g-3">
+            {/* EXACTLY 50% WIDTH FOR MAIN DECK */}
+            <Col xs={12} lg={6}>
                 <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-info shadow-lg p-3 md-panel h-100 d-flex flex-column">
                     <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                         <h5 className="m-0 text-info terminal-font fw-bold">
                             MAIN DECK ({mainDeck.length})
                         </h5>
-                        <span className="small text-white-50">Left-click: Lock View | Right-click: Remove</span>
+                        <span className="small text-white-50 d-none d-sm-inline">Left-click: Lock View | Right-click: Remove</span>
                     </Card.Header>
-                    {/* Removed max height and overflow, added flex-grow-1 so empty space dynamically fills out the 60-card boundary */}
                     <Card.Body className="p-1 flex-grow-1 d-flex flex-column">
                         {renderCardGrid(sortedMain, 'border-info border-opacity-50')}
                     </Card.Body>
                 </Card>
             </Col>
 
-            {/* 🚀 Extra & Side Decks: justify-content-between forces Extra to the top and Side to the absolute bottom */}
-            <Col lg={12} xl={6} className="d-flex flex-column justify-content-between">
+            {/* EXACTLY 50% WIDTH FOR EXTRA & SIDE DECKS */}
+            <Col xs={12} lg={6} className="d-flex flex-column gap-3">
                 <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-warning border-opacity-50 shadow-lg p-3 md-panel">
                     <Card.Header className="bg-transparent border-bottom border-warning border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                         <h5 className="m-0 text-warning terminal-font fw-bold">
@@ -137,7 +137,7 @@ export default function CustomDeck({
                     </Card.Body>
                 </Card>
 
-                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 md-panel mt-4">
+                <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-success border-opacity-50 shadow-lg p-3 md-panel">
                     <Card.Header className="bg-transparent border-bottom border-success border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
                         <h5 className="m-0 text-success terminal-font fw-bold">
                             SIDE DECK ({sideDeck.length})

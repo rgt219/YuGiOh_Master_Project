@@ -375,7 +375,7 @@ export default function CardSearch() {
                 {isLoading ? (
                     <div className="text-center my-5 py-5">
                         <Spinner animation="border" variant="info" style={{ width: '3rem', height: '3rem' }} />
-                        <p className="text-info terminal-font mt-3">DECRYPTING_VRAINS_DATABASE...</p>
+                        <p className="text-info terminal-font mt-3">LOADING CARDS FROM VRAINS DATABASE...</p>
                     </div>
                 ) : hasError ? (
                     <div className="p-5 text-center bg-dark rounded-3 border border-danger border-opacity-50 my-4">

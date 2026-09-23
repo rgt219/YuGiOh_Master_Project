@@ -15,7 +15,11 @@ const getAttributeColor = (attribute) => {
   }
 };
 
-export default function CardInspector({ pinnedCard, setPinnedCard, inspectedCard, mainDeck, extraDeck, handlePinCard }) {
+// 🚀 1. Catch the new sideDeck, onAddCard, and onDeleteCard props
+export default function CardInspector({ 
+    pinnedCard, setPinnedCard, inspectedCard, mainDeck = [], 
+    extraDeck = [], sideDeck = [], handlePinCard, onAddCard, onDeleteCard 
+}) {
     const activeCard = pinnedCard || inspectedCard || mainDeck[0] || extraDeck[0] || {
         name: 'DECK BUILDER STUDIO',
         type: 'BUILDER MODE',
@@ -25,8 +29,13 @@ export default function CardInspector({ pinnedCard, setPinnedCard, inspectedCard
     const activeImageUrl = activeCard.image || activeCard.card_images?.[0]?.image_url ||
         ((activeCard.id || activeCard.Id) ? `https://cards.erregeteygo.com/card-images/${activeCard.id || activeCard.Id}.jpg` : 'https://images.ygoprodeck.com/images/cards/back_high.jpg');
 
+    // 🚀 2. Calculate how many copies exist so we can disable the Add button at 3
+    const countInDeck = activeCard.id ? [...(mainDeck || []), ...(extraDeck || []), ...(sideDeck || [])]
+        .filter(c => (c.id || c.Id) === (activeCard.id || activeCard.Id)).length : 0;
+    
+    const isMaxedOut = countInDeck >= 3;
+
     return (
-        /* 🚀 Removed the outer wrapper div and applied h-100 directly to the Card so it stretches exactly like CardApi does */
         <Card 
             style={{ 
                 backgroundColor: 'rgba(10, 13, 20, 0.4)', 
@@ -51,10 +60,8 @@ export default function CardInspector({ pinnedCard, setPinnedCard, inspectedCard
                 )}
             </Card.Header>
 
-            {/* 🚀 minHeight: 0 guarantees this flex child doesn't stretch past the fixed window height */}
             <Card.Body className="p-2 d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
                 
-                {/* Top Section: Locked heights ensure it never bounces */}
                 <Row className="g-3 align-items-start mb-3 flex-shrink-0">
                     <Col xs={12} xl={5} className="text-center d-flex justify-content-center">
                         <div style={{ height: '260px' }} className="d-flex align-items-center justify-content-center w-100">
@@ -82,7 +89,7 @@ export default function CardInspector({ pinnedCard, setPinnedCard, inspectedCard
                             {activeCard.attribute && <Badge bg={getAttributeColor(activeCard.attribute)} className="text-uppercase fs-6 fw-bold px-2 py-1">{activeCard.attribute}</Badge>}
                         </div>
 
-                        <div className="mb-3 text-info fw-bold fs-5" style={{ minHeight: '28px' }}>
+                        <div className="mb-2 text-info fw-bold fs-5" style={{ minHeight: '28px' }}>
                             {activeCard.level ? `Level / Rank: ${activeCard.level} ★` : ''}
                         </div>
                         
@@ -96,10 +103,42 @@ export default function CardInspector({ pinnedCard, setPinnedCard, inspectedCard
                                 </div>
                             )}
                         </div>
+
+                        {/* 🚀 3. Mobile-Friendly Action Command Center */}
+                        {activeCard.id && onAddCard && (
+                            <div className="d-flex flex-column gap-2 mt-3 w-100 flex-shrink-0">
+                                <Button 
+                                    variant="outline-info" 
+                                    size="sm"
+                                    className="terminal-font fw-bold"
+                                    onClick={() => onAddCard(activeCard, false)} 
+                                    disabled={isMaxedOut}
+                                >
+                                    [ + MAIN/EXTRA ]
+                                </Button>
+                                <Button 
+                                    variant="outline-success" 
+                                    size="sm"
+                                    className="terminal-font fw-bold"
+                                    onClick={() => onAddCard(activeCard, true)} 
+                                    disabled={isMaxedOut}
+                                >
+                                    [ + SIDE DECK ]
+                                </Button>
+                                <Button 
+                                    variant="outline-danger" 
+                                    size="sm"
+                                    className="terminal-font fw-bold"
+                                    onClick={() => onDeleteCard(activeCard.id || activeCard.Id)} 
+                                    disabled={countInDeck === 0}
+                                >
+                                    [ - REMOVE ]
+                                </Button>
+                            </div>
+                        )}
                     </Col>
                 </Row>
 
-                {/* 🚀 Bottom Section: Correct flex properties restore text and keep it locked to a scrollbar */}
                 <div className="p-3 rounded bg-black border border-secondary d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
                     <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2 flex-shrink-0">
                         Card Effect / Text
