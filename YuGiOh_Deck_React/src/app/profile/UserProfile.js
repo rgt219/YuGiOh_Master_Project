@@ -233,7 +233,7 @@ export default function UserProfile() {
         if (!window.confirm("SYSTEM_CONFIRMATION: PURGE_PLAYLIST?")) return;
 
         try {
-            const response = await fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckPlaylistMongoDb/${playlistId}`, {
+            const response = await fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Playlist/${playlistId}`, {
                 method: 'DELETE'
             });
 
