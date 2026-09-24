@@ -137,17 +137,18 @@ jobs:
             NEXT_PUBLIC_CDN_URL=https://media.erregeteygo.com,
             NEXT_PUBLIC_MARKET_API_URL=https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io
 
-      # 9. Deploy Analytics Consumer (Background Worker)
+      # 9. Deploy Analytics Consumer via Direct Azure CLI
       - name: Deploy Analytics Consumer
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: yugiohapidocker.azurecr.io/analytics:${{ github.sha }}
-          containerAppName: analytics
-          resourceGroup: ErreGeTe
-          environmentVariables: AzureStorage__ContainerName=dead-letters,
-            CosmosDb__ConnectionString=${{ secrets.COSMOSDB_CONNECTION_STRING }},
-            Kafka__ConnectionString=${{ secrets.KAFKA_CONNECTION_STRING }},
-            AzureStorage__ConnectionString=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+        run: |
+          az containerapp update \
+            --name analytics \
+            --resource-group ErreGeTe \
+            --image yugiohapidocker.azurecr.io/analytics:${{ github.sha }} \
+            --set-env-vars \
+              AzureStorage__ContainerName=dead-letters \
+              CosmosDb__ConnectionString="${{ secrets.COSMOSDB_CONNECTION_STRING }}" \
+              Kafka__ConnectionString="${{ secrets.KAFKA_CONNECTION_STRING }}" \
+              AzureStorage__ConnectionString="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
 
       - name: Force Disable Analytics Ingress
         run: |
