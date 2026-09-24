@@ -29,5 +29,13 @@ namespace YuGiOhDeckApi.Repositories
         Task<List<MasterDuelCardDocument>> GetRestrictedMasterDuelCardsAsync();
         Task<List<NewsArticle>> GetLatestNewsAsync(int limit = 20);
         Task SaveNewsArticlesBulkAsync(List<NewsArticle> articles);
+        Task<DeckPlaylist> GetPlaylistByIdAsync(string id);
+        Task<List<DeckPlaylist>> GetPlaylistsByUserIdAsync(string userId);
+        Task CreatePlaylistAsync(DeckPlaylist playlist);
+        Task AddDeckToPlaylistAsync(string playlistId, string deckId);
+        Task<List<DeckList>> GetDeckListsInPlaylistAsync(List<string> deckIds);
+        Task DeletePlaylistByIdAsync(string playlistId);
+        Task DeletePlaylistByTitleAsync(string playlistTitle);
+
     }
 }

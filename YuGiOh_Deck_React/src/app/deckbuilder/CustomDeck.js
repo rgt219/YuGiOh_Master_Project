@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Card, Row, Col } from 'react-bootstrap'; 
+import { Card, Row, Col, Badge } from 'react-bootstrap'; 
 import '@/mdstyles.css';
 
 const sortDeckCards = (deckList) => {
@@ -38,6 +38,47 @@ export default function CustomDeck({
     const sortedExtra = useMemo(() => sortDeckCards(extraDeck), [extraDeck]);
     const sortedSide = useMemo(() => sortDeckCards(sideDeck), [sideDeck]);
 
+   // 🚀 NEW: Bulletproof calculation handling C# PascalCase, DB snake_case, and nested API data
+    const { totalGenesysPoints, hasIllegalCards } = useMemo(() => {
+        const allCards = [...mainDeck, ...extraDeck, ...sideDeck];
+        let points = 0;
+        let illegal = false;
+
+        allCards.forEach(card => {
+            if (!card || typeof card !== 'object') return;
+
+            // 1. Catch illegal mechanics regardless of property casing
+            const type = (card.type || card.Type || "").toLowerCase();
+            const frame = (card.frameType || card.FrameType || "").toLowerCase();
+            const isBannedMechanic = card.isLinkOrPendulum === true || 
+                                     card.genesysPoints === "N/A" || 
+                                     card.GenesysPoints === "N/A" ||
+                                     type.includes("link") || type.includes("pendulum") || 
+                                     frame.includes("link") || frame.includes("pendulum");
+
+            if (isBannedMechanic) {
+                illegal = true;
+            } else {
+                // 2. Hunt down the points across all possible data shapes
+                let pts = 0;
+                
+                if (card.genesysPoints !== undefined && card.genesysPoints !== null) {
+                    pts = card.genesysPoints; // React mapped
+                } else if (card.GenesysPoints !== undefined && card.GenesysPoints !== null) {
+                    pts = card.GenesysPoints; // C# backend hydrated
+                } else if (card.genesys_points !== undefined && card.genesys_points !== null) {
+                    pts = card.genesys_points; // Raw DB snake_case
+                } else if (card.misc_info && Array.isArray(card.misc_info) && card.misc_info[0]?.genesys_points !== undefined) {
+                    pts = card.misc_info[0].genesys_points; // Deep nested raw API data
+                }
+                
+                points += (parseInt(pts) || 0);
+            }
+        });
+
+        return { totalGenesysPoints: points, hasIllegalCards: illegal };
+    }, [mainDeck, extraDeck, sideDeck]);
+
     const renderCardGrid = (cardList, sectionBorder) => {
         if (!cardList || cardList.length === 0) {
             return (
@@ -51,7 +92,6 @@ export default function CustomDeck({
             <div 
                 style={{
                     display: 'grid',
-                    // Force cards to be at least 85px wide
                     gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))',
                     gap: '6px',
                     width: '100%',
@@ -106,16 +146,39 @@ export default function CustomDeck({
         );
     };
 
+    const getGenesysBadgeColor = () => {
+        if (hasIllegalCards) return 'border-danger text-danger';
+        if (totalGenesysPoints >= 100) return 'border-danger text-danger';    // Red
+        if (totalGenesysPoints >= 75) return 'border-warning text-warning';   // Yellow
+        if (totalGenesysPoints >= 50) return 'border-success text-success';   // Green/Yellow
+        return 'border-info text-info';                                       // Default Cyan
+    };
+
     return (
         <Row className="g-3">
             {/* EXACTLY 50% WIDTH FOR MAIN DECK */}
             <Col xs={12} lg={6}>
                 <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-info shadow-lg p-3 md-panel h-100 d-flex flex-column">
-                    <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center">
-                        <h5 className="m-0 text-info terminal-font fw-bold">
-                            MAIN DECK ({mainDeck.length})
-                        </h5>
-                        <span className="small text-white-50 d-none d-sm-inline">Left-click: Lock View | Right-click: Remove</span>
+                    <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 pb-2 mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        {/* 🚀 NEW: Integrated the Genesys Point HUD here */}
+                        <div className="d-flex align-items-center gap-2 flex-wrap">
+                            <h5 className="m-0 text-info terminal-font fw-bold">
+                                MAIN DECK ({mainDeck.length})
+                            </h5>
+                            <Badge 
+                                bg="dark" 
+                                className={`border ${getGenesysBadgeColor()} px-2 py-1 terminal-font shadow-sm`}
+                                style={{ transition: 'all 0.3s ease' }}
+                            >
+                                GENESYS: {totalGenesysPoints} PTS
+                            </Badge>
+                            {hasIllegalCards && (
+                                <Badge bg="danger" className="text-white border border-danger px-2 py-1 terminal-font shadow-sm">
+                                    BANNED CARDS DETECTED
+                                </Badge>
+                            )}
+                        </div>
+                        <span className="small text-white-50 d-none d-xl-inline text-end">Left-click: Lock View | Right-click: Remove</span>
                     </Card.Header>
                     <Card.Body className="p-1 flex-grow-1 d-flex flex-column">
                         {renderCardGrid(sortedMain, 'border-info border-opacity-50')}

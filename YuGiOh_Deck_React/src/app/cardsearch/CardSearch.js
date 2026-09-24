@@ -27,10 +27,8 @@ export default function CardSearch() {
     const [selectedScale, setSelectedScale] = useState("ALL");
     const [archetypesList, setArchetypesList] = useState(["ALL"]);
     
-    // 🚀 Collapsible Filter Drawer State for Mobile Optimization
     const [openFilters, setOpenFilters] = useState(false);
 
-    // Pass active filters to the custom hook
     const { rawCards, isLoading, hasError, fetchCards } = useCardSearch({
         selectedAttribute, selectedRace, selectedArchetype, selectedLevel, selectedLink, selectedScale
     });
@@ -50,7 +48,6 @@ export default function CardSearch() {
         else setSelectedRace("ALL RACES / TYPES");
     };
 
-    // Calculate active filters count for the badge indicator
     const activeFilterCount = useMemo(() => {
         return [
             selectedAttribute !== "ALL",
@@ -173,7 +170,6 @@ export default function CardSearch() {
                             </span>
                         </div>
 
-                        {/* 🚀 Mobile Filter Toggle Button */}
                         <Button 
                             variant="outline-info" 
                             size="sm" 
@@ -192,7 +188,6 @@ export default function CardSearch() {
                         </Button>
                     </div>
 
-                    {/* Always Visible: Search Bar & Primary Category Tabs */}
                     <Row className="g-3 mb-2">
                         <Col lg={5} md={12}>
                             <Form.Label className="hud-label text-info small terminal-font mb-1">
@@ -235,7 +230,6 @@ export default function CardSearch() {
                         </Col>
                     </Row>
 
-                    {/* 🚀 Collapsible Advanced Filters Drawer */}
                     <Collapse in={openFilters}>
                         <div id="advanced-filters-collapse" className="pt-3 border-top border-secondary border-opacity-25 mt-3">
                             <div className="d-flex justify-content-between align-items-center mb-2">

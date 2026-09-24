@@ -15,6 +15,7 @@ namespace YuGiOhDeckApi.Data
         private readonly IMongoCollection<MasterDuelBanListResponse> _mdBanlistCollection;
         private readonly IMongoCollection<MasterDuelCardDocument> _mdCardsCollection;
         private readonly IMongoCollection<NewsArticle> _newsCollection;
+        private readonly IMongoCollection<DeckPlaylist> _deckPlaylistCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -28,6 +29,7 @@ namespace YuGiOhDeckApi.Data
             _mdBanlistCollection = database.GetCollection<MasterDuelBanListResponse>("MasterDuelBanList");
             _mdCardsCollection = database.GetCollection<MasterDuelCardDocument>("MasterDuelCards");
             _newsCollection = database.GetCollection<NewsArticle>("NewsArticles");
+            _deckPlaylistCollection = database.GetCollection<DeckPlaylist>("DeckPlaylists");
 
             IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
             _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");

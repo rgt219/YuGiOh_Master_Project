@@ -103,40 +103,58 @@ export function useDeckBuilder() {
             }
 
             try {
-                const res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${allUniqueIds.join(',')}`); //[cite: 14]
-                const data = await res.json(); //[cite: 14]
+                // 🚀 1. Fire both requests to get card data AND genesys points during YDK imports
+                const [standardRes, genesysRes] = await Promise.all([
+                    fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${allUniqueIds.join(',')}&misc=yes`),
+                    fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${allUniqueIds.join(',')}&misc=yes&format=genesys`).catch(() => null)
+                ]);
                 
-                const cardMap = {}; //[cite: 14]
-                if (data?.data) { //[cite: 14]
+                const data = await standardRes.json();
+                
+                const genesysMap = {};
+                if (genesysRes && genesysRes.ok) {
+                    const genesysData = await genesysRes.json();
+                    (genesysData.data || []).forEach(c => {
+                        genesysMap[c.id] = c.misc_info?.[0]?.genesys_points ?? 0;
+                    });
+                }
+                
+                const cardMap = {};
+                if (data?.data) {
                     data.data.forEach((card) => {
-                        const extraFrames = ['fusion', 'synchro', 'xyz', 'link', 'fusion_pendulum', 'synchro_pendulum', 'xyz_pendulum']; //[cite: 14]
-                        const isExtraDeck = extraFrames.includes(card.frameType?.toLowerCase()); //[cite: 14]
+                        const extraFrames = ['fusion', 'synchro', 'xyz', 'link', 'fusion_pendulum', 'synchro_pendulum', 'xyz_pendulum'];
+                        const isExtraDeck = extraFrames.includes(card.frameType?.toLowerCase());
+                        
+                        const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
                         
                         cardMap[card.id.toString()] = {
-                            ...card, //[cite: 14]
-                            isExtraDeck, //[cite: 14]
-                            image: `cards.erregeteygo.com/card-images/${card.id}.jpg`, //[cite: 14]
-                            fallbackImage: card.card_images?.[0]?.image_url_small || `https://images.ygoprodeck.com/images/cards_small/${card.id}.jpg` //[cite: 14]
+                            ...card,
+                            isExtraDeck,
+                            isLinkOrPendulum,
+                            genesysPoints: isLinkOrPendulum ? "N/A" : (genesysMap[card.id] !== undefined ? genesysMap[card.id] : 0),
+                            // 🚀 2. FIXED: Added 'https://' so the Inspector can successfully load the image
+                            image: `https://cards.erregeteygo.com/card-images/${card.id}.jpg`,
+                            fallbackImage: card.card_images?.[0]?.image_url_small || `https://images.ygoprodeck.com/images/cards_small/${card.id}.jpg`
                         };
                     });
                 }
 
                 const mapCards = (ids) => ids.map((id, index) => ({
-                    ...(cardMap[id] || { id, name: `Card #${id}` }), //[cite: 14]
-                    instanceId: `${id}-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 6)}` //[cite: 14]
+                    ...(cardMap[id] || { id, name: `Card #${id}` }),
+                    instanceId: `${id}-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 6)}`
                 }));
 
                 dispatch(importYdkDeck({ 
-                    main: mapCards(mainIds), //[cite: 14]
-                    extra: mapCards(extraIds), //[cite: 14]
-                    side: mapCards(sideIds), // 7. Map side deck
-                    name: file.name.replace('.ydk', '').replace(/_/g, ' ').toUpperCase() //[cite: 14]
+                    main: mapCards(mainIds),
+                    extra: mapCards(extraIds),
+                    side: mapCards(sideIds),
+                    name: file.name.replace('.ydk', '').replace(/_/g, ' ').toUpperCase()
                 }));
             } catch (err) {
-                console.error("Failed to hydrate YDK cards:", err); //[cite: 14]
-                alert("Imported YDK file, but could not fetch full card details from server."); //[cite: 14]
+                console.error("Failed to hydrate YDK cards:", err);
+                alert("Imported YDK file, but could not fetch full card details from server.");
             } finally {
-                setIsImporting(false); //[cite: 14]
+                setIsImporting(false);
             }
         };
 

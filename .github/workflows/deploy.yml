@@ -133,7 +133,9 @@ jobs:
           containerAppName: frontend
           resourceGroup: ErreGeTe
           targetPort: 80
-          environmentVariables: NEXT_PUBLIC_CDN_URL=https://media.erregeteygo.com, NEXT_PUBLIC_MARKET_API_URL=https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io
+          environmentVariables: >-
+            NEXT_PUBLIC_CDN_URL=https://media.erregeteygo.com, 
+            NEXT_PUBLIC_MARKET_API_URL=https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io
 
       # 9. Deploy Analytics Consumer (Background Worker)
       - name: Deploy Analytics Consumer
@@ -143,6 +145,11 @@ jobs:
           containerAppName: analytics
           resourceGroup: ErreGeTe
           disableIngress: true
+          environmentVariables: >-
+            AzureStorage__ContainerName=dead-letters, 
+            CosmosDb__ConnectionString=${{ secrets.COSMOSDB_CONNECTION_STRING }}, 
+            Kafka__ConnectionString=${{ secrets.KAFKA_CONNECTION_STRING }}, 
+            AzureStorage__ConnectionString=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
 
       # 10. Deploy Market Telemetry API
       - name: Deploy Market Telemetry API
@@ -155,6 +162,9 @@ jobs:
           acrName: yugiohapidocker
           acrUsername: ${{ secrets.ACR_USERNAME }}
           acrPassword: ${{ secrets.ACR_PASSWORD }}
+          environmentVariables: >-
+            MongoDBSetting__ConnectionString=${{ secrets.MONGODB_CONNECTION_STRING }},
+            MongoDBSetting__DatabaseName=ErreGeTe_Market_DB
 
       - name: Force Disable Analytics Ingress
         run: |

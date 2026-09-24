@@ -62,83 +62,82 @@ export default function CardInspector({
 
             <Card.Body className="p-2 d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
                 
-                <Row className="g-3 align-items-start mb-3 flex-shrink-0">
-                    <Col xs={12} xl={5} className="text-center d-flex justify-content-center">
-                        <div style={{ height: '260px' }} className="d-flex align-items-center justify-content-center w-100">
-                            <img
-                                src={activeImageUrl}
-                                alt={activeCard.name}
-                                className="rounded border border-info border-opacity-50"
-                                style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', boxShadow: pinnedCard ? '0 0 20px rgba(251, 191, 36, 0.4)' : '0 0 15px rgba(0, 240, 255, 0.25)' }}
-                                onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }}
-                            />
-                        </div>
+                {/* 🚀 TOP INFO SECTION: Natural flex, no fixed heights */}
+                <Row className="g-3 align-items-center mb-3 flex-shrink-0">
+                    <Col xs={12} xl={5} className="text-center">
+                        <img
+                            src={activeImageUrl}
+                            alt={activeCard.name}
+                            className="rounded border border-info border-opacity-50 img-fluid"
+                            style={{ 
+                                maxHeight: '280px', 
+                                objectFit: 'contain', 
+                                boxShadow: pinnedCard ? '0 0 20px rgba(251, 191, 36, 0.4)' : '0 0 15px rgba(0, 240, 255, 0.25)' 
+                            }}
+                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }}
+                        />
                     </Col>
 
-                    <Col xs={12} xl={7} className="d-flex flex-column justify-content-start" style={{ minHeight: '260px' }}>
-                        <div style={{ minHeight: '64px' }} className="d-flex align-items-center mb-2">
-                            <h4 className="fw-bold m-0 text-white terminal-font">{activeCard.name}</h4>
-                        </div>
+                    <Col xs={12} xl={7} className="d-flex flex-column justify-content-center gap-2">
+                        <h4 className="fw-bold m-0 text-white terminal-font">{activeCard.name}</h4>
                         
-                        <div style={{ minHeight: '30px' }} className="d-flex align-items-center mb-2 flex-wrap gap-2">
+                        <div className="d-flex flex-wrap gap-2">
                             {activeCard.type && <Badge bg="dark" className="border border-secondary text-uppercase fs-6 px-2 py-1">{activeCard.type}</Badge>}
                         </div>
                         
-                        <div style={{ minHeight: '30px' }} className="d-flex align-items-center mb-3 flex-wrap gap-2">
+                        <div className="d-flex flex-wrap gap-2">
                             {activeCard.race && <Badge bg="dark" className="border border-secondary text-uppercase fs-6 px-2 py-1">{activeCard.race}</Badge>}
                             {activeCard.attribute && <Badge bg={getAttributeColor(activeCard.attribute)} className="text-uppercase fs-6 fw-bold px-2 py-1">{activeCard.attribute}</Badge>}
                         </div>
 
-                        <div className="mb-2 text-info fw-bold fs-5" style={{ minHeight: '28px' }}>
-                            {activeCard.level ? `Level / Rank: ${activeCard.level} ★` : ''}
-                        </div>
+                        {activeCard.level && (
+                            <div className="text-info fw-bold fs-5">
+                                Level / Rank: {activeCard.level} ★
+                            </div>
+                        )}
                         
-                        <div style={{ minHeight: '45px' }}>
-                            {typeof activeCard.atk === 'number' && (
-                                <div className="d-flex align-items-center px-3 py-2 rounded bg-black border border-secondary d-inline-flex" style={{ maxWidth: '100%' }}>
-                                    <span className="text-white-50 me-2 fw-bold" style={{ fontSize: '0.9rem' }}>ATK /</span>
-                                    <span className="text-white fw-bold fs-5 me-3">{activeCard.atk}</span>
-                                    <span className="text-white-50 me-2 fw-bold" style={{ fontSize: '0.9rem' }}>DEF /</span>
-                                    <span className="text-white fw-bold fs-5">{activeCard.def ?? '-'}</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 🚀 3. Mobile-Friendly Action Command Center */}
-                        {activeCard.id && onAddCard && (
-                            <div className="d-flex flex-column gap-2 mt-3 w-100 flex-shrink-0">
-                                <Button 
-                                    variant="outline-info" 
-                                    size="sm"
-                                    className="terminal-font fw-bold"
-                                    onClick={() => onAddCard(activeCard, false)} 
-                                    disabled={isMaxedOut}
-                                >
-                                    [ + MAIN/EXTRA ]
-                                </Button>
-                                <Button 
-                                    variant="outline-success" 
-                                    size="sm"
-                                    className="terminal-font fw-bold"
-                                    onClick={() => onAddCard(activeCard, true)} 
-                                    disabled={isMaxedOut}
-                                >
-                                    [ + SIDE DECK ]
-                                </Button>
-                                <Button 
-                                    variant="outline-danger" 
-                                    size="sm"
-                                    className="terminal-font fw-bold"
-                                    onClick={() => onDeleteCard(activeCard.id || activeCard.Id)} 
-                                    disabled={countInDeck === 0}
-                                >
-                                    [ - REMOVE ]
-                                </Button>
+                        {typeof activeCard.atk === 'number' && (
+                            <div className="d-flex align-items-center px-3 py-2 rounded bg-black border border-secondary d-inline-flex w-auto mt-1">
+                                <span className="text-white-50 me-2 fw-bold" style={{ fontSize: '0.9rem' }}>ATK /</span>
+                                <span className="text-white fw-bold fs-5 me-3">{activeCard.atk}</span>
+                                <span className="text-white-50 me-2 fw-bold" style={{ fontSize: '0.9rem' }}>DEF /</span>
+                                <span className="text-white fw-bold fs-5">{activeCard.def ?? '-'}</span>
                             </div>
                         )}
                     </Col>
                 </Row>
 
+                {/* 🚀 ACTION BUTTONS: Moved outside the Row to guarantee 100% full-width span */}
+                {activeCard.id && onAddCard && (
+                    <div className="d-flex flex-column flex-sm-row gap-2 mb-3 w-100 flex-shrink-0">
+                        <Button 
+                            variant="outline-info" 
+                            className="terminal-font fw-bold py-2 flex-grow-1"
+                            onClick={() => onAddCard(activeCard, false)} 
+                            disabled={isMaxedOut}
+                        >
+                            [ + MAIN/EXTRA ]
+                        </Button>
+                        <Button 
+                            variant="outline-success" 
+                            className="terminal-font fw-bold py-2 flex-grow-1"
+                            onClick={() => onAddCard(activeCard, true)} 
+                            disabled={isMaxedOut}
+                        >
+                            [ + SIDE DECK ]
+                        </Button>
+                        <Button 
+                            variant="outline-danger" 
+                            className="terminal-font fw-bold py-2 flex-grow-1"
+                            onClick={() => onDeleteCard(activeCard.id || activeCard.Id)} 
+                            disabled={countInDeck === 0}
+                        >
+                            [ - REMOVE ]
+                        </Button>
+                    </div>
+                )}
+
+                {/* 🚀 TEXT BOX: Let this stretch to fill the rest of the height */}
                 <div className="p-3 rounded bg-black border border-secondary d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
                     <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2 flex-shrink-0">
                         Card Effect / Text

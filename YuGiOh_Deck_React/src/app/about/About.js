@@ -100,7 +100,6 @@ export default function About() {
         <div style={{ backgroundColor: '#06080c', minHeight: "100vh", fontFamily: "'Cascadia Mono', monospace" }} className="py-5 mt-5">
             <Container fluid className="px-4 px-xxl-5">
                 
-                {/* Hero Profile Banner */}
                 <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.75)', backdropFilter: 'blur(0px)' }} className="border-secondary border-opacity-25 shadow-lg p-4 mb-4 md-panel">
                     <Card.Body className="p-2">
                         <Row className="align-items-center g-4">
@@ -154,10 +153,8 @@ export default function About() {
                     </Card.Body>
                 </Card>
 
-                {/* Content Grid */}
                 <Row className="g-4">
                     <Col lg={5} xs={12}>
-                        {/* Software Skillset */}
                         <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.75)', backdropFilter: 'blur(0px)' }} className="border-secondary border-opacity-25 shadow-lg mb-4 md-panel">
                             <Card.Header className="bg-transparent border-bottom border-secondary border-opacity-25 py-3">
                                 <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleCyan}>
@@ -211,7 +208,6 @@ export default function About() {
                     </Col>
 
                     <Col lg={7} xs={12}>
-                        {/* Professional Deployment History */}
                         <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.75)', backdropFilter: 'blur(0px)' }} className="border-secondary border-opacity-25 shadow-lg md-panel">
                             <Card.Header className="bg-transparent border-bottom border-secondary border-opacity-25 py-3">
                                 <h6 className="m-0 fw-bold tracking-widest terminal-font" style={textStyleCyan}>

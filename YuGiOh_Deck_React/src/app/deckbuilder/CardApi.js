@@ -21,22 +21,38 @@ export const deckList = {
 const AZURE_BLOB_BASE_URL = "https://cards.erregeteygo.com/card-images";
 
 const fetchYgoCards = async () => {
-    const response = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes');
-    if (!response.ok) throw new Error('NETWORK_ERROR');
-    const data = await response.json();
+    // 🚀 1. Fire both requests simultaneously to save loading time
+    const [standardResponse, genesysResponse] = await Promise.all([
+        fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes'),
+        fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes&format=genesys').catch(() => null)
+    ]);
 
-    return data.data.map(card => {
+    if (!standardResponse.ok) throw new Error('NETWORK_ERROR');
+    const standardData = await standardResponse.json();
+
+    // 🚀 2. Build a lookup dictionary of just the points
+    const genesysMap = {};
+    if (genesysResponse && genesysResponse.ok) {
+        const genesysData = await genesysResponse.json();
+        (genesysData.data || []).forEach(c => {
+            genesysMap[c.id] = c.misc_info?.[0]?.genesys_points ?? 0;
+        });
+    }
+
+    return standardData.data.map(card => {
         const extraDeckFrames = ['fusion', 'synchro', 'xyz', 'link', 'fusion_pendulum', 'synchro_pendulum', 'xyz_pendulum'];
         const isExtraDeck = extraDeckFrames.includes(card.frameType?.toLowerCase());
         
         const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
-        const miscObj = card.misc_info?.[0] || {};
+        
+        // 🚀 3. Extract the points from our dictionary using the card ID
+        const genesysPts = genesysMap[card.id] !== undefined ? genesysMap[card.id] : 0;
 
         return {
             ...card,
             isExtraDeck,
             isLinkOrPendulum,
-            genesysPoints: isLinkOrPendulum ? "N/A" : (miscObj.genesys_points ?? 0),
+            genesysPoints: isLinkOrPendulum ? "N/A" : genesysPts,
             image: `${AZURE_BLOB_BASE_URL}/${card.id}.jpg`,
             fallbackImage: card.card_images?.[0]?.image_url_small || `https://images.ygoprodeck.com/images/cards_small/${card.id}.jpg`
         };
@@ -282,15 +298,16 @@ const activeFilterCount = useMemo(() => {
             </div>
 
             {/* Full-Width Results Grid */}
+            {/* Full-Width Results Grid */}
             <Card.Body className="p-0 d-flex flex-column flex-grow-1 mt-2">
                 <div 
                     className="custom-scrollbar"
                     style={{ 
                         display: 'grid',
-                        // 🚀 Bumped from 65px to 88px so search results are prominent and clear
                         gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))', 
                         gap: '8px',
-                        height: '560px', 
+                        // 🚀 SHORTER PANELS: Dropped from 560px down to 420px
+                        height: '420px', 
                         overflowY: 'auto', 
                         paddingRight: '4px',
                         alignContent: 'start' 

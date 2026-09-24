@@ -29,7 +29,7 @@ export default function DeckBuilder() {
     } = useDeckBuilder();
 
     return (
-        <div className="md-theme-bg min-vh-100 py-5 mt-5" style={{ fontFamily: "'Cascadia Mono', monospace" }}>
+        <div className="md-theme-bg min-vh-100 pt-2 pb-5 mt-5" style={{ fontFamily: "'Cascadia Mono', monospace" }}>            
             <style>{`
                 * { font-family: 'Cascadia Mono', monospace !important; }
                 .terminal-font { font-family: 'Cascadia Mono', monospace !important; }
@@ -45,10 +45,9 @@ export default function DeckBuilder() {
                     handleSave={handleSave} setShowAiModal={setShowAiModal}
                 />
 
-                {/* ROW 1: Inspector & Database Search */}
-                <Row className="g-4 mb-4 align-items-stretch mt-2">
-                    {/* Inspector takes up 4 columns on laptops, 3 on ultrawides */}
-                    <Col xs={12} lg={4} xxl={3}>
+                <Row className="g-4 mb-4 align-items-stretch">                   
+                    {/* 🚀 WIDER INSPECTOR: Increased from lg={4} xxl={3} to lg={5} xxl={4} */}
+                    <Col xs={12} lg={5} xxl={4}>
                         <div style={{ position: 'sticky', top: '100px', zIndex: 10 }}>
                             <CardInspector 
                                 pinnedCard={pinnedCard} 
@@ -64,8 +63,8 @@ export default function DeckBuilder() {
                         </div>
                     </Col>
 
-                    {/* Card API takes up the remaining 8 columns on laptops, 9 on ultrawides */}
-                    <Col xs={12} lg={8} xxl={9}>
+                    {/* 🚀 ADJUSTED API: Decreased from lg={8} xxl={9} to lg={7} xxl={8} to balance the grid */}
+                    <Col xs={12} lg={7} xxl={8}>
                         <CardApi 
                             onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
                             cardList={[...mainDeck, ...extraDeck, ...sideDeck]}

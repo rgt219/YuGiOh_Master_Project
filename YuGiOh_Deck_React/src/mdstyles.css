@@ -1427,3 +1427,87 @@
   box-shadow: 0 0 18px rgba(0, 242, 255, 0.7);
   color: #06080c !important;
 }
+
+@font-face {
+    font-family: 'YGO-Matrix-Regular';
+    src: url('/fonts/MatrixRegularSmallCaps.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'YGO-Matrix-Bold';
+    src: url('/fonts/MatrixSmallCapsBold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'YGO-Stone-Serif';
+    src: url('/fonts/StoneSerif.otf') format('truetype');
+}
+
+/* ==========================================================
+   --- USER PROFILE & VAULT STYLES ---
+   ========================================================== */
+.cascadia-font { font-family: 'Cascadia Mono', monospace !important; }
+
+.ygo-deck-card {
+    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    transform-style: preserve-3d;
+}
+
+.ygo-deck-card:hover {
+    transform: translateY(-6px) scale(1.015);
+    box-shadow: 0 12px 30px rgba(0, 242, 255, 0.18) !important;
+    border-color: #00f2ff !important;
+}
+
+.fanned-container { perspective: 1000px; }
+.card-left, .card-center, .card-right {
+    position: absolute;
+    transition: all 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transform-origin: bottom center;
+    border-radius: 4px;
+}
+
+.card-left { transform: translateX(-15px) rotate(-6deg) scale(0.9); z-index: 1; opacity: 0.65; filter: brightness(0.6) blur(0.5px); }
+.card-right { transform: translateX(15px) rotate(6deg) scale(0.9); z-index: 2; opacity: 0.65; filter: brightness(0.6) blur(0.5px); }
+.card-center { transform: translateY(0) scale(1); z-index: 3; box-shadow: 0 8px 18px rgba(0,0,0,0.85); }
+
+.ygo-deck-card:hover .card-left { transform: translateX(-68px) translateY(-10px) rotate(-18deg) scale(0.95); opacity: 1; filter: brightness(0.95) blur(0); box-shadow: -8px 12px 20px rgba(0,0,0,0.6); }
+.ygo-deck-card:hover .card-right { transform: translateX(68px) translateY(-10px) rotate(18deg) scale(0.95); opacity: 1; filter: brightness(0.95) blur(0); box-shadow: 8px 12px 20px rgba(0,0,0,0.6); }
+.ygo-deck-card:hover .card-center { transform: translateY(-20px) scale(1.15); z-index: 4; filter: brightness(1.1); box-shadow: 0 15px 35px rgba(0, 242, 255, 0.5); }
+
+.holo-glow {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 0px; height: 0px; background: radial-gradient(circle, rgba(0, 242, 255, 0.35) 0%, rgba(0, 0, 0, 0) 70%);
+    border-radius: 50%; transition: all 0.5s ease; z-index: 0; opacity: 0;
+}
+.ygo-deck-card:hover .holo-glow { width: 250px; height: 250px; opacity: 1; }
+
+.marquee-wrapper {
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+.ygo-deck-card:hover .marquee-wrapper.has-overflow { text-overflow: clip; }
+.ygo-deck-card:hover .marquee-wrapper.has-overflow .marquee-content {
+    display: inline-block;
+    animation: text-slide 3.5s ease-in-out infinite alternate;
+}
+@keyframes text-slide {
+    0%, 15% { transform: translateX(0); }
+    85%, 100% { transform: translateX(-35%); }
+}
+
+.ace-avatar-wrap {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ace-avatar-wrap:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.6) !important;
+}
+.playlist-thumb-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 240, 255, 0.4);
+    border-color: #00f0ff !important;
+}

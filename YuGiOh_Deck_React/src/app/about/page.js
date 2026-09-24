@@ -1,6 +1,5 @@
 import About from '@/app/about/About';
 
-// ⚡ SEO Metadata for Ryan Thomas / ErreGeTe
 export const metadata = {
   title: 'About Ryan Thomas (ErreGeTe) | System Architect & Full-Stack Engineer',
   description: 'Results-driven Software Engineer with 6+ years of experience in .NET Core, C#, React, and cloud microservices. Architect of ErreGeTeYGO.',

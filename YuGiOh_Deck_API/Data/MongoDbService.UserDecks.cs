@@ -42,5 +42,18 @@ namespace YuGiOhDeckApi.Data
                 SideDeck = thinDeck.SideDeck?.Select(idStr => _masterCache!.FirstOrDefault(c => c.Id.ToString() == idStr)).Where(c => c != null).ToList()!
             };
         }
+        public async Task<List<DeckList>> GetDeckListsInPlaylistAsync(List<string> deckIds)
+        {
+            // Fail fast: If the playlist is empty, return an empty list to save a DB call
+            if (deckIds == null || !deckIds.Any())
+            {
+                return new List<DeckList>();
+            }
+
+            // Find all DeckLists where the Id exists inside our deckIds list
+            var filter = Builders<DeckList>.Filter.In(x => x.Id, deckIds);
+
+            return await _deckListCollection.Find(filter).ToListAsync();
+        }
     }
 }
