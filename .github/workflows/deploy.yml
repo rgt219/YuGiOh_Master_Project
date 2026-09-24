@@ -145,10 +145,13 @@ jobs:
           containerAppName: analytics
           resourceGroup: ErreGeTe
           disableIngress: true
+          acrName: yugiohapidocker
+          acrUsername: ${{ secrets.ACR_USERNAME }}
+          acrPassword: ${{ secrets.ACR_PASSWORD }}
           environmentVariables: >-
-            AzureStorage__ContainerName=dead-letters, 
-            CosmosDb__ConnectionString=${{ secrets.COSMOSDB_CONNECTION_STRING }}, 
-            Kafka__ConnectionString=${{ secrets.KAFKA_CONNECTION_STRING }}, 
+            AzureStorage__ContainerName=dead-letters,
+            CosmosDb__ConnectionString=${{ secrets.COSMOSDB_CONNECTION_STRING }},
+            Kafka__ConnectionString=${{ secrets.KAFKA_CONNECTION_STRING }},
             AzureStorage__ConnectionString=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
 
       # 10. Deploy Market Telemetry API
