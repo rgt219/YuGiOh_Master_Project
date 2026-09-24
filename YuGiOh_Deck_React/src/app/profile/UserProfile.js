@@ -132,7 +132,7 @@ export default function UserProfile() {
                 // Fetch Decks and Playlists concurrently
                 const [decksRes, playlistsRes] = await Promise.all([
                     fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb/user/${localUser.id}`),
-                    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckPlaylistMongoDb/user/${localUser.id}`)
+                    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Playlist/user/${localUser.id}`)
                 ]);
 
                 if (playlistsRes.ok) {
@@ -207,7 +207,7 @@ export default function UserProfile() {
         };
 
         try {
-            const response = await fetch("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckPlaylistMongoDb", {
+            const response = await fetch("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Playlist", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newPlaylistPayload)

@@ -168,8 +168,8 @@ jobs:
           acrUsername: ${{ secrets.ACR_USERNAME }}
           acrPassword: ${{ secrets.ACR_PASSWORD }}
           environmentVariables:
-            MongoDBSetting__ConnectionString=${{ secrets.MONGODB_CONNECTION_STRING }},
-            MongoDBSetting__DatabaseName=ErreGeTe_Market_DB
+            MongoDBSettings__ConnectionString=${{ secrets.COSMOSDB_CONNECTION_STRING }},
+            MongoDBSettings__DatabaseName=ErreGeTe_Market_DB
 
       - name: Force Disable Analytics Ingress
         run: |
