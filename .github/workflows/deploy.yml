@@ -163,7 +163,7 @@ jobs:
             --resource-group ErreGeTe \
             --image yugiohapidocker.azurecr.io/market-api:${{ github.sha }} \
             --set-env-vars \
-              MongoDBSettings__ConnectionString="${{ secrets.COSMOSDB_CONNECTION_STRING }}" \
+              MongoDBSettings__ConnectionURI="${{ secrets.COSMOSDB_CONNECTION_STRING }}" \
               MongoDBSettings__DatabaseName="ErreGeTe_Market_DB"
 
       - name: Force Disable Analytics Ingress

@@ -9,13 +9,13 @@ namespace YuGiOhDeckApi.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public required string Id { get; set; }
+        public string? Id { get; set; }
 
         [BsonElement("userId")]
-        public required string UserId { get; set; }
+        public string? UserId { get; set; }
 
         [BsonElement("title")]
-        public required string Title { get; set; }
+        public string? Title { get; set; }
 
         [BsonElement("description")]
         public string? Description { get; set; }
