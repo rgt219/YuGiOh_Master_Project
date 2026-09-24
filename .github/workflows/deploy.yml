@@ -117,7 +117,6 @@ jobs:
           containerAppName: api
           resourceGroup: ErreGeTe
           targetPort: 8080
-          revisionMode: Multiple
 
       - name: Shift 100% Traffic to Newest Revision
         run: |
