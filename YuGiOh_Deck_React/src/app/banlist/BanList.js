@@ -120,7 +120,7 @@ export default function BanList() {
           {isLoading ? (
             <div className="text-center my-5 py-5">
               <Spinner animation="border" variant="info" style={{ width: '3rem', height: '3rem' }} />
-              <p className="text-info terminal-font mt-3">ACCESSING {format} BAN LIST...</p>
+              <p className="text-info terminal-font mt-3">ACCESSING {format.toUpperCase} BAN LIST...</p>
             </div>
           ) : error ? (
             <div style={styles.noResults}><p style={{ color: '#ff4d4d' }}>{error}</p></div>
