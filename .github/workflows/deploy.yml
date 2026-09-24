@@ -155,20 +155,16 @@ jobs:
             --name analytics \
             --resource-group ErreGeTe
 
-      # 10. Deploy Market Telemetry API
+      # 10. Deploy Market Telemetry API via Direct Azure CLI
       - name: Deploy Market Telemetry API
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: yugiohapidocker.azurecr.io/market-api:${{ github.sha }}
-          containerAppName: market-api
-          resourceGroup: ErreGeTe
-          targetPort: 8080
-          acrName: yugiohapidocker
-          acrUsername: ${{ secrets.ACR_USERNAME }}
-          acrPassword: ${{ secrets.ACR_PASSWORD }}
-          environmentVariables:
-            MongoDBSettings__ConnectionString=${{ secrets.COSMOSDB_CONNECTION_STRING }},
-            MongoDBSettings__DatabaseName=ErreGeTe_Market_DB
+        run: |
+          az containerapp update \
+            --name market-api \
+            --resource-group ErreGeTe \
+            --image yugiohapidocker.azurecr.io/market-api:${{ github.sha }} \
+            --set-env-vars \
+              MongoDBSettings__ConnectionString="${{ secrets.COSMOSDB_CONNECTION_STRING }}" \
+              MongoDBSettings__DatabaseName="ErreGeTe_Market_DB"
 
       - name: Force Disable Analytics Ingress
         run: |
