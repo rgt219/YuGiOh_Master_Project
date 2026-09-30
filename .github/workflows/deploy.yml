@@ -1,198 +1,386 @@
+# =====================================================================
+# HOW THIS FILE IS ORGANISED
+#
+#   1. CHECKS   secret-scan, dotnet, go, frontend   (run in parallel)
+#        |      Nothing ships unless all four pass.
+#        v
+#   2. BUILD    one Docker image per service        (run in parallel)
+#        |      Each image is tagged with the commit ID and pushed to ACR.
+#        v
+#   3. DEPLOY   updates the Azure Container Apps one at a time.
+#               Deck API gets a safe "test first, then switch" rollout.
+#
+# Pull requests only run stage 1. Stages 2 and 3 run only on a push to main.
+# =====================================================================
 name: Azure_Uplink_Deployment
 
+# WHEN this workflow runs.
 on:
   push:
-    branches: [main]
+    branches: [main] # a merge or push to main -> full pipeline
   pull_request:
-    branches: [main]
+    branches: [main] # a PR into main -> checks only (see the `if:` lines below)
+  workflow_dispatch: # lets you press "Run workflow" in the GitHub Actions tab
+
+# The workflow's own GitHub token can only read the repo. It cannot push or change settings.
+permissions:
+  contents: read
+
+# Stops two runs from tripping over each other.
+# A new push to a PR cancels that PR's older run.
+# Runs on main wait in line instead, so a deploy is never cut off halfway.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Values used in many places, defined once. Reference them as ${{ env.NAME }} or $NAME.
+env:
+  REGISTRY: yugiohapidocker.azurecr.io # your Azure Container Registry
+  RG: ErreGeTe # your Azure resource group
+  SITE_URL: https://erregeteygo.com # checked at the very end of the deploy
+  # The URL the Deck API smoke test calls. Replace with a real /health endpoint when you add one.
+  SMOKE_PATH: /api/mongodb/DeckListMongoDb/user/447572
 
 jobs:
-  build-and-deploy:
+  # ===================================================================
+  # STAGE 1: CHECKS. Each job below runs on its own fresh machine, all at once.
+  # ===================================================================
+
+  # Looks for passwords and keys accidentally committed to the repo.
+  secret-scan:
+    name: Secret scan
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10 # kill the job if it hangs
     steps:
-      # 1. Checkout the entire Monorepo (includes Deck, Identity, and Tests)
-      - name: Checkout Monorepo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # download the repo onto the machine
+        with:
+          fetch-depth: 0 # get full history so the scanner can inspect new commits
+      - uses: gitleaks/gitleaks-action@v2 # the scanner. It fails the run if it finds a secret.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+  # Builds and tests all the .NET code.
+  dotnet:
+    name: .NET build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4 # installs .NET 9 on the machine
         with:
           dotnet-version: "9.0.x"
-
-      # 2. Restore and Test Deck API
-      - name: Restore & Test Deck API
+      - name: Restore
+        run: dotnet restore YuGiOh_Deck_API/YuGiOhDeckApi.sln # download NuGet packages
+      - name: Test Deck API
+        run: dotnet test YuGiOh_Deck_API.Tests/YuGiOhDeckAPI.Tests.csproj --configuration Release --verbosity normal
+      - name: Compile every service
+        # Loops over the other four services and builds each one. This catches a compile
+        # error in any of them before Docker even starts.
         run: |
-          dotnet restore YuGiOh_Deck_API/YuGiOhDeckApi.sln
-          dotnet test YuGiOh_Deck_API.Tests/YuGiOhDeckAPI.Tests.csproj --verbosity normal
+          set -euo pipefail
+          for proj in YuGiOhIdentityApi YuGiOh_Forum_API MarketTelemetry.Service YuGiOh_Analytics_Consumer; do
+            csproj=$(find "$proj" -maxdepth 2 -name '*.csproj' | head -n 1)
+            echo "Building $csproj"
+            dotnet build "$csproj" --configuration Release
+          done
 
-      # 3. Log in to Azure & ACR
+  # Checks the Go worker.
+  go:
+    name: Go vet, build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: YuGiOh_Deck_API/go-services # every `run:` below starts in this folder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5 # installs the Go version named in go.mod
+        with:
+          go-version-file: YuGiOh_Deck_API/go-services/go.mod
+          cache-dependency-path: YuGiOh_Deck_API/go-services/go.sum
+      - run: go vet ./... # finds suspicious code
+      - run: go build ./... # makes sure it compiles
+      - run: go test ./... # runs any tests (passes if there are none)
+
+  # Makes sure the Next.js site still builds.
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: YuGiOh_Deck_React
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm # reuses downloaded packages between runs
+          cache-dependency-path: YuGiOh_Deck_React/package-lock.json
+      - run: npm ci --legacy-peer-deps # install exactly what package-lock.json says
+      - run: npm run build
+        env:
+          # These are baked into the site at build time (see the Dockerfile).
+          NEXT_PUBLIC_CDN_URL: https://media.erregeteygo.com
+          NEXT_PUBLIC_MARKET_API_URL: https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io
+
+  # ===================================================================
+  # STAGE 2: BUILD IMAGES. Runs only on a push to main, and only after every check passed.
+  # ===================================================================
+  build:
+    name: Build ${{ matrix.image }}
+    needs: [secret-scan, dotnet, go, frontend] # wait for all four checks
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: true # if one image fails, stop the rest
+      # A "matrix" runs this same job once per entry below, all in parallel.
+      # Each entry names an image, the folder to build from (context), and optionally a Dockerfile.
+      matrix:
+        include:
+          - image: api # Deck API
+            context: .
+            file: YuGiOh_Deck_API/Dockerfile
+          - image: go-worker
+            context: ./YuGiOh_Deck_API/go-services
+          - image: forum-api
+            context: ./YuGiOh_Forum_API
+          - image: identity
+            context: ./YuGiOhIdentityApi
+          - image: analytics
+            context: .
+            file: YuGiOh_Analytics_Consumer/Dockerfile
+          - image: market-api
+            context: .
+            file: MarketTelemetry.Service/Dockerfile
+          - image: frontend
+            context: ./YuGiOh_Deck_React
+            build_args: |
+              NEXT_PUBLIC_CDN_URL=https://media.erregeteygo.com
+              NEXT_PUBLIC_MARKET_API_URL=https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3 # a newer Docker builder that supports caching
+      - uses: docker/login-action@v3 # log in to your Azure Container Registry
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - uses: docker/build-push-action@v6 # build the image and push it
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          build-args: ${{ matrix.build_args }}
+          push: true
+          # The tag is the commit ID, so every deploy is traceable to exact code.
+          tags: ${{ env.REGISTRY }}/${{ matrix.image }}:${{ github.sha }}
+          # Reuse unchanged layers from the last run so builds are faster.
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  # ===================================================================
+  # STAGE 3: DEPLOY. Puts the new images live in Azure, one app at a time.
+  # ===================================================================
+  deploy:
+    name: Deploy to Azure Container Apps
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: production # lets you add a manual approval in GitHub settings later
+    env:
+      TAG: ${{ github.sha }} # which image version to deploy
+      ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+      ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+    steps:
       - name: Log in to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Docker Login
-        uses: azure/docker-login@v1
-        with:
-          login-server: yugiohapidocker.azurecr.io
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
-
-      # 4. Build and Push ALL Images
-      - name: Build and Push Backend Images
+      # Writes a small helper file with three reusable functions, so each app's step below
+      # is just one line. Later steps load it with:  source "$RUNNER_TEMP/lib.sh"
+      #   ensure_registry  makes sure the app is allowed to pull from your registry
+      #   wait_ready       waits (up to about 4 minutes) until a revision is running and healthy
+      #   deploy_image     updates an app to the new image, then calls wait_ready
+      - name: Prepare helpers
         run: |
-          # Build Deck API - Pointing directly to the Dockerfile in the subfolder
-          docker build -f YuGiOh_Deck_API/Dockerfile -t yugiohapidocker.azurecr.io/api:${{ github.sha }} .
-          docker push yugiohapidocker.azurecr.io/api:${{ github.sha }}
+          az config set extension.use_dynamic_install=yes_without_prompt extension.dynamic_install_allow_preview=true
+          az extension add --name containerapp --upgrade --yes
+          cat > "$RUNNER_TEMP/lib.sh" <<'EOF'
+          set -euo pipefail
 
-          # Build Go Worker (Goroutines Scraper & Image Sync Engine)
-          docker build -t yugiohapidocker.azurecr.io/go-worker:${{ github.sha }} ./YuGiOh_Deck_API/go-services
-          docker push yugiohapidocker.azurecr.io/go-worker:${{ github.sha }}
+          ensure_registry() {
+            local app=$1 n
+            n=$(az containerapp registry list -n "$app" -g "$RG" --query "[?server=='$REGISTRY'] | length(@)" -o tsv)
+            if [ "$n" = "0" ]; then
+              echo "Attaching $REGISTRY to $app"
+              az containerapp registry set -n "$app" -g "$RG" --server "$REGISTRY" \
+                --username "$ACR_USERNAME" --password "$ACR_PASSWORD" -o none
+            fi
+          }
 
-          # Build Forum API
-          docker build -t yugiohapidocker.azurecr.io/forum-api:${{ github.sha }} ./YuGiOh_Forum_API
-          docker push yugiohapidocker.azurecr.io/forum-api:${{ github.sha }}
+          # wait_ready APP REVISION: pass when the revision is running and not unhealthy, fail after about 4 minutes.
+          wait_ready() {
+            local app=$1 rev=$2 health running
+            for _ in $(seq 1 24); do
+              health=$(az containerapp revision show -n "$app" -g "$RG" --revision "$rev" --query properties.healthState -o tsv)
+              running=$(az containerapp revision show -n "$app" -g "$RG" --revision "$rev" --query properties.runningState -o tsv)
+              echo "$app / $rev: health=$health running=$running"
+              if [ "$health" = "Healthy" ] || { [ "$health" = "None" ] && [ "$running" = "Running" ]; }; then
+                return 0
+              fi
+              sleep 10
+            done
+            echo "::error::$app revision $rev never became healthy"
+            return 1
+          }
 
-          # Build Identity API
-          docker build -t yugiohapidocker.azurecr.io/identity:${{ github.sha }} ./YuGiOhIdentityApi
-          docker push yugiohapidocker.azurecr.io/identity:${{ github.sha }}
+          # deploy_image APP IMAGE [extra az args]: update the app, then wait for its newest revision.
+          deploy_image() {
+            local app=$1 image=$2
+            shift 2
+            ensure_registry "$app"
+            az containerapp update -n "$app" -g "$RG" --image "$REGISTRY/$image:$TAG" "$@" -o none
+            wait_ready "$app" "$(az containerapp show -n "$app" -g "$RG" --query properties.latestRevisionName -o tsv)"
+          }
+          EOF
 
-          # Build Analytics Consumer
-          docker build -f YuGiOh_Analytics_Consumer/Dockerfile -t yugiohapidocker.azurecr.io/analytics:${{ github.sha }} .
-          docker push yugiohapidocker.azurecr.io/analytics:${{ github.sha }}
-
-          # Build Market Telemetry API
-          docker build -f MarketTelemetry.Service/Dockerfile -t yugiohapidocker.azurecr.io/market-api:${{ github.sha }} .
-          docker push yugiohapidocker.azurecr.io/market-api:${{ github.sha }}
-
-      - name: Build and Push Frontend Image
+      # Backends that other apps depend on go first. Each step only swaps the image.
+      # `deploy_image go-worker go-worker` means: app named go-worker, image named go-worker.
+      - name: Deploy Go worker
         run: |
-          docker build --no-cache \
-            --build-arg REACT_APP_IDENTITY_URL=https://identity.happybush-e43d89b2.eastus.azurecontainerapps.io \
-            --build-arg REACT_APP_DECK_API_URL=https://api.happybush-e43d89b2.eastus.azurecontainerapps.io \
-            --build-arg NEXT_PUBLIC_CDN_URL=https://media.erregeteygo.com \
-            --build-arg NEXT_PUBLIC_MARKET_API_URL=https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io \
-            -t yugiohapidocker.azurecr.io/frontend:${{ github.sha }} ./YuGiOh_Deck_React
-          docker push yugiohapidocker.azurecr.io/frontend:${{ github.sha }}
+          source "$RUNNER_TEMP/lib.sh"
+          deploy_image go-worker go-worker
 
-      # 5. Deploy Go Worker (Goroutines Background Microservice)
-      - name: Deploy Go Worker
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: yugiohapidocker.azurecr.io/go-worker:${{ github.sha }}
-          containerAppName: go-worker
-          resourceGroup: ErreGeTe
-          targetPort: 8080
-          acrName: yugiohapidocker
-          acrUsername: ${{ secrets.ACR_USERNAME }}
-          acrPassword: ${{ secrets.ACR_PASSWORD }}
-
-      # 6. Deploy Identity API (Direct Update)
       - name: Deploy Identity API
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: yugiohapidocker.azurecr.io/identity:${{ github.sha }}
-          containerAppName: identity
-          resourceGroup: ErreGeTe
-          targetPort: 8080
+        run: |
+          # Image only. Secrets and env vars (Jwt__Key and the rest) stay as set in Azure.
+          source "$RUNNER_TEMP/lib.sh"
+          deploy_image identity identity
 
-      # 7. Deploy Forum API
       - name: Deploy Forum API
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: yugiohapidocker.azurecr.io/forum-api:${{ github.sha }}
-          containerAppName: forum-api
-          resourceGroup: ErreGeTe
-          targetPort: 8080
-          acrName: yugiohapidocker
-          acrUsername: ${{ secrets.ACR_USERNAME }}
-          acrPassword: ${{ secrets.ACR_PASSWORD }}
-
-      # 8. Deploy Deck API (Blue-Green Logic)
-      - name: Deploy Deck API
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: yugiohapidocker.azurecr.io/api:${{ github.sha }}
-          containerAppName: api
-          resourceGroup: ErreGeTe
-          targetPort: 8080
-
-      - name: Shift 100% Traffic to Newest Revision
         run: |
-          az containerapp ingress traffic set \
-            --name api \
-            --resource-group ErreGeTe \
-            --revision-weight latest=100
+          source "$RUNNER_TEMP/lib.sh"
+          deploy_image forum-api forum-api
 
-      - name: Deploy Frontend
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          imageToDeploy: yugiohapidocker.azurecr.io/frontend:${{ github.sha }}
-          containerAppName: frontend
-          resourceGroup: ErreGeTe
-          targetPort: 80
-          environmentVariables:
-            NEXT_PUBLIC_CDN_URL=https://media.erregeteygo.com,
-            NEXT_PUBLIC_MARKET_API_URL=https://market-api.happybush-e43d89b2.eastus.azurecontainerapps.io
-
-      # 9. Deploy Analytics Consumer via Direct Azure CLI
+      # Analytics needs its three connection strings. They are saved as Azure secrets first,
+      # then the env vars point at them by name (secretref:...), so the keys never show in the portal.
       - name: Deploy Analytics Consumer
+        env:
+          COSMOSDB_CONNECTION_STRING: ${{ secrets.COSMOSDB_CONNECTION_STRING }}
+          KAFKA_CONNECTION_STRING: ${{ secrets.KAFKA_CONNECTION_STRING }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
         run: |
-          az containerapp update \
-            --name analytics \
-            --resource-group ErreGeTe \
-            --image yugiohapidocker.azurecr.io/analytics:${{ github.sha }} \
-            --set-env-vars \
-              AzureStorage__ContainerName=dead-letters \
-              CosmosDb__ConnectionString="${{ secrets.COSMOSDB_CONNECTION_STRING }}" \
-              Kafka__ConnectionString="${{ secrets.KAFKA_CONNECTION_STRING }}" \
-              AzureStorage__ConnectionString="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
+          source "$RUNNER_TEMP/lib.sh"
+          az containerapp secret set -n analytics -g "$RG" -o none --secrets \
+            "cosmosdb-conn=$COSMOSDB_CONNECTION_STRING" \
+            "kafka-conn=$KAFKA_CONNECTION_STRING" \
+            "storage-conn=$AZURE_STORAGE_CONNECTION_STRING"
+          deploy_image analytics analytics --set-env-vars \
+            AzureStorage__ContainerName=dead-letters \
+            CosmosDb__ConnectionString=secretref:cosmosdb-conn \
+            Kafka__ConnectionString=secretref:kafka-conn \
+            AzureStorage__ConnectionString=secretref:storage-conn
+          # The consumer has no HTTP surface. Already disabled is fine.
+          az containerapp ingress disable -n analytics -g "$RG" -o none || echo "Ingress already disabled"
 
-      - name: Force Disable Analytics Ingress
-        run: |
-          az containerapp ingress disable \
-            --name analytics \
-            --resource-group ErreGeTe
-
-      # 10. Deploy Market Telemetry API via Direct Azure CLI
+      # Same idea for the Market API: save the connection string as a secret, point the env var at it.
       - name: Deploy Market Telemetry API
+        env:
+          COSMOSDB_CONNECTION_STRING: ${{ secrets.COSMOSDB_CONNECTION_STRING }}
         run: |
-          az containerapp update \
-            --name market-api \
-            --resource-group ErreGeTe \
-            --image yugiohapidocker.azurecr.io/market-api:${{ github.sha }} \
-            --set-env-vars \
-              MongoDBSettings__ConnectionURI="${{ secrets.COSMOSDB_CONNECTION_STRING }}" \
-              MongoDBSettings__DatabaseName="ErreGeTe_Market_DB"
+          source "$RUNNER_TEMP/lib.sh"
+          az containerapp secret set -n market-api -g "$RG" -o none --secrets "cosmosdb-conn=$COSMOSDB_CONNECTION_STRING"
+          deploy_image market-api market-api --set-env-vars \
+            MongoDBSettings__ConnectionURI=secretref:cosmosdb-conn \
+            MongoDBSettings__DatabaseName=Erregeteygo_Market_DB
 
-      - name: Force Disable Analytics Ingress
+      # ---- Deck API: "test first, then switch" (blue/green) in three steps ----
+      #
+      # Step A: deploy the new version but send it NO traffic. Users stay on the old one.
+      - name: Deploy Deck API (new revision, no traffic yet)
         run: |
-          az containerapp ingress disable \
-            --name analytics \
-            --resource-group ErreGeTe
+          source "$RUNNER_TEMP/lib.sh"
+          # Blue/green needs the app to be in "Multiple" revision mode. Stop with a clear message if not.
+          MODE=$(az containerapp show -n api -g "$RG" --query properties.configuration.activeRevisionsMode -o tsv)
+          if [ "$MODE" != "Multiple" ]; then
+            echo "::error::Container app 'api' is in $MODE revision mode. Blue/green needs Multiple."
+            exit 1
+          fi
+          # Find the revision that has all the traffic now (PREV), and pin 100% to it.
+          # That way the new revision is created with 0% and users never touch it yet.
+          PREV=$(az containerapp revision list -n api -g "$RG" --query '[?properties.trafficWeight==`100`].name | [0]' -o tsv)
+          if [ -n "$PREV" ]; then
+            az containerapp ingress traffic set -n api -g "$RG" --revision-weight "$PREV=100" -o none
+          else
+            echo "::warning::No revision currently holds 100% traffic. Rollback is not possible for this deploy."
+          fi
+          # Give the new revision a readable, unique name built from the commit and run number.
+          SUFFIX="s${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          ensure_registry api
+          az containerapp update -n api -g "$RG" --image "$REGISTRY/api:$TAG" --revision-suffix "$SUFFIX" -o none
+          # Save both names so the next steps can use them.
+          echo "PREV_REVISION=$PREV" >> "$GITHUB_ENV"
+          echo "NEW_REVISION=api--$SUFFIX" >> "$GITHUB_ENV"
+          wait_ready api "api--$SUFFIX"
 
-      - name: Run Smoke Test on Deck API
+      # Step B: call the new revision at its own private URL. If it fails, switch it off
+      # and stop. Real users were never sent to it.
+      - name: Smoke test the new Deck API revision
         run: |
-          REVISION_NAME=$(az containerapp revision list \
-            --name api \
-            --resource-group ErreGeTe \
-            --query "[0].name" -o tsv)
-
-          REVISION_URL=$(az containerapp revision show \
-            --name api \
-            --resource-group ErreGeTe \
-            --revision $REVISION_NAME \
-            --query properties.fqdn -o tsv)
-
-          echo "Testing new revision at: https://$REVISION_URL"
-
-          # Ping the API to ensure hydration/user logic is alive
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$REVISION_URL/api/mongodb/DeckListMongoDb/user/447572")
-
-          if [ "$STATUS" -ne 200 ]; then
-            echo "Smoke test failed with status $STATUS! Not okay"
+          source "$RUNNER_TEMP/lib.sh"
+          FQDN=$(az containerapp revision show -n api -g "$RG" --revision "$NEW_REVISION" --query properties.fqdn -o tsv)
+          echo "Testing https://$FQDN$SMOKE_PATH"
+          STATUS=000
+          for _ in $(seq 1 10); do            # try up to 10 times, 10 seconds apart
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://$FQDN$SMOKE_PATH" || true)
+            [ "$STATUS" = "200" ] && break
+            sleep 10
+          done
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Smoke test failed with HTTP $STATUS. Traffic stays on ${PREV_REVISION:-the current revision}."
+            az containerapp revision deactivate -n api -g "$RG" --revision "$NEW_REVISION" -o none || true
             exit 1
           fi
 
-          echo "FINAL_REVISION=$REVISION_NAME" >> $GITHUB_ENV
+      # Step C: the test passed, so send 100% of traffic to the new version. Then check the
+      # public URL once more; if that fails, put traffic back on the old version.
+      - name: Shift traffic to the new Deck API revision
+        run: |
+          source "$RUNNER_TEMP/lib.sh"
+          az containerapp ingress traffic set -n api -g "$RG" --revision-weight "$NEW_REVISION=100" -o none
+          API_FQDN=$(az containerapp show -n api -g "$RG" --query properties.configuration.ingress.fqdn -o tsv)
+          STATUS=000
+          for _ in $(seq 1 6); do
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://$API_FQDN$SMOKE_PATH" || true)
+            [ "$STATUS" = "200" ] && break
+            sleep 10
+          done
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Public URL returned HTTP $STATUS after the shift. Rolling back."
+            if [ -n "${PREV_REVISION:-}" ]; then
+              az containerapp ingress traffic set -n api -g "$RG" --revision-weight "$PREV_REVISION=100" -o none
+            fi
+            exit 1
+          fi
+
+      # The frontend goes last so visitors never get a site that points at an API that isn't ready.
+      - name: Deploy frontend
+        run: |
+          source "$RUNNER_TEMP/lib.sh"
+          # NEXT_PUBLIC_* values are baked into the image at build time, so no runtime env vars here.
+          deploy_image frontend frontend
+
+      # Final proof: the real website answers with HTTP 200 (tries for about 2 minutes).
+      - name: Check the live site
+        run: |
+          STATUS=000
+          for _ in $(seq 1 12); do
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$SITE_URL" || true)
+            [ "$STATUS" = "200" ] && exit 0
+            sleep 10
+          done
+          echo "::error::$SITE_URL returned HTTP $STATUS"
+          exit 1

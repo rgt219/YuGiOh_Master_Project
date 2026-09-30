@@ -330,20 +330,57 @@ export default function UserProfile() {
                             <Row className="g-4">
                                 {userPlaylists.map(playlist => (
                                     <Col key={playlist.id} md={4}>
-                                        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)' }} text="white" className="border-info border-opacity-50 shadow h-100 md-panel d-flex flex-column">
+                                        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)' }} text="white" className="border-info border-opacity-50 shadow h-100 md-panel d-flex flex-column ygo-deck-card">
                                             <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 px-3 py-3">
                                                 <h5 className="m-0 fw-bold text-white cascadia-font text-truncate">{playlist.title?.toUpperCase()}</h5>
                                             </Card.Header>
                                             <Card.Body className="d-flex flex-column justify-content-between p-3">
-                                                <div>
-                                                    <p className="text-white-50 small" style={{ minHeight: '40px' }}>{playlist.description || "No description provided."}</p>
-                                                    <div className="p-2 rounded bg-black border border-secondary mb-3">
-                                                        <span className="text-info small">ASSIGNED DECKS: {playlist.deckIds?.length || 0}</span>
+                                                <div className="d-flex gap-3 mb-3">
+                                                    {/* Cover Card Thumbnail */}
+                                                    <div className="rounded border border-secondary shadow-sm flex-shrink-0" style={{ width: '70px', height: '102px', overflow: 'hidden', backgroundColor: '#000' }}>
+                                                        <img 
+                                                            src={`${CDN_BASE_URL}/${playlist.coverCardId}.jpg`} 
+                                                            alt="Cover Card" 
+                                                            className="w-100 h-100" 
+                                                            style={{ objectFit: 'cover' }}
+                                                            onError={(e) => { 
+                                                                e.target.onerror = null; 
+                                                                e.target.src = playlist.coverCardId ? `https://images.ygoprodeck.com/images/cards_small/${playlist.coverCardId}.jpg` : '/images/card_back_placeholder.png'; 
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    
+                                                    {/* Playlist Details */}
+                                                    <div className="flex-grow-1 d-flex flex-column">
+                                                        <p className="text-white-50 small mb-2 cascadia-font" style={{ display: '-webkit-box', WebkitLineClamp: '3', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                                            {playlist.description || "No description provided."}
+                                                        </p>
+                                                        <div className="p-1 px-2 rounded bg-black border border-secondary mt-auto text-center shadow-sm">
+                                                            <span className="text-info small fw-bold cascadia-font" style={{ letterSpacing: '1px' }}>
+                                                                DECKS: {playlist.deckIds?.length || 0}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="d-flex gap-2">
-                                                    <Button variant="outline-info" size="sm" className="flex-grow-1 fw-bold">VIEW</Button>
-                                                    <Button variant="outline-danger" size="sm" className="fw-bold px-3" onClick={() => handleDeletePlaylist(playlist.id)}>DELETE</Button>
+
+                                                <div className="d-flex gap-2 border-top border-secondary border-opacity-25 pt-3 mt-auto">
+                                                    <Button 
+                                                        as={Link} 
+                                                        href={`/playlistdetails/${playlist.id}`} 
+                                                        variant="outline-info" 
+                                                        size="sm" 
+                                                        className="flex-grow-1 fw-bold cascadia-font"
+                                                    >
+                                                        VIEW DIRECTORY
+                                                    </Button>
+                                                    <Button 
+                                                        variant="outline-danger" 
+                                                        size="sm" 
+                                                        className="fw-bold px-3 cascadia-font" 
+                                                        onClick={() => handleDeletePlaylist(playlist.id)}
+                                                    >
+                                                        PURGE
+                                                    </Button>
                                                 </div>
                                             </Card.Body>
                                         </Card>
