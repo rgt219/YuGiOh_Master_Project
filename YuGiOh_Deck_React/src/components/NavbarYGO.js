@@ -95,6 +95,7 @@ export default function NavbarYGO() {
               <NavDropdown.Item as={Link} href="/cardsearch" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Card Search</NavDropdown.Item>
               <NavDropdown.Item as={Link} href="/banlist" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Ban List</NavDropdown.Item>
               <NavDropdown.Item as={Link} href="/market-listings" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Market Listings</NavDropdown.Item>
+              <NavDropdown.Item as={Link} href="/card-creator" onClick={() => { mdSound?.playClick?.(); closeNav(); }}>Card Creator</NavDropdown.Item>
             </NavDropdown>
 
             <NavDropdown renderMenuOnMount={true} title={<span className="fw-bold">Forums</span>} id="forums-dropdown" onMouseEnter={() => mdSound?.playHover?.()} className="px-lg-2 hover-slide-dropdown">

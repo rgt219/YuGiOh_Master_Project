@@ -1,5 +1,4 @@
-// app/page.js
-import Home from '@/app/home/Home';
+import Home from "./Home";
 
 export const metadata = {
   title: 'ErreGeTe YGO | Advanced Yu-Gi-Oh! Deck Builder & Meta Archive',

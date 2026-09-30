@@ -1,262 +1,299 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-    addCardToDeck, 
-    removeCardFromDeck, 
-    updateDeckName, 
+import {
+    addCardToDeck,
+    removeCardFromDeck,
+    updateDeckName,
     importYdkDeck,
-    clearDeck 
-} from "@/store/deckSlice";
-import { deckList } from "@/app/deckbuilder/CardApi";
+    clearDeck,
+} from '@/store/deckSlice';
+import { API_URLS } from '@/config';
+import { fetchCardsByIds, toDeckCard } from '@/lib/cardData';
+import { canAddCard, getCardId, getCardName } from '@/lib/deckRules';
+import { parseYdk, buildYdk } from '@/lib/ydk';
 
+const newInstanceId = (cardId) => `${cardId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+const newDeckId = () =>
+    typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
+/**
+ * All deck-builder behaviour in one place: adding, removing, importing, exporting, saving,
+ * plus the small "notice" messages that replace alert() and confirm().
+ */
 export function useDeckBuilder() {
-    const mainDeck = useSelector((state) => state.deck.mainDeck || []); //[cite: 14]
-    const extraDeck = useSelector((state) => state.deck.extraDeck || []); //[cite: 14]
-    const sideDeck = useSelector((state) => state.deck.sideDeck || []); // 1. Added sideDeck state
-    const deckName = useSelector((state) => state.deck.deckName || ''); //[cite: 14]
-    const dispatch = useDispatch(); //[cite: 14]
+    const mainDeck = useSelector((state) => state.deck.mainDeck || []);
+    const extraDeck = useSelector((state) => state.deck.extraDeck || []);
+    const sideDeck = useSelector((state) => state.deck.sideDeck || []);
+    const deckName = useSelector((state) => state.deck.deckName || '');
+    const dispatch = useDispatch();
 
-    const [showSaveModal, setShowSaveModal] = useState(false); //[cite: 14]
-    const [showAiModal, setShowAiModal] = useState(false); //[cite: 14]
-    const [isImporting, setIsImporting] = useState(false); //[cite: 14]
-    
-    // Inspector States
-    const [inspectedCard, setInspectedCard] = useState(null); //[cite: 14]
-    const [pinnedCard, setPinnedCard] = useState(null); //[cite: 14]
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [inspectedCard, setInspectedCard] = useState(null);
+    const [pinnedCard, setPinnedCard] = useState(null);
+    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
+    const [notice, setNotice] = useState(null);
 
-    const fileInputRef = useRef(null); //[cite: 14]
+    const fileInputRef = useRef(null);
+    const noticeTimer = useRef(null);
+    const savedDeckId = useRef(null);
 
-    const [user, setUser] = useState(null); //[cite: 14]
-    const [token, setToken] = useState(null); //[cite: 14]
+    // ---- Notices (replace alert / confirm) -------------------------------------------------
+    const dismissNotice = useCallback(() => {
+        clearTimeout(noticeTimer.current);
+        setNotice(null);
+    }, []);
 
+    const showNotice = useCallback((message, { tone = 'info', action = null, duration = 5000 } = {}) => {
+        clearTimeout(noticeTimer.current);
+        setNotice({ id: Date.now(), message, tone, action });
+        noticeTimer.current = setTimeout(() => setNotice(null), duration);
+    }, []);
+
+    useEffect(() => () => clearTimeout(noticeTimer.current), []);
+
+    // ---- Session ---------------------------------------------------------------------------
     useEffect(() => {
-        if (typeof window !== 'undefined') { //[cite: 14]
-            const storedUser = sessionStorage.getItem("user"); //[cite: 14]
-            const storedToken = sessionStorage.getItem("token"); //[cite: 14]
-            if (storedUser) {
-                try { setUser(JSON.parse(storedUser)); } catch (err) { console.error(err); } //[cite: 14]
-            }
-            if (storedToken) setToken(storedToken); //[cite: 14]
+        try {
+            const storedUser = sessionStorage.getItem('user');
+            const storedToken = sessionStorage.getItem('token');
+            if (storedUser) setUser(JSON.parse(storedUser));
+            if (storedToken) setToken(storedToken);
+        } catch (err) {
+            console.error('Could not read the saved session:', err);
         }
-    }, []); //[cite: 14]
+    }, []);
+
+    // ---- Unsaved-changes tracking ----------------------------------------------------------
+    const signature = useMemo(
+        () => [deckName, ...mainDeck.map(getCardId), '|', ...extraDeck.map(getCardId), '|', ...sideDeck.map(getCardId)].join(','),
+        [deckName, mainDeck, extraDeck, sideDeck]
+    );
+    const [savedSignature, setSavedSignature] = useState(signature);
+    const hasCards = mainDeck.length + extraDeck.length + sideDeck.length > 0;
+    const isDirty = hasCards && signature !== savedSignature;
 
     useEffect(() => {
-        const handleKeyDown = (e) => { //[cite: 14]
-            if (e.key === 'Escape') setPinnedCard(null); //[cite: 14]
+        if (!isDirty) return undefined;
+        const warn = (event) => {
+            event.preventDefault();
+            event.returnValue = '';
         };
-        window.addEventListener('keydown', handleKeyDown); //[cite: 14]
-        return () => window.removeEventListener('keydown', handleKeyDown); //[cite: 14]
-    }, []); //[cite: 14]
+        window.addEventListener('beforeunload', warn);
+        return () => window.removeEventListener('beforeunload', warn);
+    }, [isDirty]);
 
+    // ---- Inspector -------------------------------------------------------------------------
     useEffect(() => {
-        deckList.mainDeck = mainDeck; //[cite: 14]
-        deckList.extraDeck = extraDeck; //[cite: 14]
-        deckList.sideDeck = sideDeck; // 2. Keep side deck synced
-    }, [mainDeck, extraDeck, sideDeck]); //[cite: 14]
+        const onKeyDown = (event) => {
+            if (event.key === 'Escape') setPinnedCard(null);
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, []);
 
-    const handlePinCard = (card) => {
-        if (!card) return; //[cite: 14]
-        const cardId = card.id || card.Id; //[cite: 14]
-        const pinnedId = pinnedCard?.id || pinnedCard?.Id; //[cite: 14]
+    /** Hover / focus preview. Ignored while a card is pinned. */
+    const handlePreviewCard = useCallback((card) => {
+        if (!pinnedCard) setInspectedCard(card);
+    }, [pinnedCard]);
 
-        if (pinnedId === cardId) {
-            setPinnedCard(null); //[cite: 14]
+    const handlePinCard = useCallback((card) => {
+        if (!card) return;
+        if (pinnedCard && getCardId(pinnedCard) === getCardId(card)) {
+            setPinnedCard(null);
         } else {
-            setPinnedCard(card); //[cite: 14]
-            setInspectedCard(card); //[cite: 14]
+            setPinnedCard(card);
+            setInspectedCard(card);
         }
-    };
+    }, [pinnedCard]);
 
-    const handleImportYDK = async (event) => {
-        const file = event.target.files[0]; //[cite: 14]
-        if (!file) return; //[cite: 14]
+    // ---- Adding and removing ---------------------------------------------------------------
+    const handleAddCard = useCallback((card, isSideDeck = false) => {
+        const check = canAddCard({ card, isSideDeck, main: mainDeck, extra: extraDeck, side: sideDeck });
+        if (!check.ok) {
+            showNotice(check.reason, { tone: 'warning' });
+            return false;
+        }
+        dispatch(addCardToDeck({
+            card: { ...toDeckCard(card), instanceId: newInstanceId(getCardId(card)) },
+            isSideDeck,
+        }));
+        return true;
+    }, [dispatch, mainDeck, extraDeck, sideDeck, showNotice]);
 
-        setIsImporting(true); //[cite: 14]
-        const reader = new FileReader(); //[cite: 14]
-        
+    const handleDeleteCard = useCallback((cardId, instanceId) => {
+        const all = [
+            ...mainDeck.map((c) => ({ c, section: 'main' })),
+            ...extraDeck.map((c) => ({ c, section: 'extra' })),
+            ...sideDeck.map((c) => ({ c, section: 'side' })),
+        ];
+        const target = instanceId
+            ? all.find(({ c }) => c.instanceId === instanceId)
+            : [...all].reverse().find(({ c }) => getCardId(c) === String(cardId));
+        if (!target) return;
+
+        dispatch(removeCardFromDeck(target.c.instanceId ?? cardId));
+        showNotice(`Removed ${getCardName(target.c)}.`, {
+            action: {
+                label: 'Undo',
+                onClick: () => dispatch(addCardToDeck({ card: target.c, isSideDeck: target.section === 'side' })),
+            },
+        });
+    }, [dispatch, mainDeck, extraDeck, sideDeck, showNotice]);
+
+    const handleClearDeck = useCallback(() => {
+        if (!hasCards && !deckName) return;
+        const snapshot = { main: mainDeck, extra: extraDeck, side: sideDeck, name: deckName };
+        dispatch(clearDeck());
+        setPinnedCard(null);
+        setInspectedCard(null);
+        savedDeckId.current = null;
+        showNotice('Deck cleared.', {
+            duration: 10000,
+            action: { label: 'Undo', onClick: () => dispatch(importYdkDeck(snapshot)) },
+        });
+    }, [dispatch, hasCards, deckName, mainDeck, extraDeck, sideDeck, showNotice]);
+
+    // ---- Import / export -------------------------------------------------------------------
+    const handleImportYDK = useCallback((event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        const reader = new FileReader();
+
         reader.onload = async (e) => {
-            const content = e.target.result; //[cite: 14]
-            const lines = content.split(/\r?\n/); //[cite: 14]
-            const mainIds = []; //[cite: 14]
-            const extraIds = []; //[cite: 14]
-            const sideIds = []; // 3. Array for Side Deck YDK imports
-            let currentSection = 'main'; //[cite: 14]
+            const { main, extra, side } = parseYdk(e.target.result);
+            const uniqueIds = [...new Set([...main, ...extra, ...side])];
 
-            lines.forEach((line) => {
-                const trimmed = line.trim(); //[cite: 14]
-                if (trimmed === '#main') currentSection = 'main'; //[cite: 14]
-                else if (trimmed === '#extra') currentSection = 'extra'; //[cite: 14]
-                else if (trimmed === '!side') currentSection = 'side'; //[cite: 14]
-                else if (trimmed.startsWith('#') || trimmed.startsWith('!') || !trimmed) return; // 4. Don't skip side section anymore
-                else if (/^\d+$/.test(trimmed)) { //[cite: 14]
-                    if (currentSection === 'main') mainIds.push(trimmed); //[cite: 14]
-                    else if (currentSection === 'extra') extraIds.push(trimmed); //[cite: 14]
-                    else if (currentSection === 'side') sideIds.push(trimmed); // 5. Push to sideIds
-                }
-            });
-
-            const allUniqueIds = [...new Set([...mainIds, ...extraIds, ...sideIds])]; // 6. Fetch side IDs too
-            if (allUniqueIds.length === 0) { //[cite: 14]
-                alert('No valid card IDs found in YDK file.'); //[cite: 14]
-                setIsImporting(false); //[cite: 14]
-                return; //[cite: 14]
+            if (uniqueIds.length === 0) {
+                showNotice('No card IDs were found in that .ydk file.', { tone: 'error' });
+                setIsImporting(false);
+                return;
             }
 
             try {
-                // 🚀 1. Fire both requests to get card data AND genesys points during YDK imports
-                const [standardRes, genesysRes] = await Promise.all([
-                    fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${allUniqueIds.join(',')}&misc=yes`),
-                    fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${allUniqueIds.join(',')}&misc=yes&format=genesys`).catch(() => null)
-                ]);
-                
-                const data = await standardRes.json();
-                
-                const genesysMap = {};
-                if (genesysRes && genesysRes.ok) {
-                    const genesysData = await genesysRes.json();
-                    (genesysData.data || []).forEach(c => {
-                        genesysMap[c.id] = c.misc_info?.[0]?.genesys_points ?? 0;
-                    });
-                }
-                
-                const cardMap = {};
-                if (data?.data) {
-                    data.data.forEach((card) => {
-                        const extraFrames = ['fusion', 'synchro', 'xyz', 'link', 'fusion_pendulum', 'synchro_pendulum', 'xyz_pendulum'];
-                        const isExtraDeck = extraFrames.includes(card.frameType?.toLowerCase());
-                        
-                        const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
-                        
-                        cardMap[card.id.toString()] = {
-                            ...card,
-                            isExtraDeck,
-                            isLinkOrPendulum,
-                            genesysPoints: isLinkOrPendulum ? "N/A" : (genesysMap[card.id] !== undefined ? genesysMap[card.id] : 0),
-                            // 🚀 2. FIXED: Added 'https://' so the Inspector can successfully load the image
-                            image: `https://cards.erregeteygo.com/card-images/${card.id}.jpg`,
-                            fallbackImage: card.card_images?.[0]?.image_url_small || `https://images.ygoprodeck.com/images/cards_small/${card.id}.jpg`
-                        };
-                    });
-                }
+                const byId = await fetchCardsByIds(uniqueIds);
+                const toCards = (ids) =>
+                    ids.map((id, index) => ({
+                        ...(byId[id] || { id, name: `Card #${id}` }),
+                        instanceId: `${id}-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 6)}`,
+                    }));
 
-                const mapCards = (ids) => ids.map((id, index) => ({
-                    ...(cardMap[id] || { id, name: `Card #${id}` }),
-                    instanceId: `${id}-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 6)}`
+                const snapshot = { main: mainDeck, extra: extraDeck, side: sideDeck, name: deckName };
+                dispatch(importYdkDeck({
+                    main: toCards(main),
+                    extra: toCards(extra),
+                    side: toCards(side),
+                    name: file.name.replace(/\.ydk$/i, '').replace(/_/g, ' ').toUpperCase(),
                 }));
+                savedDeckId.current = null;
 
-                dispatch(importYdkDeck({ 
-                    main: mapCards(mainIds),
-                    extra: mapCards(extraIds),
-                    side: mapCards(sideIds),
-                    name: file.name.replace('.ydk', '').replace(/_/g, ' ').toUpperCase()
-                }));
+                const missing = uniqueIds.filter((id) => !byId[id]).length;
+                showNotice(
+                    `Imported ${main.length} main, ${extra.length} extra, ${side.length} side.` +
+                        (missing ? ` ${missing} card(s) could not be looked up.` : ''),
+                    {
+                        tone: missing ? 'warning' : 'info',
+                        duration: 10000,
+                        action: hasCards ? { label: 'Undo', onClick: () => dispatch(importYdkDeck(snapshot)) } : null,
+                    }
+                );
             } catch (err) {
-                console.error("Failed to hydrate YDK cards:", err);
-                alert("Imported YDK file, but could not fetch full card details from server.");
+                console.error('Failed to hydrate YDK cards:', err);
+                showNotice('Could not fetch card details for that file. Try again in a moment.', { tone: 'error' });
             } finally {
                 setIsImporting(false);
             }
         };
 
-        reader.readAsText(file); //[cite: 14]
-        if (event.target) event.target.value = null; //[cite: 14]
-    };
+        reader.readAsText(file);
+        event.target.value = null; // lets the same file be chosen again
+    }, [dispatch, hasCards, mainDeck, extraDeck, sideDeck, deckName, showNotice]);
 
-    const handleExportYDK = () => {
-        if (mainDeck.length === 0 && extraDeck.length === 0 && sideDeck.length === 0) { // 8. Include side deck in check
-            alert("DECK_IS_EMPTY: Add cards before exporting."); //[cite: 14]
-            return; //[cite: 14]
+    const handleExportYDK = useCallback(() => {
+        if (!hasCards) {
+            showNotice('Add some cards before exporting.', { tone: 'warning' });
+            return;
         }
+        const content = buildYdk({
+            main: mainDeck.map(getCardId),
+            extra: extraDeck.map(getCardId),
+            side: sideDeck.map(getCardId),
+        });
 
-        let ydkContent = "#created by ErreGeTe YGO\n#main\n"; //[cite: 14]
-        mainDeck.forEach(card => { if (card.id || card.Id) ydkContent += `${card.id || card.Id}\n`; }); //[cite: 14]
-        ydkContent += "#extra\n"; //[cite: 14]
-        extraDeck.forEach(card => { if (card.id || card.Id) ydkContent += `${card.id || card.Id}\n`; }); //[cite: 14]
-        ydkContent += "!side\n"; //[cite: 14]
-        sideDeck.forEach(card => { if (card.id || card.Id) ydkContent += `${card.id || card.Id}\n`; }); // 9. Add side deck to YDK text
+        const url = URL.createObjectURL(new Blob([content], { type: 'text/plain' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${(deckName || 'custom_deck').replace(/\s+/g, '_')}.ydk`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, [hasCards, mainDeck, extraDeck, sideDeck, deckName, showNotice]);
 
-        const blob = new Blob([ydkContent], { type: "text/plain" }); //[cite: 14]
-        const url = URL.createObjectURL(blob); //[cite: 14]
-        const link = document.createElement("a"); //[cite: 14]
-        link.href = url; //[cite: 14]
-        link.download = `${(deckName || 'custom_deck').replace(/\s+/g, '_')}.ydk`; //[cite: 14]
-        document.body.appendChild(link); //[cite: 14]
-        link.click(); //[cite: 14]
-        document.body.removeChild(link); //[cite: 14]
-        URL.revokeObjectURL(url); //[cite: 14]
-    };
-
-    const handleClearDeck = () => {
-        if (mainDeck.length === 0 && extraDeck.length === 0 && sideDeck.length === 0 && !deckName) return; // 10. Added side deck check
-        if (window.confirm("SYSTEM_WARNING: Are you sure you want to clear all cards and the deck name?")) { //[cite: 14]
-            dispatch(clearDeck()); //[cite: 14]
+    // ---- Save ------------------------------------------------------------------------------
+    const handleSave = useCallback(async () => {
+        if (!user?.id) {
+            showNotice('Log in to save your deck.', { tone: 'warning', action: { label: 'Log in', href: '/login' } });
+            return;
         }
-    };
-
-    // 11. Add isSideDeck parameter
-    const handleAddCard = (card, isSideDeck = false) => { 
-        if (!card) return; //[cite: 14]
-        const cardId = String(card.id || card.Id); //[cite: 14]
-        
-        // 12. Check all 3 decks to enforce the 3-copy limit globally
-        const existingCopies = [...mainDeck, ...extraDeck, ...sideDeck].filter(c => String(c.id || c.Id) === cardId).length; 
-
-        if (existingCopies >= 3) { //[cite: 14]
-            alert(`DECK_RULE_VIOLATION: Maximum 3 copies of "${card.name || 'this card'}" allowed.`); //[cite: 14]
-            return; //[cite: 14]
+        if (!hasCards) {
+            showNotice('Add some cards before saving.', { tone: 'warning' });
+            return;
         }
+        if (isSaving) return;
 
-        // 13. Dispatch object correctly formatted for the updated deckSlice
-        dispatch(addCardToDeck({
-            card: {
-                ...card, //[cite: 14]
-                instanceId: `${cardId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}` //[cite: 14]
-            },
-            isSideDeck
-        }));
-    };
-
-    const handleDeleteCard = (cardId, instanceId) => {
-        if (instanceId) { //[cite: 14]
-            dispatch(removeCardFromDeck(instanceId)); //[cite: 14]
-        } else if (cardId) { //[cite: 14]
-            const cardIdStr = String(cardId); //[cite: 14]
-            
-            // 14. Include sideDeck in the deletion lookup array
-            const targetCard = [...mainDeck, ...extraDeck, ...sideDeck].slice().reverse().find(c => String(c.id || c.Id) === cardIdStr);
-            if (targetCard?.instanceId) dispatch(removeCardFromDeck(targetCard.instanceId)); //[cite: 14]
-        }
-    };
-
-    const handleSave = async () => {
-        if (!user?.id) return; //[cite: 14]
+        // First save creates the deck (POST). Later saves of the same deck update it (PUT) instead of duplicating it.
+        const isUpdate = Boolean(savedDeckId.current);
+        const id = savedDeckId.current || newDeckId();
         const payload = {
-            id: String(Math.floor(Math.random() * 1000000) + 1), //[cite: 14]
-            title: deckName || "NEW_DECKLIST", //[cite: 14]
-            userId: String(user.id), //[cite: 14]
-            userName: user.userName || "Duelist", //[cite: 14]
-            mainDeck: mainDeck.map(card => String(card.id || card.Id)), //[cite: 14]
-            extraDeck: extraDeck.map(card => String(card.id || card.Id)), //[cite: 14]
-            sideDeck: sideDeck.map(card => String(card.id || card.Id)) // 15. Export side deck actual cards
+            id,
+            title: deckName || 'NEW_DECKLIST',
+            userId: String(user.id),
+            userName: user.userName || 'Duelist',
+            mainDeck: mainDeck.map(getCardId),
+            extraDeck: extraDeck.map(getCardId),
+            sideDeck: sideDeck.map(getCardId),
         };
 
+        setIsSaving(true);
         try {
-            const response = await fetch("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb", { //[cite: 14]
-                method: 'POST', //[cite: 14]
-                headers: { 'Content-Type': 'application/json' }, //[cite: 14]
-                body: JSON.stringify(payload), //[cite: 14]
+            const response = await fetch(isUpdate ? `${API_URLS.DECK}/${id}` : API_URLS.DECK, {
+                method: isUpdate ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify(payload),
             });
-            if (response.ok) setShowSaveModal(true); //[cite: 14]
+            if (!response.ok) throw new Error(`Server answered ${response.status}`);
+
+            savedDeckId.current = id;
+            setSavedSignature(signature);
+            showNotice(isUpdate ? 'Deck updated.' : 'Deck saved to your account.');
         } catch (err) {
-            console.error("SAVE_ERROR:", err); //[cite: 14]
+            console.error('SAVE_ERROR:', err);
+            showNotice('Your deck could not be saved. Check your connection and try again.', { tone: 'error' });
+        } finally {
+            setIsSaving(false);
         }
-    };
+    }, [user, token, hasCards, isSaving, deckName, mainDeck, extraDeck, sideDeck, signature, showNotice]);
+
+    const handleRenameDeck = useCallback((name) => dispatch(updateDeckName(name)), [dispatch]);
 
     return {
-        mainDeck, extraDeck, sideDeck, deckName, dispatch, // 16. Return side deck to the component
-        showSaveModal, setShowSaveModal, showAiModal, setShowAiModal, //[cite: 14]
-        isImporting, inspectedCard, setInspectedCard, pinnedCard, setPinnedCard, //[cite: 14]
-        fileInputRef, user, handlePinCard, handleImportYDK, handleExportYDK, //[cite: 14]
-        handleClearDeck, handleAddCard, handleDeleteCard, handleSave //[cite: 14]
+        mainDeck, extraDeck, sideDeck, deckName, dispatch,
+        showAiModal, setShowAiModal,
+        isImporting, isSaving, isDirty, hasSavedDeck: Boolean(savedDeckId.current) && !isDirty,
+        activeCard: pinnedCard || inspectedCard, pinnedCard, setPinnedCard, handlePreviewCard, handlePinCard,
+        fileInputRef, user,
+        notice, dismissNotice,
+        handleAddCard, handleDeleteCard, handleClearDeck,
+        handleImportYDK, handleExportYDK, handleSave, handleRenameDeck,
     };
 }

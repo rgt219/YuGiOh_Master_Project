@@ -1,109 +1,139 @@
-'use client'; 
+'use client';
 
-import React from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Row, Col, Modal } from 'react-bootstrap';
-import { 
-    addCardToDeck, 
-    removeCardFromDeck, 
-    updateDeckName, 
-    importYdkDeck,
-    clearDeck 
-} from "@/store/deckSlice";
-
-import CardApi from "./CardApi";
-import CustomDeck from "./CustomDeck";
-import AiCardSuggester from "@/components/AiCardSuggester";
-import DeckHeader from "@/components/DeckHeader";
-import CardInspector from "@/components/CardInspector";
-import { useDeckBuilder } from "@/hooks/useDeckBuilder";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Container } from 'react-bootstrap';
+import { importYdkDeck } from '@/store/deckSlice';
+import AiCardSuggester from '@/components/AiCardSuggester';
+import DeckHeader from '@/components/DeckHeader';
+import CardInspector from '@/components/CardInspector';
+import DeckNotice from '@/components/DeckNotice';
+import { useDeckBuilder } from '@/hooks/useDeckBuilder';
+import { useCssVarHeight } from '@/hooks/useCssVarHeight';
+import { useCardSize } from '@/hooks/useCardSize';
+import { buildCopyMap, getCardId } from '@/lib/deckRules';
+import CardApi from './CardApi';
+import CustomDeck from './CustomDeck';
 import '@/mdstyles.css';
+import './deckbuilder.css';
 
+/**
+ * Layout
+ *   wide screens : card search on the left, your deck on the right, both always visible
+ *   phones       : a Search / Deck switch, so only one panel is shown at a time
+ *   everywhere   : the card bar is pinned to the bottom of the screen
+ */
 export default function DeckBuilder() {
+    const builder = useDeckBuilder();
     const {
         mainDeck, extraDeck, sideDeck, deckName, dispatch,
-        showSaveModal, setShowSaveModal, showAiModal, setShowAiModal,
-        isImporting, inspectedCard, setInspectedCard, pinnedCard, setPinnedCard,
-        fileInputRef, user, handlePinCard, handleImportYDK, handleExportYDK,
-        handleClearDeck, handleAddCard, handleDeleteCard, handleSave
-    } = useDeckBuilder();
+        showAiModal, setShowAiModal, notice, dismissNotice,
+        activeCard, pinnedCard, handlePreviewCard, handlePinCard, setPinnedCard,
+        handleAddCard, handleDeleteCard,
+    } = builder;
+
+    const [view, setView] = useState('search'); // only matters below the "lg" breakpoint
+    const [cardSize, setCardSize] = useCardSize('md');
+
+    // Cascadia Mono everywhere on this page, including dialogs and menus that render outside it.
+    useEffect(() => {
+        document.body.classList.add('db-mono');
+        return () => document.body.classList.remove('db-mono');
+    }, []);
+
+    const toolbarRef = useRef(null);
+    const dockRef = useRef(null);
+    useCssVarHeight('.cyber-navbar', '--db-nav-h');
+    useCssVarHeight(toolbarRef, '--db-toolbar-h');
+    useCssVarHeight(dockRef, '--db-dock-h');
+
+    const allCards = useMemo(() => [...mainDeck, ...extraDeck, ...sideDeck], [mainDeck, extraDeck, sideDeck]);
+    const copyMap = useMemo(() => buildCopyMap(allCards), [allCards]);
+    const activeCopies = activeCard ? copyMap.get(getCardId(activeCard)) || 0 : 0;
+
+    const paneClass = (name) => `db-pane ${view === name ? 'd-flex' : 'd-none'} d-lg-flex`;
 
     return (
-        <div className="md-theme-bg min-vh-100 pt-2 pb-5 mt-5" style={{ fontFamily: "'Cascadia Mono', monospace" }}>            
-            <style>{`
-                * { font-family: 'Cascadia Mono', monospace !important; }
-                .terminal-font { font-family: 'Cascadia Mono', monospace !important; }
-            `}</style>
-            
-            <input type="file" accept=".ydk" ref={fileInputRef} style={{ display: "none" }} onChange={handleImportYDK} />
+        <div className={`db-page db-size-${cardSize} md-theme-bg`}>
+            <a className="db-skip-link" href="#db-deck">Skip to your deck</a>
 
-            <Container fluid className="px-2 px-xxl-4">
-                <DeckHeader 
-                    deckName={deckName} dispatch={dispatch} updateDeckName={updateDeckName}
-                    isImporting={isImporting} fileInputRef={fileInputRef} handleImportYDK={handleImportYDK}
-                    handleExportYDK={handleExportYDK} handleClearDeck={handleClearDeck} user={user}
-                    handleSave={handleSave} setShowAiModal={setShowAiModal}
-                />
+            <input type="file" accept=".ydk" ref={builder.fileInputRef} className="d-none" tabIndex={-1} aria-hidden="true" onChange={builder.handleImportYDK} />
 
-                <Row className="g-4 mb-4 align-items-stretch">                   
-                    {/* 🚀 WIDER INSPECTOR: Increased from lg={4} xxl={3} to lg={5} xxl={4} */}
-                    <Col xs={12} lg={5} xxl={4}>
-                        <div style={{ position: 'sticky', top: '100px', zIndex: 10 }}>
-                            <CardInspector 
-                                pinnedCard={pinnedCard} 
-                                setPinnedCard={setPinnedCard}
-                                inspectedCard={inspectedCard} 
-                                mainDeck={mainDeck}
-                                extraDeck={extraDeck}
-                                sideDeck={sideDeck}               
-                                onAddCard={handleAddCard}         
-                                onDeleteCard={handleDeleteCard}   
-                                handlePinCard={handlePinCard}
-                            />
-                        </div>
-                    </Col>
+            <DeckHeader
+                toolbarRef={toolbarRef}
+                deckName={deckName}
+                onRename={builder.handleRenameDeck}
+                isImporting={builder.isImporting}
+                isSaving={builder.isSaving}
+                isDirty={builder.isDirty}
+                hasSavedDeck={builder.hasSavedDeck}
+                onSave={builder.handleSave}
+                onOpenAi={() => setShowAiModal(true)}
+                onImport={() => builder.fileInputRef.current?.click()}
+                onExport={builder.handleExportYDK}
+                onClear={builder.handleClearDeck}
+                cardSize={cardSize}
+                onCardSize={setCardSize}
+            />
 
-                    {/* 🚀 ADJUSTED API: Decreased from lg={8} xxl={9} to lg={7} xxl={8} to balance the grid */}
-                    <Col xs={12} lg={7} xxl={8}>
-                        <CardApi 
-                            onAddCard={handleAddCard} onDeleteCard={handleDeleteCard}
-                            cardList={[...mainDeck, ...extraDeck, ...sideDeck]}
-                            onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
+            <Container fluid className="db-workbench">
+                <div className="db-view-switch d-lg-none" role="group" aria-label="Show">
+                    <button type="button" className="terminal-font" aria-pressed={view === 'search'} onClick={() => setView('search')}>
+                        Card search
+                    </button>
+                    <button type="button" className="terminal-font" aria-pressed={view === 'deck'} onClick={() => setView('deck')}>
+                        Deck · {mainDeck.length} / {extraDeck.length} / {sideDeck.length}
+                    </button>
+                </div>
+
+                <div className="db-grid">
+                    <section className={paneClass('search')} aria-labelledby="db-search-title">
+                        <CardApi
+                            cardList={allCards}
+                            onAddCard={handleAddCard}
+                            onPreviewCard={handlePreviewCard}
                             onPinCard={handlePinCard}
                         />
-                    </Col>
-                </Row>
+                    </section>
 
-                {/* ROW 2: Custom Deck (Takes 100% width, uses internal 50/50 split) */}
-                <Row className="g-4 mb-5">
-                    <Col xs={12}>
-                        <CustomDeck 
-                            mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onDeleteCard={handleDeleteCard}
-                            onInspectCard={(card) => { if (!pinnedCard) setInspectedCard(card); }}
+                    <section id="db-deck" className={paneClass('deck')} aria-labelledby="db-deck-title">
+                        <CustomDeck
+                            mainDeck={mainDeck}
+                            extraDeck={extraDeck}
+                            sideDeck={sideDeck}
+                            pinnedCard={pinnedCard}
+                            onDeleteCard={handleDeleteCard}
+                            onPreviewCard={handlePreviewCard}
                             onPinCard={handlePinCard}
                         />
-                    </Col>
-                </Row>
+                    </section>
+                </div>
             </Container>
 
-            <AiCardSuggester 
-                show={showAiModal} onHide={() => setShowAiModal(false)} 
-                mainDeck={mainDeck} extraDeck={extraDeck} sideDeck={sideDeck} onAddCard={handleAddCard} 
+            <CardInspector
+                dockRef={dockRef}
+                card={activeCard}
+                isPinned={Boolean(pinnedCard)}
+                copies={activeCopies}
+                onAdd={handleAddCard}
+                onRemove={handleDeleteCard}
+                onTogglePin={handlePinCard}
+                onUnpin={() => setPinnedCard(null)}
+            />
+
+            <DeckNotice notice={notice} onDismiss={dismissNotice} />
+
+            <AiCardSuggester
+                show={showAiModal}
+                onHide={() => setShowAiModal(false)}
+                mainDeck={mainDeck}
+                extraDeck={extraDeck}
+                sideDeck={sideDeck}
+                onAddCard={handleAddCard}
                 onAutoBuildDeck={({ main, extra, name }) => {
                     dispatch(importYdkDeck({ main, extra, name }));
                     setShowAiModal(false);
                 }}
             />
-
-            <Modal show={showSaveModal} onHide={() => setShowSaveModal(false)} centered contentClassName="md-modal">
-                <Modal.Header closeButton className="border-info bg-dark">
-                    <Modal.Title className="text-info terminal-font">SYSTEM_NOTIFICATION</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="bg-dark text-white text-center py-4">
-                    <h5 className="terminal-font">DECK_SAVED_SUCCESSFULLY</h5>
-                    <p className="text-muted small">Archived to erregeteygo cloud services.</p>
-                </Modal.Body>
-            </Modal>
         </div>
     );
 }

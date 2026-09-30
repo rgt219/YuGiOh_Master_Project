@@ -1,0 +1,329 @@
+/* Cascadia Mono everywhere. Uses the installed font if present, else /public/fonts/CascadiaMono.woff2 (SIL OFL, from microsoft/cascadia-code releases). */
+@font-face {
+    font-family: 'Cascadia Mono';
+    font-style: normal;
+    font-weight: 200 700;
+    font-display: swap;
+    src: local('Cascadia Mono'), local('CascadiaMono-Regular'), url('/fonts/CascadiaMono.woff2') format('woff2');
+}
+/* Applied to <body> by DeckBuilder so portaled dialogs, menus and dropdowns are covered too. */
+.db-mono,
+.db-mono *,
+.db-mono *::before,
+.db-mono *::after,
+.db-mono input,
+.db-mono select,
+.db-mono textarea,
+.db-mono button {
+    font-family: 'Cascadia Mono', 'Cascadia Code', Consolas, Menlo, 'DejaVu Sans Mono', monospace !important;
+}
+
+/* Card size (toolbar S / M / L). */
+.db-size-sm { --db-card-min: 88px; }
+.db-size-md { --db-card-min: 112px; }
+.db-size-lg { --db-card-min: 148px; }
+.db-size { display: inline-flex; align-items: center; gap: 6px; }
+.db-size__label { font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); }
+.db-size button {
+    min-width: 40px; min-height: 38px; padding: 4px 10px;
+    color: #fff; background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 4px; font-weight: 700;
+}
+.db-size button[aria-pressed='true'] { color: #000; background: var(--db-cyan); border-color: var(--db-cyan); }
+
+/* Deck builder layout. Variables below are measured live by useCssVarHeight; the values here are fallbacks. */
+:root {
+    --db-nav-h: 60px;
+    --db-toolbar-h: 64px;
+    --db-dock-h: 150px;
+    --db-card-min: 112px;
+    --db-cyan: #00d4ff;
+    --db-panel: rgba(8, 12, 20, 0.95);
+    --db-border: rgba(0, 212, 255, 0.3);
+    --db-focus: #ffd54a;
+}
+
+.db-page {
+    font-size: 1rem;
+    min-height: 100vh;
+    padding-top: var(--db-nav-h);
+    padding-bottom: calc(var(--db-dock-h) + 16px);
+}
+
+/* Visible keyboard focus everywhere on this page. A different colour from the cyan theme so it always stands out. */
+.db-page :focus-visible {
+    outline: 3px solid var(--db-focus);
+    outline-offset: 2px;
+}
+
+.db-skip-link {
+    position: absolute;
+    left: 8px;
+    top: -100px;
+    z-index: 3000;
+    padding: 8px 12px;
+    background: #000;
+    color: var(--db-focus);
+    border: 2px solid var(--db-focus);
+}
+.db-skip-link:focus { top: calc(var(--db-nav-h) + 8px); }
+
+.db-input {
+    background: rgba(0, 0, 0, 0.7) !important;
+    color: #fff !important;
+    border: 1px solid rgba(0, 212, 255, 0.5) !important;
+}
+.db-input::placeholder { color: rgba(255, 255, 255, 0.6); }
+
+/* ---------- Toolbar ---------- */
+.db-toolbar {
+    position: sticky;
+    top: var(--db-nav-h);
+    z-index: 1025;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 8px 16px;
+    background: rgba(9, 13, 20, 0.94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--db-border);
+}
+.db-toolbar__title { margin: 0; font-size: 1.25rem; color: var(--db-cyan); letter-spacing: 1px; }
+.db-toolbar__name { flex: 1 1 220px; max-width: 420px; }
+.db-toolbar__status { min-width: 9ch; font-size: 0.95rem; color: rgba(255, 255, 255, 0.75); }
+.db-toolbar__status.is-dirty { color: var(--db-focus); }
+.db-toolbar__actions { display: flex; gap: 8px; margin-left: auto; }
+
+/* ---------- Workbench ---------- */
+.db-workbench { padding: 12px; }
+
+.db-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+
+.db-pane {
+    flex-direction: column;
+    min-height: 0;
+    background: var(--db-panel);
+    border: 1px solid var(--db-border);
+    border-radius: 6px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+.db-pane__head { padding: 10px 12px; border-bottom: 1px solid var(--db-border); }
+.db-pane__title { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--db-cyan); letter-spacing: 1px; }
+.db-pane__body { flex: 1 1 auto; min-height: 0; padding: 10px 12px; }
+
+@media (min-width: 992px) {
+    /* Two independent scrolling panes that fit exactly between the toolbar and the card bar. */
+    .db-grid {
+        grid-template-columns: minmax(380px, 5fr) 7fr;
+        grid-template-rows: minmax(0, 1fr);
+        height: calc(100dvh - var(--db-nav-h) - var(--db-toolbar-h) - var(--db-dock-h) - 40px);
+        min-height: 460px;
+    }
+    .db-pane__body { overflow-y: auto; }
+}
+
+/* Phone view switch */
+.db-view-switch {
+    position: sticky;
+    top: var(--db-nav-h);
+    z-index: 1024;
+    display: flex;
+    gap: 6px;
+    padding: 6px 0 10px;
+    background: linear-gradient(#090d14 80%, transparent);
+}
+.db-view-switch button {
+    flex: 1;
+    min-height: 44px;
+    padding: 6px 10px;
+    color: #fff;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 4px;
+    font-weight: 700;
+}
+.db-view-switch button[aria-pressed='true'] { color: #000; background: var(--db-cyan); border-color: var(--db-cyan); }
+
+@media (max-width: 991.98px) {
+    .db-toolbar { position: static; }
+    .db-toolbar__actions { margin-left: 0; }
+}
+
+/* ---------- Search ---------- */
+.db-types { display: flex; gap: 4px; margin-top: 8px; }
+.db-status { min-height: 1.4em; margin: 0 0 8px; font-size: 0.95rem; color: rgba(255, 255, 255, 0.75); }
+
+/* ---------- Card grids ---------- */
+.db-cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(calc(var(--db-card-min) * 0.85), 1fr));
+    gap: 8px;
+}
+.db-cards--search { grid-template-columns: repeat(auto-fill, minmax(var(--db-card-min), 1fr)); gap: 10px; }
+
+.db-card { position: relative; }
+.db-card__btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    background: #000;
+    border: 1px solid rgba(0, 212, 255, 0.45);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+}
+.db-card__btn:hover { transform: translateY(-2px); }
+.db-card__btn.is-maxed { border-color: #dc3545; }
+.db-card__btn.is-pinned { border-color: var(--db-focus); box-shadow: 0 0 0 2px var(--db-focus); }
+.db-card__btn img { display: block; width: 100%; aspect-ratio: 421 / 614; object-fit: cover; border-radius: 3px; }
+
+.db-card__count,
+.db-card__remove,
+.db-card__info {
+    position: absolute;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+}
+.db-card__count { top: 3px; left: 3px; padding: 3px 5px; background: #198754; border-radius: 3px; pointer-events: none; }
+.db-card__count.is-maxed { background: #dc3545; }
+
+.db-card__remove,
+.db-card__info {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    opacity: 0;
+    cursor: pointer;
+}
+.db-card__remove { top: 3px; right: 3px; background: #b02a37; font-size: 1rem; }
+.db-card__info { right: 3px; bottom: 3px; background: #0b5e75; font-size: 0.9rem; }
+.db-card:hover .db-card__remove,
+.db-card:hover .db-card__info,
+.db-card:focus-within .db-card__remove,
+.db-card:focus-within .db-card__info { opacity: 1; }
+
+/* Touch screens have no hover, so the small buttons are always visible and a little larger. */
+@media (hover: none), (pointer: coarse) {
+    .db-card__remove, .db-card__info { opacity: 1; width: 36px; height: 36px; }
+}
+
+/* ---------- Deck sections ---------- */
+.db-counts { display: flex; flex-wrap: wrap; justify-content: flex-start; text-align: left; gap: 4px 18px; margin: 8px 0 0; padding: 0; list-style: none; font-size: 1rem; }
+.db-counts strong { color: #fff; }
+
+.db-issues { margin: 8px 0 0; padding: 0; list-style: none; font-size: 0.95rem; }
+.db-issues__item--error { color: #ff8a93; }
+.db-issues__item--warning { color: var(--db-focus); }
+
+.db-section { margin-bottom: 18px; }
+.db-section__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.db-section__title { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: 1px; }
+.db-section__title--main { color: var(--db-cyan); }
+.db-section__title--extra { color: #ffc107; }
+.db-section__title--side { color: #4cd48a; }
+.db-section__meta { font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); }
+.db-group-title { margin: 10px 0 6px; font-size: 0.9rem; font-weight: 600; color: rgba(255, 255, 255, 0.7); }
+.db-empty { margin: 0; padding: 14px; text-align: center; font-size: 0.95rem; color: rgba(255, 255, 255, 0.7); border: 1px dashed rgba(255, 255, 255, 0.25); border-radius: 4px; }
+
+/* ---------- Card dock (fixed to the bottom) ---------- */
+.db-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1020;
+    display: flex;
+    flex-direction: column;
+    background: rgba(6, 9, 15, 0.97);
+    border-top: 2px solid var(--db-cyan);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+}
+.db-dock.is-pinned { border-top-color: var(--db-focus); }
+
+.db-dock__bar { display: flex; align-items: center; gap: 18px; padding: 12px 20px; width: 100%; max-width: 1800px; margin: 0 auto; }
+.db-dock__bar--empty { justify-content: center; text-align: center; min-height: 88px; font-size: 1.05rem; }
+.db-dock__thumb { flex: none; width: 84px; aspect-ratio: 421 / 614; object-fit: cover; border-radius: 4px; border: 1px solid var(--db-border); }
+.db-dock__meta { flex: 1 1 0; min-width: 0; }
+.db-dock__name { margin: 0; font-size: 1.25rem; font-weight: 700; color: #fff; }
+.db-dock__pinned { color: var(--db-focus); font-size: 0.95rem; }
+.db-dock__chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; }
+.db-chip { padding: 2px 10px; font-size: 0.9rem; color: #fff; background: rgba(0, 212, 255, 0.16); border: 1px solid var(--db-border); border-radius: 999px; }
+.db-dock__effect {
+    margin: 8px 0 0;
+    max-width: 110ch;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.92);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.db-dock__actions { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; max-width: 460px; }
+.db-dock__actions .btn { font-size: 1rem; padding: 8px 16px; }
+.db-dock__copies { flex: 1 0 100%; text-align: right; font-size: 0.95rem; color: rgba(255, 255, 255, 0.85); }
+.db-dock__copies.is-max { color: #ff8a93; font-weight: 700; }
+.db-dock__details { max-height: 45dvh; overflow-y: auto; padding: 16px 24px; border-bottom: 1px solid var(--db-border); }
+.db-dock__full-effect { margin: 0 auto; max-width: 110ch; white-space: pre-line; line-height: 1.65; font-size: 1.1rem; }
+
+@media (max-width: 767.98px) {
+    .db-dock__bar { flex-wrap: wrap; padding: 10px; gap: 12px; }
+    .db-dock__thumb { width: 64px; }
+    .db-dock__name { font-size: 1.1rem; }
+    .db-dock__actions { flex: 1 0 100%; max-width: none; justify-content: flex-start; }
+    .db-dock__copies { text-align: left; }
+    .db-dock__actions .btn { min-height: 44px; }
+    .db-dock__effect { -webkit-line-clamp: 2; font-size: 1rem; }
+}
+
+/* ---------- Notices ---------- */
+.db-notice-region {
+    position: fixed;
+    top: calc(var(--db-nav-h) + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1060;
+    width: min(92vw, 560px);
+    pointer-events: none;
+}
+.db-notice {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    color: #fff;
+    background: #0b1a2b;
+    border: 1px solid var(--db-cyan);
+    border-radius: 6px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+}
+.db-notice--warning { border-color: var(--db-focus); }
+.db-notice--error { border-color: #dc3545; background: #2a0d12; }
+.db-notice__text { flex: 1; }
+.db-notice__action,
+.db-notice__close {
+    color: var(--db-cyan);
+    background: transparent;
+    border: 0;
+    padding: 6px 8px;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.db-notice__close { color: #fff; text-decoration: none; font-size: 1.2rem; line-height: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+    .db-page * { transition: none !important; animation: none !important; }
+    .db-card__btn:hover { transform: none; }
+}

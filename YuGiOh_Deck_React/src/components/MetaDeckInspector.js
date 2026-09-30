@@ -1,116 +1,78 @@
 import React from 'react';
-import { Card, Row, Col, Badge } from 'react-bootstrap';
+import { Badge } from 'react-bootstrap';
 import { getAttributeColor } from '../utils/metaDeckProfileHelpers';
+import { IMAGE_BASE } from '@/lib/cardData';
+import { useCardFocus } from '@/lib/cardFocusStore';
 
-export default function MetaDeckInspector({ activeCard, pinnedCardData, setPinnedCardData }) {
-  const activeImageUrl = activeCard?.card_images?.[0]?.image_url || 
-    (activeCard?.id ? `https://images.ygoprodeck.com/images/cards/${activeCard.id}.jpg` : 'https://images.ygoprodeck.com/images/cards/back_high.jpg');
+const CARD_BACK = 'https://images.ygoprodeck.com/images/cards/back_high.jpg';
 
-  return (
-    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)' }} text="white" className="border-info shadow-lg p-3 mb-4 md-panel">
-      <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-2 mb-3 d-flex justify-content-between align-items-center">
-        <h6 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '1px' }}>
-          CARD INSPECTOR
-        </h6>
-        {pinnedCardData ? (
-          <Badge 
-            bg="warning" 
-            className="text-dark fw-bold terminal-font text-uppercase px-2 py-1"
-            style={{ cursor: 'pointer' }}
-            onClick={() => setPinnedCardData(null)}
-            title="Click to unlock inspector"
-          >
-            PINNED (CLICK UNPIN)
-          </Badge>
-        ) : (
-          <Badge 
-            bg="info" 
-            className="text-dark fw-bold terminal-font text-uppercase px-2 py-1"
-            style={{ cursor: 'pointer' }}
-            onClick={() => setPinnedCardData(null)}
-            title="Click to unlock inspector"
-          >
-            CLICK TO PIN CARD
-          </Badge>
-        )}
-      </Card.Header>
+/**
+ * Shows the card you are pointing at (or the one you pinned).
+ * It is the ONLY component that listens to hover changes, so hovering re-renders just this.
+ * On wide screens it sticks to the side while you scroll the deck; on small screens it becomes a bar
+ * fixed to the bottom of the screen (see metadecks.css).
+ */
+export default function MetaDeckInspector({ store, archetype, fallbackId }) {
+    const active = useCardFocus(store, (s) => s.pinned || s.hovered);
+    const pinned = useCardFocus(store, (s) => s.pinned);
 
-      <Card.Body className="p-2">
-        <Row className="g-3 align-items-start">
-          <Col xs={12} sm={5} className="text-center">
-            <img
-              src={activeImageUrl}
-              alt={activeCard.name}
-              className="img-fluid rounded border border-info border-opacity-50 shadow"
-              style={{ maxHeight: '280px', objectFit: 'contain', boxShadow: '0 0 20px rgba(0, 240, 255, 0.3)' }}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg';
-              }}
-            />
-          </Col>
+    const card = active || {
+        name: archetype,
+        type: 'TOURNAMENT DECK',
+        desc: 'Hover over or click any card in the decklists to see its stats, level, ATK/DEF and effect text here.',
+        image: `${IMAGE_BASE}/${fallbackId || 'back_high'}.jpg`,
+    };
 
-          <div className="col-12 col-sm-7">
-            <h5 className="fw-bold mb-2 text-white terminal-font" style={{ letterSpacing: '1px', fontSize: '1rem' }}>
-              {activeCard.name}
-            </h5>
+    const imageUrl = card.image || card.card_images?.[0]?.image_url || CARD_BACK;
+    const level = card.level ?? null;
+    const link = card.linkval ?? null;
 
-            <div className="d-flex align-items-center mb-2 flex-wrap gap-1">
-              {activeCard.type && (
-                <Badge bg="dark" className="border border-secondary text-uppercase fs-7 terminal-font">
-                  {activeCard.type}
-                </Badge>
-              )}
-              {activeCard.race && (
-                <Badge bg="dark" className="border border-secondary text-uppercase fs-7 terminal-font">
-                  {activeCard.race}
-                </Badge>
-              )}
-              {activeCard.attribute && (
-                <Badge bg={getAttributeColor(activeCard.attribute)} className="ms-auto text-uppercase fs-7 fw-bold terminal-font">
-                  {activeCard.attribute}
-                </Badge>
-              )}
+    return (
+        <aside className="mdp-panel mdp-inspector" aria-label="Card inspector">
+            <div className="mdp-inspector__head">
+                <h2>CARD INSPECTOR</h2>
+                {pinned ? (
+                    <button type="button" className="mdp-pin is-pinned" onClick={() => store.unpin()}>
+                        PINNED · CLICK TO UNPIN
+                    </button>
+                ) : (
+                    <span className="mdp-pin-hint">Click a card to pin it</span>
+                )}
             </div>
 
-            {activeCard.level && (
-              <div className="mb-2 text-start">
-                <span className="small text-white-50 fw-bold me-2 terminal-font">Level / Rank:</span>
-                <span className="text-info fw-bold terminal-font">{activeCard.level} ★</span>
-              </div>
-            )}
+            <div className="mdp-inspector__body">
+                <img
+                    className="mdp-inspector__img"
+                    src={imageUrl}
+                    alt={card.name}
+                    width="421"
+                    height="614"
+                    onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = card.card_images?.[0]?.image_url || CARD_BACK;
+                    }}
+                />
 
-            {typeof activeCard.atk === 'number' && (
-              <div className="d-flex align-items-center px-3 py-1 mb-2 rounded" style={{ backgroundColor: 'rgba(0, 240, 255, 0.08)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-                <span className="small text-white-50 fw-bold me-2 terminal-font">ATK /</span>
-                <span className="text-white fw-bold me-4 terminal-font">{activeCard.atk}</span>
-                
-                <span className="small text-white-50 fw-bold me-2 terminal-font">DEF /</span>
-                <span className="text-white fw-bold terminal-font">{activeCard.def ?? '-'}</span>
-              </div>
-            )}
+                <div className="mdp-inspector__info">
+                    <h3 className="mdp-inspector__name">{card.name}</h3>
 
-            <div className="text-start p-2 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-              <h6 className="small text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-2 terminal-font">
-                Card Effect / Text
-              </h6>
-              {/* 🚀 FIXED: Applied terminal-font so it renders in Cascadia Mono */}
-              <p 
-                className="text-white-50 m-0 terminal-font" 
-                style={{ 
-                  fontSize: '0.82rem', 
-                  lineHeight: '1.45', 
-                  minHeight: '160px',
-                  maxHeight: '260px', 
-                  overflowY: 'auto' 
-                }}
-              >
-                {activeCard.desc}
-              </p>
+                    <div className="mdp-chips">
+                        {card.type && <Badge bg="dark" className="mdp-chip">{card.type}</Badge>}
+                        {card.race && <Badge bg="dark" className="mdp-chip">{card.race}</Badge>}
+                        {card.attribute && <Badge bg={getAttributeColor(card.attribute)} className="mdp-chip">{card.attribute}</Badge>}
+                        {level !== null && <Badge bg="dark" className="mdp-chip text-info">Level/Rank {level} ★</Badge>}
+                        {link !== null && <Badge bg="dark" className="mdp-chip text-info">Link {link}</Badge>}
+                        {typeof card.atk === 'number' && (
+                            <Badge bg="dark" className="mdp-chip">ATK {card.atk} / DEF {card.def ?? '-'}</Badge>
+                        )}
+                    </div>
+
+                    <div className="mdp-effect">
+                        <h4>Card Effect / Text</h4>
+                        <p>{card.desc}</p>
+                    </div>
+                </div>
             </div>
-          </div>
-        </Row>
-      </Card.Body>
-    </Card>
-  );
+        </aside>
+    );
 }

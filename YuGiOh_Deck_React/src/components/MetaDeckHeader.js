@@ -1,117 +1,81 @@
-import React from 'react';
-import { Card, Badge, Row, Col, Button } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { Badge, Button } from 'react-bootstrap';
 
-export default function MetaDeckHeader({ deck, cardCounts, mainDeckIds, onExportYDK }) {
-  const archetype = deck?.archetype || deck?.Archetype || 'TOURNAMENT META DECK';
-  const format = deck?.format || deck?.Format || 'TCG';
-  const pilot = deck?.pilot || deck?.Pilot || '--------';
-  const placement = deck?.placement || deck?.Placement || 'Unknown';
+const SLICES = [
+    { key: 'monsters', label: 'MONSTERS', color: '#eab308', text: 'text-warning' },
+    { key: 'spells', label: 'SPELLS', color: '#10b981', text: 'text-success' },
+    { key: 'traps', label: 'TRAPS', color: '#ec4899', text: 'text-danger' },
+];
 
-  const totalCards = cardCounts.monsters + cardCounts.spells + cardCounts.traps || mainDeckIds.length || 1;
-  const monsterPct = Math.round((cardCounts.monsters / totalCards) * 100);
-  const spellPct = Math.round((cardCounts.spells / totalCards) * 100);
-  const trapPct = Math.max(0, 100 - (monsterPct + spellPct));
+export default function MetaDeckHeader({ deck, cardCounts, onExportYDK, onOpenInBuilder, canOpenInBuilder, replacesDeck }) {
+    // Two-step button: if the builder already holds a deck, the first click asks, the second one replaces it.
+    const [confirming, setConfirming] = useState(false);
+    useEffect(() => {
+        if (!confirming) return undefined;
+        const timer = setTimeout(() => setConfirming(false), 5000);
+        return () => clearTimeout(timer);
+    }, [confirming]);
 
-  const monsterDeg = (monsterPct / 100) * 360;
-  const spellDeg = monsterDeg + (spellPct / 100) * 360;
+    const handleOpen = () => {
+        if (replacesDeck && !confirming) { setConfirming(true); return; }
+        setConfirming(false);
+        onOpenInBuilder();
+    };
 
-  return (
-    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(10px)', height: '100%' }} text="white" className="border-info shadow-lg p-4 mb-0 md-panel d-flex flex-column justify-content-between">
-      <Card.Header className="bg-transparent border-bottom border-info border-opacity-50 pb-3 mb-3">
-        {/* Top Row: Title & Export Button */}
-        <div className="d-flex justify-content-between align-items-center gap-3 mb-3">
-          <h2 className="m-0 text-info terminal-font fw-bold" style={{ letterSpacing: '2px', fontSize: '1.6rem' }}>
-            {archetype}
-          </h2>
+    const total = cardCounts.monsters + cardCounts.spells + cardCounts.traps || deck.counts.main || 1;
+    const monsterPct = Math.round((cardCounts.monsters / total) * 100);
+    const spellPct = Math.round((cardCounts.spells / total) * 100);
+    const trapPct = Math.max(0, 100 - (monsterPct + spellPct));
+    const percents = { monsters: monsterPct, spells: spellPct, traps: trapPct };
 
-          {onExportYDK && (
-            <Button variant="outline-secondary" size="sm" className="terminal-font fw-bold text-white px-3 py-2 text-nowrap flex-shrink-0" onClick={onExportYDK}>
-              💾 EXPORT .YDK
-            </Button>
-          )}
-        </div>
+    const monsterDeg = (monsterPct / 100) * 360;
+    const spellDeg = monsterDeg + (spellPct / 100) * 360;
 
-        {/* Bottom Row: Metadata Badges */}
-        <div className="d-flex gap-2 align-items-center flex-wrap">
-          <Badge bg="success" className="text-dark fw-bold px-3 py-2" style={{ fontSize: '0.85rem' }}>PILOT: {pilot}</Badge>
-          <Badge bg="dark" className="text-light fw-bold px-3 py-2 border border-secondary" style={{ fontSize: '0.85rem' }}>PLACEMENT: {placement}</Badge>
-          <Badge bg="info" className="text-dark fw-bold px-3 py-2" style={{ fontSize: '0.85rem' }}>FORMAT: {format}</Badge>
-        </div>
-      </Card.Header>
-
-      <Card.Body className="p-0 d-flex flex-column justify-content-center">
-        <div className="p-3 rounded" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-          <h5 className="text-info terminal-font fw-bold border-bottom border-info border-opacity-25 pb-2 mb-3">
-            MAIN DECK COMPOSITION RATIO
-          </h5>
-
-          <Row className="align-items-center g-3">
-            <Col xs={12} sm={4} className="d-flex justify-content-center">
-              <div
-                style={{
-                  width: '115px',
-                  height: '115px',
-                  borderRadius: '50%',
-                  background: `conic-gradient(
-                    #eab308 0deg ${monsterDeg}deg, 
-                    #10b981 ${monsterDeg}deg ${spellDeg}deg, 
-                    #ec4899 ${spellDeg}deg 360deg
-                  )`,
-                  border: '2px solid rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <div
-                  style={{
-                    width: '54px',
-                    height: '54px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(8, 12, 20, 0.98)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'column'
-                  }}
-                >
-                  <span className="small text-white-50 fw-bold" style={{ fontSize: '0.55rem' }}>TOTAL</span>
-                  <span className="text-info fw-bold">{mainDeckIds.length || totalCards}</span>
+    return (
+        <section className="mdp-panel mdp-header" aria-labelledby="mdp-deck-title">
+            <div className="mdp-header__top">
+                <h1 id="mdp-deck-title" className="mdp-header__title">{deck.archetype}</h1>
+                <div className="mdp-header__actions">
+                    <Button variant="info" className="fw-bold text-nowrap" disabled={!canOpenInBuilder} onClick={handleOpen}>
+                        {confirming ? 'REPLACE YOUR CURRENT DECK? CLICK AGAIN' : canOpenInBuilder ? 'OPEN IN DECK BUILDER' : 'LOADING CARDS...'}
+                    </Button>
+                    <Button variant="outline-secondary" className="fw-bold text-white text-nowrap" onClick={onExportYDK}>
+                        EXPORT .YDK
+                    </Button>
                 </div>
-              </div>
-            </Col>
+            </div>
 
-            <Col xs={12} sm={8}>
-              <div className="d-flex flex-column gap-2">
-                <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)' }}>
-                  <div className="d-flex align-items-center gap-2">
-                    <span style={{ width: '10px', height: '10px', backgroundColor: '#eab308', borderRadius: '3px', display: 'inline-block' }}></span>
-                    <span className="small text-white fw-bold">MONSTERS</span>
-                  </div>
-                  <span className="text-warning fw-bold">{cardCounts.monsters} ({monsterPct}%)</span>
-                </div>
+            <div className="d-flex gap-2 flex-wrap mb-3">
+                {deck.pilot && <Badge bg="success" className="mdp-badge text-dark">PILOT: {deck.pilot}</Badge>}
+                <Badge bg="dark" className="mdp-badge border border-secondary">PLACEMENT: {deck.placement || 'Unknown'}</Badge>
+                <Badge bg="info" className="mdp-badge text-dark">FORMAT: {deck.format}</Badge>
+            </div>
 
-                <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                  <div className="d-flex align-items-center gap-2">
-                    <span style={{ width: '10px', height: '10px', backgroundColor: '#10b981', borderRadius: '3px', display: 'inline-block' }}></span>
-                    <span className="small text-white fw-bold">SPELLS</span>
-                  </div>
-                  <span className="text-success fw-bold">{cardCounts.spells} ({spellPct}%)</span>
-                </div>
+            <div className="mdp-composition">
+                <h2 className="mdp-composition__title">MAIN DECK COMPOSITION</h2>
+                <div className="mdp-composition__body">
+                    <div
+                        className="mdp-donut"
+                        role="img"
+                        aria-label={`${cardCounts.monsters} monsters, ${cardCounts.spells} spells, ${cardCounts.traps} traps`}
+                        style={{ '--m': `${monsterDeg}deg`, '--s': `${spellDeg}deg` }}
+                    >
+                        <div className="mdp-donut__hole">
+                            <small>TOTAL</small>
+                            <strong>{deck.counts.main || total}</strong>
+                        </div>
+                    </div>
 
-                <div className="d-flex align-items-center justify-content-between p-2 rounded" style={{ backgroundColor: 'rgba(236, 72, 153, 0.1)', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
-                  <div className="d-flex align-items-center gap-2">
-                    <span style={{ width: '10px', height: '10px', backgroundColor: '#ec4899', borderRadius: '3px', display: 'inline-block' }}></span>
-                    <span className="small text-white fw-bold">TRAPS</span>
-                  </div>
-                  <span className="text-danger fw-bold">{cardCounts.traps} ({trapPct}%)</span>
+                    <ul className="mdp-legend">
+                        {SLICES.map((slice) => (
+                            <li key={slice.key} style={{ '--c': slice.color }}>
+                                <span><i aria-hidden="true" /> {slice.label}</span>
+                                <b className={slice.text}>{cardCounts[slice.key]} ({percents[slice.key]}%)</b>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-              </div>
-            </Col>
-          </Row>
-        </div>
-      </Card.Body>
-    </Card>
-  );
+            </div>
+        </section>
+    );
 }

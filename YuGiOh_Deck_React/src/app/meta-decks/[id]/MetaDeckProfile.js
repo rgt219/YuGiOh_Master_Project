@@ -1,176 +1,149 @@
-'use client'; 
+'use client';
 
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Row, Col, Card, Spinner, Button } from 'react-bootstrap';
+import { Button, Card, Container, Spinner } from 'react-bootstrap';
 import { useMetaDeckProfile } from '@/hooks/useMetaDeckProfile';
+import { useCardSize } from '@/hooks/useCardSize';
+import { createCardFocusStore } from '@/lib/cardFocusStore';
+import { importYdkDeck } from '@/store/deckSlice';
+import { buildYdk } from '@/lib/ydk';
 import MetaDeckHeader from '@/components/MetaDeckHeader';
 import MetaDeckInspector from '@/components/MetaDeckInspector';
 import MetaDeckGrid from '@/components/MetaDeckGrid';
 import DeckPriceWidget from '@/components/DeckPriceWidget';
 import '@/mdstyles.css';
+import '@/components/metadecks.css';
 
-export default function MetaDeckProfile() {
-  const {
-    deck, loading, error, cardMap, cardCounts,
-    hoveredCardData, pinnedCardData, setPinnedCardData,
-    handleCardHover, handleCardClick
-  } = useMetaDeckProfile();
+const SIZES = [['sm', 'S'], ['md', 'M'], ['lg', 'L']];
 
-  if (loading) {
-    return (
-      <div className="md-theme-bg min-vh-100 d-flex justify-content-center align-items-center mt-5">
-        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(10px)', maxWidth: '30rem' }} className="border-info p-4 text-center md-panel shadow-lg">
-          <Card.Body>
-            <Spinner animation="border" variant="info" className="mb-3" style={{ width: '3rem', height: '3rem' }} />
-            <h5 className="text-info terminal-font fw-bold m-0" style={{ letterSpacing: '2px' }}>LOADING DECK PROFILE...</h5>
-          </Card.Body>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error || !deck) {
-    return (
-      <div className="md-theme-bg min-vh-100 d-flex justify-content-center align-items-center mt-5">
-        <Card style={{ backgroundColor: 'rgba(20, 8, 8, 0.95)', backdropFilter: 'blur(10px)', maxWidth: '32rem' }} className="border-danger p-4 text-center md-panel shadow-lg text-white">
-          <Card.Body>
-            <h4 className="text-danger terminal-font fw-bold mb-3">⚠️ PROFILE NOT FOUND</h4>
-            <p className="text-white-50">{error || 'Deck could not be retrieved.'}</p>
-            <Button as={Link} href="/meta-decks" variant="outline-danger" className="terminal-font fw-bold">
-              RETURN TO ARCHIVE
-            </Button>
-          </Card.Body>
-        </Card>
-      </div>
-    );
-  }
-
-  const archetype = deck?.archetype || deck?.Archetype || 'TOURNAMENT META DECK';
-  const sampleDeck = deck?.sampleDeck || deck?.SampleDeck;
-  const mainDeckIds = sampleDeck?.mainDeck || sampleDeck?.MainDeck || [];
-  const extraDeckIds = sampleDeck?.extraDeck || sampleDeck?.ExtraDeck || [];
-  const sideDeckIds = sampleDeck?.sideDeck || sampleDeck?.SideDeck || [];
-
-  const mainDeckCards = mainDeckIds.map((cId) => cardMap[cId.toString()]).filter(Boolean);
-  const extraDeckCards = extraDeckIds.map((cId) => cardMap[cId.toString()]).filter(Boolean);
-  const sideDeckCards = sideDeckIds.map((cId) => cardMap[cId.toString()]).filter(Boolean);
-
-  const activeCard = pinnedCardData || hoveredCardData || {
-    name: archetype,
-    type: 'TOURNAMENT DECK',
-    desc: 'Click or hover over any card thumbnail in the decklists below to view its full stats, level, ATK/DEF, and card effect text.',
-    card_images: [{ image_url: `https://images.ygoprodeck.com/images/cards/${mainDeckIds[0] || 'back_high'}.jpg` }]
-  };
-
-  const handleExportYDK = () => {
-    let ydkContent = `#created by erregeteygo meta archive\n#main\n`;
-    mainDeckIds.forEach(id => { ydkContent += `${id}\n`; });
-    ydkContent += `\n#extra\n`;
-    extraDeckIds.forEach(id => { ydkContent += `${id}\n`; });
-    ydkContent += `\n!side\n`;
-    sideDeckIds.forEach(id => { ydkContent += `${id}\n`; });
-
-    const blob = new Blob([ydkContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+const downloadTextFile = (filename, text) => {
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${archetype.toLowerCase().replace(/[^a-z0-9]/g, '_')}_meta.ydk`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  };
+};
 
-  return (
-    <div className="md-theme-bg min-vh-100 py-5 mt-5">
-      <Container fluid className="px-4 px-xxl-5">
-        <div className="mb-3">
-          <Button as={Link} href="/meta-decks" variant="outline-info" size="sm" className="terminal-font fw-bold">
-            ← BACK TO META ARCHIVE
-          </Button>
+/**
+ * The deck profile page. Layout: [summary | price] on top, then [decklists | sticky card inspector].
+ * Hovering a card never re-renders this component: hover lives in `store` (see lib/cardFocusStore.js).
+ */
+export default function MetaDeckProfile() {
+    const {
+        deck, loading, error, refetch, cardsLoading,
+        cardMap, cardCounts, mainCards, allCards,
+    } = useMetaDeckProfile();
+
+    // Created once for the lifetime of the page. useState(() => ...) runs the function only on the first render.
+    const [store] = useState(() => createCardFocusStore());
+    const [cardSize, setCardSize] = useCardSize('md');
+
+    const router = useRouter();
+    const dispatch = useDispatch();
+    const builderCardCount = useSelector((state) =>
+        (state.deck?.mainDeck?.length || 0) + (state.deck?.extraDeck?.length || 0) + (state.deck?.sideDeck?.length || 0));
+
+    // When the card details arrive, show the first main-deck card in the inspector (unless the visitor already hovered one).
+    useEffect(() => {
+        const first = mainCards[0];
+        if (first && !store.getState().hovered) store.hover(first);
+    }, [mainCards, store]);
+
+    const handleExportYDK = useCallback(() => {
+        if (!deck) return;
+        const text = buildYdk({ main: deck.main.map(String), extra: deck.extra.map(String), side: deck.side.map(String) });
+        downloadTextFile(`${deck.archetype.toLowerCase().replace(/[^a-z0-9]/g, '_')}_meta.ydk`, text);
+    }, [deck]);
+
+    // Copy this deck into the deck builder's Redux store, then go there.
+    const handleOpenInBuilder = useCallback(() => {
+        if (!deck) return;
+        const toCards = (ids) => ids.map((id, index) => ({
+            ...(cardMap[String(id)] || { id, name: `Card #${id}` }),
+            instanceId: `${id}-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 6)}`,
+        }));
+        dispatch(importYdkDeck({
+            main: toCards(deck.main),
+            extra: toCards(deck.extra),
+            side: toCards(deck.side),
+            name: deck.archetype.toUpperCase(),
+        }));
+        router.push('/deckbuilder');
+    }, [deck, cardMap, dispatch, router]);
+
+    if (loading) {
+        return (
+            <div className="md-theme-bg min-vh-100 d-flex justify-content-center align-items-center mt-5">
+                <Card className="border-info p-4 text-center md-panel shadow-lg" style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', maxWidth: '30rem' }}>
+                    <Card.Body>
+                        <Spinner animation="border" variant="info" className="mb-3" style={{ width: '3rem', height: '3rem' }} />
+                        <h1 className="h5 text-info terminal-font fw-bold m-0" style={{ letterSpacing: '2px' }}>LOADING DECK PROFILE...</h1>
+                    </Card.Body>
+                </Card>
+            </div>
+        );
+    }
+
+    if (error || !deck) {
+        return (
+            <div className="md-theme-bg min-vh-100 d-flex justify-content-center align-items-center mt-5">
+                <Card className="border-danger p-4 text-center md-panel shadow-lg text-white" style={{ backgroundColor: 'rgba(20, 8, 8, 0.95)', maxWidth: '32rem' }}>
+                    <Card.Body>
+                        <h1 className="h4 text-danger terminal-font fw-bold mb-3">⚠️ PROFILE NOT FOUND</h1>
+                        <p className="text-white-50">{error || 'Deck could not be retrieved.'}</p>
+                        <div className="d-flex gap-2 justify-content-center">
+                            <Button variant="outline-light" className="terminal-font fw-bold" onClick={() => refetch()}>TRY AGAIN</Button>
+                            <Button as={Link} href="/meta-decks" variant="outline-danger" className="terminal-font fw-bold">RETURN TO ARCHIVE</Button>
+                        </div>
+                    </Card.Body>
+                </Card>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`md-theme-bg min-vh-100 py-5 mt-5 mdp-page mdp-size-${cardSize}`}>
+            <Container fluid className="px-3 px-md-4 px-xxl-5">
+                <div className="mb-3">
+                    <Button as={Link} href="/meta-decks" variant="outline-info" size="sm" className="terminal-font fw-bold">← BACK TO META ARCHIVE</Button>
+                </div>
+
+                <div className="mdp-top">
+                    <MetaDeckHeader
+                        deck={deck}
+                        cardCounts={cardCounts}
+                        onExportYDK={handleExportYDK}
+                        onOpenInBuilder={handleOpenInBuilder}
+                        canOpenInBuilder={!cardsLoading && mainCards.length > 0}
+                        replacesDeck={builderCardCount > 0}
+                    />
+                    <DeckPriceWidget cards={allCards} loading={cardsLoading} />
+                </div>
+
+                <div className="mdp-main">
+                    <div className="mdp-decks">
+                        <div className="mdp-size" role="group" aria-label="Card size">
+                            <span>Card size</span>
+                            {SIZES.map(([value, label]) => (
+                                <button key={value} type="button" aria-pressed={cardSize === value} onClick={() => setCardSize(value)}>{label}</button>
+                            ))}
+                        </div>
+
+                        <MetaDeckGrid title="MAIN DECK" tone="info" deckIds={deck.main} cardMap={cardMap} store={store} groupByType />
+                        <MetaDeckGrid title="EXTRA DECK" tone="warning" deckIds={deck.extra} cardMap={cardMap} store={store} />
+                        <MetaDeckGrid title="SIDE DECK" tone="success" deckIds={deck.side} cardMap={cardMap} store={store} />
+                    </div>
+
+                    <MetaDeckInspector store={store} archetype={deck.archetype} fallbackId={deck.main[0]} />
+                </div>
+            </Container>
         </div>
-
-        {/* Top Row: Equal 4-column widths */}
-        <Row className="g-4 mb-4 align-items-stretch">
-          <Col xs={12} xxl={4} className="d-flex">
-            <div className="w-100 d-flex flex-column">
-              <MetaDeckHeader deck={deck} cardCounts={cardCounts} mainDeckIds={mainDeckIds} onExportYDK={handleExportYDK} />
-            </div>
-          </Col>
-          
-          <Col xs={12} xxl={4} className="d-flex">
-            <div className="w-100 d-flex flex-column">
-              <MetaDeckInspector 
-                activeCard={activeCard} 
-                pinnedCardData={pinnedCardData} 
-                setPinnedCardData={setPinnedCardData} 
-              />
-            </div>
-          </Col>
-
-          <Col xs={12} xxl={4} className="d-flex">
-            <div className="w-100 d-flex flex-column">
-              <DeckPriceWidget 
-                mainDeck={mainDeckCards} 
-                extraDeck={extraDeckCards} 
-                sideDeck={sideDeckCards} 
-              />
-            </div>
-          </Col>
-        </Row>
-
-        {/* Bottom Row: Main Deck (6 cols) balanced against Extra + Side Decks (6 cols) */}
-        <Row className="g-4">
-          <Col xs={12}>
-            <Row className="g-4">
-              <Col xs={12} xxl={6} className="d-flex flex-column">
-                <div className="flex-grow-1 d-flex flex-column">
-                  <MetaDeckGrid 
-                    title="MAIN DECK" 
-                    borderColor="border-info border-opacity-50" 
-                    textColor="text-info" 
-                    deckIds={mainDeckIds} 
-                    cardMap={cardMap} 
-                    pinnedCardData={pinnedCardData} 
-                    handleCardHover={handleCardHover} 
-                    handleCardClick={handleCardClick} 
-                  />
-                </div>
-              </Col>
-
-              <Col xs={12} xxl={6} className="d-flex flex-column justify-content-between gap-4">
-                <div className="flex-fill d-flex flex-column">
-                  <MetaDeckGrid 
-                    title="EXTRA DECK" 
-                    borderColor="border-warning border-opacity-50" 
-                    textColor="text-warning" 
-                    deckIds={extraDeckIds} 
-                    cardMap={cardMap} 
-                    pinnedCardData={pinnedCardData} 
-                    handleCardHover={handleCardHover} 
-                    handleCardClick={handleCardClick} 
-                  />
-                </div>
-
-                <div className="flex-fill d-flex flex-column">
-                  <MetaDeckGrid 
-                    title="SIDE DECK" 
-                    borderColor="border-success border-opacity-50" 
-                    textColor="text-success" 
-                    deckIds={sideDeckIds} 
-                    cardMap={cardMap} 
-                    pinnedCardData={pinnedCardData} 
-                    handleCardHover={handleCardHover} 
-                    handleCardClick={handleCardClick} 
-                  />
-                </div>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-      </Container>
-    </div>
-  );
+    );
 }

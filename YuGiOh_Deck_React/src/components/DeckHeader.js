@@ -1,73 +1,56 @@
 import React from 'react';
-import { Button, Form, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Button, Dropdown, Form, Spinner } from 'react-bootstrap';
 
-export default function DeckHeader({ 
-    deckName, dispatch, updateDeckName, isImporting, 
-    fileInputRef, handleImportYDK, handleExportYDK, 
-    handleClearDeck, user, handleSave, setShowAiModal 
+/** The deck builder's toolbar: name, save, and a Tools menu for everything else. */
+export default function DeckHeader({
+    toolbarRef, deckName, onRename, isImporting, isSaving, isDirty, hasSavedDeck,
+    onSave, onOpenAi, onImport, onExport, onClear,
 }) {
+    const status = isSaving ? 'Saving…' : isDirty ? 'Unsaved changes' : hasSavedDeck ? 'All changes saved' : '';
+
     return (
-        <div className="mb-4 text-white p-4" style={{ background: 'transparent', width: '100%' }}>
-            {/* Top Tier: Page Title & Clear Deck Name Input */}
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 border-bottom border-info border-opacity-25">
-                <div>
-                    <h2 className="fw-bold text-info terminal-font m-0 d-flex align-items-center gap-2" style={{ letterSpacing: '1px', textShadow: '0 0 12px rgba(0, 210, 255, 0.4)' }}>
-                        DECK BUILDER
-                    </h2>
-                    <span className="text-white-50 small terminal-font">
-                        CUSTOM DECK STUDIO & MANAGEMENT
-                    </span>
-                </div>
+        <section className="db-toolbar" ref={toolbarRef} aria-label="Deck toolbar">
+            <h1 className="db-toolbar__title terminal-font">Deck Builder</h1>
 
-                <div className="d-flex align-items-center gap-2 flex-grow-1 justify-content-md-end" style={{ maxWidth: '450px' }}>
-                    <span className="text-info small terminal-font text-nowrap fw-bold">DECK NAME:</span>
-                    <Form.Control 
-                        className="terminal-font fw-bold shadow-none text-white"
-                        placeholder={isImporting ? "SYNCHRONIZING..." : "ENTER DECK TITLE..."}
-                        value={deckName} 
-                        onChange={(e) => dispatch(updateDeckName(e.target.value))} 
-                        disabled={isImporting}
-                        style={{ letterSpacing: '1px', backgroundColor: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0, 210, 255, 0.4)', fontSize: '0.9rem' }}
-                    />
-                </div>
+            <div className="db-toolbar__name">
+                <Form.Label htmlFor="db-deck-name" className="visually-hidden">Deck name</Form.Label>
+                <Form.Control
+                    id="db-deck-name"
+                    className="db-input terminal-font"
+                    placeholder={isImporting ? 'Importing…' : 'Name your deck'}
+                    value={deckName}
+                    maxLength={60}
+                    disabled={isImporting}
+                    autoComplete="off"
+                    onChange={(e) => onRename(e.target.value)}
+                />
             </div>
 
-            {/* Bottom Tier: Grouped Action & Utility Buttons */}
-            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-3">
-                {/* Left Group: Tools & File Operations */}
-                <div className="d-flex align-items-center gap-2 flex-wrap">
-                    <Button variant="outline-info" size="sm" className="terminal-font fw-bold px-3 py-2" onClick={() => setShowAiModal(true)}>
-                        AI Assistant (Beta)
-                    </Button>
-                    <Button variant="outline-secondary" size="sm" disabled={isImporting} className="terminal-font fw-bold px-3 py-2 text-white" onClick={() => fileInputRef.current?.click()}>
-                        {isImporting ? <Spinner size="sm" animation="border" /> : "📁 Import .YDK"}
-                    </Button>
-                    <Button variant="outline-secondary" size="sm" className="terminal-font fw-bold px-3 py-2 text-white" onClick={handleExportYDK}>
-                        💾 Export .YDK
-                    </Button>
-                </div>
+            <span className={`db-toolbar__status ${isDirty ? 'is-dirty' : ''}`} role="status" aria-live="polite">{status}</span>
 
-                {/* Right Group: Workspace Management & Persistence */}
-                <div className="d-flex align-items-center gap-2 flex-wrap">
-                    <Button variant="outline-danger" size="sm" className="terminal-font fw-bold px-3 py-2" onClick={handleClearDeck}>
-                        CLEAR DECK
-                    </Button>
-                    
-                    {!user ? (
-                        <OverlayTrigger placement="top" overlay={<Tooltip>Must be logged in to save</Tooltip>}>
-                            <span className="d-inline-block">
-                                <Button variant="info" size="sm" className="terminal-font fw-bold text-dark px-4 py-2" disabled style={{ pointerEvents: 'none' }}>
-                                    SAVE DECK
-                                </Button>
-                            </span>
-                        </OverlayTrigger>
-                    ) : (
-                        <Button variant="info" size="sm" className="terminal-font fw-bold text-dark px-4 py-2 shadow-sm" onClick={handleSave} disabled={isImporting}>
-                            SAVE DECK
-                        </Button>
-                    )}
-                </div>
+            <div className="db-toolbar__actions">
+                <Button
+                    variant="info"
+                    className="terminal-font fw-bold text-dark px-3"
+                    onClick={onSave}
+                    disabled={isSaving || isImporting}
+                >
+                    {isSaving ? <><Spinner size="sm" animation="border" role="status" aria-hidden="true" /> Saving…</> : 'Save deck'}
+                </Button>
+
+                <Dropdown align="end">
+                    <Dropdown.Toggle variant="outline-info" className="terminal-font fw-bold" id="db-tools-menu">
+                        Tools
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu variant="dark" className="terminal-font">
+                        <Dropdown.Item onClick={onOpenAi}>AI assistant (beta)</Dropdown.Item>
+                        <Dropdown.Item onClick={onImport} disabled={isImporting}>Import .ydk file</Dropdown.Item>
+                        <Dropdown.Item onClick={onExport}>Export .ydk file</Dropdown.Item>
+                        <Dropdown.Divider />
+                        <Dropdown.Item onClick={onClear} className="text-danger">Clear deck</Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
             </div>
-        </div>
+        </section>
     );
 }

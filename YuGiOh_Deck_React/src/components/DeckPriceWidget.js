@@ -1,220 +1,157 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Badge, Table, Button, Form, Modal, Spinner } from 'react-bootstrap';
+import React, { useMemo, useState } from 'react';
+import { Badge, Button, Form, Modal, Spinner, Table } from 'react-bootstrap';
 import '../mdstyles.css';
 
-export default function DeckPriceWidget({ mainDeck = [], extraDeck = [], sideDeck = [] }) {
-    const [priceProvider, setPriceProvider] = useState('tcgplayer_price');
+const PROVIDERS = {
+    tcgplayer_price: { label: 'TCGPlayer ($)', symbol: '$' },
+    cardmarket_price: { label: 'Cardmarket (€)', symbol: '€' },
+    ebay_price: { label: 'eBay ($)', symbol: '$' },
+};
+
+const EXPENSIVE_UNIT_PRICE = 15;
+
+// Hand-written suggestions. A card that is not listed gets an honest "no suggestion yet" instead of a random guess.
+const BUDGET_SWAPS = [
+    { match: 'S:P Little Knight', swap: 'Knightmare Unicorn (~$1.50)' },
+    { match: 'Forbidden Droplet', swap: 'Book of Eclipse (~$0.50)' },
+    { match: 'Triple Tactics Thrust', swap: 'Enemy Controller (~$0.25)' },
+];
+
+const priceOf = (card, provider) => {
+    const prices = card?.card_prices?.[0] || card?.card_prices || card?.cardPrices || {};
+    const value = parseFloat(prices[provider]);
+    return Number.isFinite(value) ? value : 0;
+};
+
+/**
+ * Deck price box.
+ *
+ * It used to download the card prices again itself, and because its props were brand-new arrays on every
+ * render of the page, it re-downloaded them on EVERY card hover. The prices are already inside the card
+ * details the page loaded once, so this component now does no network calls at all: it only adds numbers up.
+ * `cards` is one flat list with one entry per copy (main + extra + side).
+ */
+export default function DeckPriceWidget({ cards = [], loading = false }) {
+    const [provider, setProvider] = useState('tcgplayer_price');
     const [showBudgetModal, setShowBudgetModal] = useState(false);
-    const [livePrices, setLivePrices] = useState({});
-    const [loadingPrices, setLoadingPrices] = useState(false);
+    const { symbol } = PROVIDERS[provider];
 
-    const allCards = [...mainDeck, ...extraDeck, ...sideDeck];
-
-    // 🚀 Automatically fetch live card prices if database entries don't have them
-    useEffect(() => {
-        const fetchPrices = async () => {
-            if (allCards.length === 0) return;
-
-            // Collect unique card IDs or Names
-            const cardIds = [...new Set(allCards.map(c => c.id || c.Id).filter(Boolean))];
-
-            if (cardIds.length === 0) return;
-
-            setLoadingPrices(true);
-            try {
-                // YGOProDeck allows fetching multiple card IDs separated by commas
-                const res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${cardIds.join(',')}`);
-                if (!res.ok) throw new Error("Price fetch failed");
-                const data = await res.json();
-
-                // Map card ID -> card_prices object
-                const priceMap = {};
-                data.data?.forEach(card => {
-                    if (card.card_prices?.[0]) {
-                        priceMap[card.id] = card.card_prices[0];
-                    }
-                });
-                setLivePrices(priceMap);
-            } catch (err) {
-                console.error("FAILED_TO_FETCH_CARD_PRICES:", err);
-            } finally {
-                setLoadingPrices(false);
-            }
+    const { total, topCards, expensive } = useMemo(() => {
+        const byName = new Map();
+        let sum = 0;
+        cards.forEach((card) => {
+            const price = priceOf(card, provider);
+            sum += price;
+            const entry = byName.get(card.name) || { name: card.name, count: 0, unitPrice: price, totalPrice: 0 };
+            entry.count += 1;
+            entry.totalPrice += price;
+            entry.unitPrice = price;
+            byName.set(card.name, entry);
+        });
+        const list = [...byName.values()];
+        return {
+            total: sum,
+            topCards: [...list].sort((a, b) => b.totalPrice - a.totalPrice).slice(0, 5).filter((c) => c.totalPrice > 0),
+            expensive: list.filter((c) => c.unitPrice >= EXPENSIVE_UNIT_PRICE),
         };
-
-        fetchPrices();
-    }, [mainDeck, extraDeck, sideDeck]);
-
-    // Helper: Extract price float from card object or live fetched cache
-    const getCardPrice = (card) => {
-        const cardId = card.id || card.Id;
-        // 1. Check live fetched prices
-        const cachedPrices = livePrices[cardId];
-        if (cachedPrices && cachedPrices[priceProvider]) {
-            return parseFloat(cachedPrices[priceProvider]) || 0;
-        }
-
-        // 2. Fallback to prices directly attached to card
-        const directPrices = card?.card_prices?.[0] || card?.card_prices || card?.cardPrices || {};
-        const val = parseFloat(directPrices[priceProvider] || 0);
-        return isNaN(val) ? 0 : val;
-    };
-
-    // Calculate total deck value
-    const totalPrice = allCards.reduce((sum, card) => sum + getCardPrice(card), 0);
-
-    // Group cards by name to count copies & top expensive cards
-    const cardMap = {};
-    allCards.forEach(card => {
-        const name = card.name || card.Name;
-        const price = getCardPrice(card);
-        if (!cardMap[name]) {
-            cardMap[name] = {
-                name,
-                count: 0,
-                unitPrice: price,
-                totalPrice: 0
-            };
-        }
-        cardMap[name].count += 1;
-        cardMap[name].totalPrice += price;
-        cardMap[name].unitPrice = price;
-    });
-
-    const uniqueCardList = Object.values(cardMap);
-
-    // Sort by most expensive total cost
-    const topExpensiveCards = [...uniqueCardList]
-        .sort((a, b) => b.totalPrice - a.totalPrice)
-        .slice(0, 5)
-        .filter(c => c.totalPrice > 0);
-
-    // Identify high-budget targets (cards over $15 unit price)
-    const expensiveTargets = uniqueCardList.filter(c => c.unitPrice >= 15);
-
-    const getCurrencySymbol = () => {
-        if (priceProvider === 'cardmarket_price') return '€';
-        return '$';
-    };
+    }, [cards, provider]);
 
     return (
-        <Card className="bg-black border-info border-opacity-40 p-3 mb-4">
-            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-50">
+        <section className="mdp-panel mdp-price" aria-labelledby="mdp-price-title">
+            <div className="mdp-price__head">
                 <div>
-                    <h6 className="text-info terminal-font m-0 fw-bold">
-                        DECK PRICE
-                    </h6>
-                    <small className="text-muted terminal-font">REAL-TIME TCG PRICING METRICS</small>
+                    <h2 id="mdp-price-title" className="mdp-price__title">DECK PRICE</h2>
+                    <small className="mdp-price__sub">PRICES FROM YGOPRODECK</small>
                 </div>
-
-                {/* CURRENCY / VENDOR SELECTOR */}
-                <Form.Select 
-                    size="sm" 
-                    value={priceProvider} 
-                    onChange={(e) => setPriceProvider(e.target.value)}
+                <Form.Select
+                    size="sm"
+                    aria-label="Price source"
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value)}
                     className="bg-dark text-info border-info terminal-font"
-                    style={{ width: '160px' }}
+                    style={{ width: '170px' }}
                 >
-                    <option value="tcgplayer_price">TCGPlayer ($)</option>
-                    <option value="cardmarket_price">Cardmarket (€)</option>
-                    <option value="ebay_price">eBay ($)</option>
+                    {Object.entries(PROVIDERS).map(([value, { label }]) => <option key={value} value={value}>{label}</option>)}
                 </Form.Select>
             </div>
 
-            {/* TOTAL PRICE METRIC DISPLAY */}
-            <div className="d-flex justify-content-between align-items-center mb-3 p-3 bg-dark bg-opacity-60 rounded border border-secondary border-opacity-30">
+            <div className="mdp-price__total">
                 <div>
-                    <small className="text-muted terminal-font d-block">ESTIMATED_DECK_TOTAL</small>
-                    {loadingPrices ? (
-                        <div className="d-flex align-items-center gap-2 mt-1">
+                    <small className="d-block text-white-50">ESTIMATED DECK TOTAL</small>
+                    {loading ? (
+                        <span className="d-flex align-items-center gap-2 mt-1">
                             <Spinner size="sm" animation="border" variant="success" />
-                            <small className="text-success terminal-font">FETCHING_LIVE_PRICES...</small>
-                        </div>
+                            <small className="text-success">LOADING PRICES...</small>
+                        </span>
                     ) : (
-                        <div className="display-6 fw-bold terminal-font text-success">
-                            {getCurrencySymbol()}{totalPrice.toFixed(2)}
-                        </div>
+                        <strong className="mdp-price__amount">{symbol}{total.toFixed(2)}</strong>
                     )}
                 </div>
-
-                {expensiveTargets.length > 0 && !loadingPrices && (
-                    <Button 
-                        variant="outline-warning" 
-                        size="sm" 
-                        className="terminal-font fw-bold"
-                        onClick={() => setShowBudgetModal(true)}
-                    >
+                {expensive.length > 0 && !loading && (
+                    <Button variant="outline-warning" className="fw-bold" onClick={() => setShowBudgetModal(true)}>
                         BUDGET OPTIMIZER
                     </Button>
                 )}
             </div>
 
-            {/* TOP 5 MOST EXPENSIVE CARDS TABLE */}
-            {!loadingPrices && topExpensiveCards.length > 0 && (
-                <div>
-                    <small className="text-info terminal-font fw-bold d-block mb-2">
-                        TOP CARD PRICES
-                    </small>
-                    <Table size="sm" variant="dark" responsive className="m-0 border-secondary border-opacity-25 small">
+            {!loading && topCards.length > 0 && (
+                <>
+                    <h3 className="mdp-price__label">TOP CARD PRICES</h3>
+                    <Table size="sm" variant="dark" responsive className="m-0">
                         <thead>
-                            <tr className="text-muted terminal-font">
-                                <th>CARD</th>
-                                <th className="text-center">QTY</th>
-                                <th className="text-end">UNIT</th>
-                                <th className="text-end">TOTAL</th>
+                            <tr className="text-white-50">
+                                <th scope="col">CARD</th>
+                                <th scope="col" className="text-center">QTY</th>
+                                <th scope="col" className="text-end">UNIT</th>
+                                <th scope="col" className="text-end">TOTAL</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {topExpensiveCards.map((c, i) => (
-                                <tr key={i}>
-                                    <td className="text-white terminal-font fw-bold text-truncate" style={{ maxWidth: '180px' }}>
-                                        {c.name}
-                                    </td>
-                                    <td className="text-center text-info terminal-font">x{c.count}</td>
-                                    <td className="text-end text-white-50">{getCurrencySymbol()}{c.unitPrice.toFixed(2)}</td>
-                                    <td className="text-end text-success fw-bold">{getCurrencySymbol()}{c.totalPrice.toFixed(2)}</td>
+                            {topCards.map((c) => (
+                                <tr key={c.name}>
+                                    <td className="text-white fw-bold text-truncate" style={{ maxWidth: '200px' }}>{c.name}</td>
+                                    <td className="text-center text-info">x{c.count}</td>
+                                    <td className="text-end text-white-50">{symbol}{c.unitPrice.toFixed(2)}</td>
+                                    <td className="text-end text-success fw-bold">{symbol}{c.totalPrice.toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </Table>
-                </div>
+                </>
             )}
 
-            {/* BUDGET OPTIMIZER MODAL */}
             <Modal show={showBudgetModal} onHide={() => setShowBudgetModal(false)} size="lg" centered contentClassName="md-modal border-warning">
-                <Modal.Header closeButton className="bg-dark text-warning border-warning">
-                    <Modal.Title className="terminal-font">⚡ BUDGET_OPTIMIZER // STAPLE_SUBSTITUTIONS</Modal.Title>
+                <Modal.Header closeButton closeVariant="white" className="bg-dark text-warning border-warning">
+                    <Modal.Title className="terminal-font">⚡ BUDGET OPTIMIZER</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="bg-dark text-white p-4">
-                    <p className="text-white-50 small mb-3">
-                        The following cards in your deck carry a market value over $15.00 unit cost. Here are recommended budget staples to reduce overall deck cost:
+                    <p className="text-white-50 mb-3">
+                        These cards cost {symbol}{EXPENSIVE_UNIT_PRICE}+ each. Suggested cheaper swaps:
                     </p>
-
                     <div className="d-flex flex-column gap-3">
-                        {expensiveTargets.map((item, idx) => (
-                            <div key={idx} className="p-3 bg-black rounded border border-secondary d-flex align-items-center justify-content-between flex-wrap gap-3">
-                                <div>
-                                    <span className="text-danger fw-bold terminal-font me-2">{item.name}</span>
-                                    <Badge bg="danger">${item.unitPrice.toFixed(2)} / ea</Badge>
-                                    <small className="text-muted d-block mt-1">
-                                        Total Impact: ${item.totalPrice.toFixed(2)} ({item.count} copies)
-                                    </small>
+                        {expensive.map((item) => {
+                            const suggestion = BUDGET_SWAPS.find((s) => item.name.includes(s.match));
+                            return (
+                                <div key={item.name} className="p-3 bg-black rounded border border-secondary d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                    <div>
+                                        <span className="text-danger fw-bold me-2">{item.name}</span>
+                                        <Badge bg="danger">{symbol}{item.unitPrice.toFixed(2)} / ea</Badge>
+                                        <small className="text-white-50 d-block mt-1">
+                                            Total impact: {symbol}{item.totalPrice.toFixed(2)} ({item.count} {item.count === 1 ? 'copy' : 'copies'})
+                                        </small>
+                                    </div>
+                                    <div className="text-end">
+                                        <small className="text-success d-block mb-1">SUGGESTED SWAP</small>
+                                        <span className="border border-success text-success rounded p-2 d-inline-block">
+                                            {suggestion ? `💡 ${suggestion.swap}` : 'No suggestion yet'}
+                                        </span>
+                                    </div>
                                 </div>
-
-                                <div className="text-end">
-                                    <small className="text-success terminal-font d-block mb-1">RECOMMENDED BUDGET SWAP</small>
-                                    <Badge bg="outline-success" className="border border-success text-success p-2">
-                                        {item.name.includes("S:P Little Knight") ? "💡 Swap for Knightmare Unicorn (~$1.50)" :
-                                         item.name.includes("Forbidden Droplet") ? "💡 Swap for Book of Eclipse (~$0.50)" :
-                                         item.name.includes("Triple Tactics Thrust") ? "💡 Swap for Enemy Controller (~$0.25)" :
-                                         "💡 Swap for Effect Veiler or Ghost Mourner (~$1.00)"}
-                                    </Badge>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </Modal.Body>
             </Modal>
-        </Card>
+        </section>
     );
 }

@@ -1,0 +1,107 @@
+/* Home page styles. Tune the look with the three variables below. */
+:root {
+    --home-bg-opacity: 0.3;       /* how visible the scroll-driven background video is */
+    --home-panel-alpha: 0.8;      /* how opaque the panels are on top of it (lower = more video shows through) */
+    --home-cyan: #00d2ff;
+    /* Content width: 1320px on laptops, grows with the window, stops at 2400px on ultrawide. */
+    --home-max: clamp(1320px, 78vw, 2400px);
+}
+
+.home-wrap { width: min(100% - 2rem, var(--home-max)); margin-inline: auto; }
+
+/* Cascadia Mono: installed copy first, then /public/fonts/CascadiaMono.woff2 for Mac, Linux and phones.
+   The same rule exists in deckbuilder.css; keep one copy in your global CSS if you prefer. */
+@font-face {
+    font-family: 'Cascadia Mono';
+    font-style: normal;
+    font-weight: 200 700;
+    font-display: swap;
+    src: local('Cascadia Mono'), local('CascadiaMono-Regular'), url('/fonts/CascadiaMono.woff2') format('woff2');
+}
+
+.home-root {
+    position: relative;
+    min-height: 100vh;
+    padding-bottom: 0;
+    overflow-x: hidden;
+    background-color: #06080c;
+    font-family: 'Cascadia Mono', 'Cascadia Code', Consolas, Menlo, 'DejaVu Sans Mono', monospace;
+}
+.home-hero, .home-features, .home-layer { position: relative; z-index: 1; }
+.home-hero { padding-top: 90px; }
+
+/* ---------- Scroll-driven background ---------- */
+.home-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.home-bg__layer { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease-in-out; will-change: opacity; }
+.home-bg__layer[data-active='true'] { opacity: var(--home-bg-opacity); }
+.home-bg__media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background-size: cover; background-position: center; }
+
+/* ---------- Hero ---------- */
+.home-hero__title { font-size: clamp(2.2rem, 1.4rem + 2.6vw, 6.5rem); line-height: 1.1; letter-spacing: -1px; }
+.home-hero__brand { color: var(--home-cyan); text-shadow: 0 0 20px rgba(0, 210, 255, 0.4); }
+.home-hero__lead { font-size: clamp(1.1rem, 0.9rem + 0.6vw, 2rem); }
+
+.home-hero-video {
+    aspect-ratio: 16 / 9;
+    min-height: 220px;
+    width: 100%;
+    background-color: #0a0d14;
+    border: 1px solid rgba(0, 210, 255, 0.3);
+}
+.home-hero-video__clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity 1s ease-in-out; }
+.home-hero-video__still { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center; color: rgba(255, 255, 255, 0.75); background: radial-gradient(circle at center, #16202e 0%, #0a0d14 100%); }
+
+.home-motion-toggle {
+    position: fixed; right: 12px; bottom: 12px; z-index: 1030;
+    min-height: 40px; padding: 6px 14px;
+    color: #fff; background: rgba(8, 12, 20, 0.92);
+    border: 1px solid rgba(0, 210, 255, 0.6); border-radius: 999px;
+    font-size: 0.9rem;
+}
+.home-motion-toggle:hover { background: rgba(0, 210, 255, 0.2); }
+.home-motion-toggle:focus-visible, .home-panel__link:focus-visible, .md-nav-card:focus-visible { outline: 3px solid #ffd54a; outline-offset: 3px; }
+
+/* ---------- Edge tabs and drawers ---------- */
+.btn.home-edge-tab {
+    top: 50%; z-index: 1040; padding: 15px 5px;
+    writing-mode: vertical-rl; text-orientation: mixed; letter-spacing: 2px;
+    border-radius: 0 8px 8px 0;
+    background-color: rgba(8, 12, 20, 0.9) !important;
+}
+.btn.home-edge-tab--left { left: 0; transform: translateY(-50%); }
+.btn.home-edge-tab--right { right: 0; transform: translateY(-50%) rotate(180deg); color: #ffc107 !important; }
+.home-drawer.offcanvas { background-color: #0a0d14; width: 85vw; max-width: 400px; }
+.home-drawer--left.offcanvas { border-right: 1px solid #00f2ff; }
+.home-drawer--right.offcanvas { border-left: 1px solid #ffc107; }
+
+/* ---------- Three-column row ---------- */
+@media (min-width: 768px) {
+    .home-feature:not(:last-child) { border-right: 1px solid rgba(0, 210, 255, 0.25); }
+}
+
+/* ---------- Panels ---------- */
+/* Two classes so this beats .md-content-panel in mdstyles.css (which adds 40px padding and a -30px top margin). */
+.md-content-panel.home-panel {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin-top: 0;
+    max-width: none;          /* mdstyles.css caps .md-content-panel at 1400px, which left the panels stuck on the left */
+    overflow: hidden;
+    border: 1px solid rgba(0, 210, 255, 0.2);
+    border-radius: 8px;
+    background-color: rgba(10, 13, 20, var(--home-panel-alpha));
+    backdrop-filter: none;
+}
+.home-panel__card { width: 100%; max-width: clamp(360px, 22vw, 520px); }
+.home-panel__title { font-size: clamp(1.6rem, 1.2rem + 1vw, 2.1rem); color: var(--home-cyan); text-shadow: 0 0 15px rgba(0, 210, 255, 0.3); }
+.home-panel__desc { font-size: clamp(1rem, 0.9rem + 0.3vw, 1.25rem); line-height: 1.6; }
+.home-panel__sub { font-size: 1rem; }
+.home-panel__link { color: var(--home-cyan); font-weight: 700; letter-spacing: 1px; text-decoration: none; border-bottom: 2px solid transparent; }
+.home-panel__link:hover { border-bottom-color: var(--home-cyan); }
+
+.home-bottom { background-color: #06080c; }
+
+@media (prefers-reduced-motion: reduce) {
+    .home-bg__layer, .home-hero-video__clip { transition: none; }
+}

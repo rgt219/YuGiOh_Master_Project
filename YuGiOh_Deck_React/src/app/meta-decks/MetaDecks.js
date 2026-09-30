@@ -1,386 +1,121 @@
-'use client'; 
+'use client';
 
-import React, { useRef, useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
+import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Row, Col, Card, Badge, Spinner, Button } from 'react-bootstrap';
-import { useMetaDecks } from '@/hooks/useMetaDecks';
-import { getFannedCards } from '@/utils/metaDeckHelpers';
+import { Button, Container } from 'react-bootstrap';
+import { FORMATS, useMetaDecks } from '@/hooks/useMetaDecks';
+import MetaDeckCard from '@/components/MetaDeckCard';
 import '@/mdstyles.css';
+import '@/components/metadecks.css';
 
-const DECKS_PER_PAGE = 12;
-const CDN_BASE_URL = 'https://cards.erregeteygo.com/card-images';
+const slug = (name) => name.toLowerCase().replace(/\s+/g, '-');
+const SKELETONS = Array.from({ length: 6 }, (_, i) => i);
 
-const formats = [
-  { name: 'TCG', variant: 'info' },
-  { name: 'OCG', variant: 'warning' },
-  { name: 'MASTER DUEL', variant: 'success' },
-  { name: 'GENESYS', variant: 'danger' }
-];
-
-// 🚀 Custom Badge Component that detects if text is overflowing ("...")
-const OverflowBadge = ({ bg, className, style, title, text }) => {
-  const badgeRef = useRef(null);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-
-  useEffect(() => {
-    const checkOverflow = () => {
-      if (badgeRef.current) {
-        setIsOverflowing(badgeRef.current.scrollWidth > badgeRef.current.clientWidth);
-      }
-    };
-    
-    // Check on mount and after a slight delay to ensure fonts/layout are rendered
-    checkOverflow();
-    setTimeout(checkOverflow, 100);
-
-    // Re-check if the window is resized
-    window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
-  }, [text]);
-
-  return (
-    <span 
-      ref={badgeRef}
-      className={`badge bg-${bg} ${className} marquee-wrapper ${isOverflowing ? 'has-overflow' : ''}`} 
-      style={style} 
-      title={title}
-    >
-      <span className="marquee-content">{text}</span>
-    </span>
-  );
+const scrollToTop = () => {
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: calm ? 'auto' : 'smooth' });
 };
 
+/**
+ * The archive page. It only decides WHAT to show; the hook (useMetaDecks) does the loading, searching and
+ * paging, and MetaDeckCard draws each tile.
+ */
 export default function MetaDecks({ mdSound }) {
-  const {
-    metaDecks,
-    activeFormat,
-    setActiveFormat,
-    loading,
-    error,
-    currentPage,
-    setCurrentPage
-  } = useMetaDecks();
+    const {
+        format, setFormat, search, setSearch,
+        decks, totalCount, matchCount, page, setPage, totalPages,
+        loading, error, refetch, prefetchFormat,
+    } = useMetaDecks();
 
-  const [searchTerm, setSearchTerm] = useState('');
+    const searching = search.trim().length > 0;
 
-  const filteredAndSortedDecks = useMemo(() => {
-    const query = searchTerm.toLowerCase().trim();
+    let status = '';
+    if (loading) status = `Loading ${format} decks...`;
+    else if (!error) status = searching ? `${matchCount} of ${totalCount} ${format} decks match "${search.trim()}"` : `${totalCount} ${format} decks`;
 
-    return metaDecks
-      .filter((deck) => {
-        if (!query) return true;
+    return (
+        <div className="md-theme-bg min-vh-100 py-5 mt-5 mdc-page">
+            <Container>
+                <header className="mdc-hero">
+                    <h1 className="mdc-title">TOURNAMENT META ARCHIVE</h1>
+                    <p className="mdc-subtitle">Real-time competitive metagame profiles &amp; decklists</p>
+                </header>
 
-        const archetype = (deck?.archetype || deck?.Archetype || '').toLowerCase();
-        const pilot = (deck?.pilot || deck?.Author || '').toLowerCase();
-        const placement = (deck?.placement || deck?.Placement || '').toLowerCase();
+                <div className="mdc-toolbar">
+                    <div className="mdc-tabs" role="group" aria-label="Game format">
+                        {FORMATS.map((name) => (
+                            <button
+                                key={name}
+                                type="button"
+                                className={`mdc-tab mdc-tab--${slug(name)}`}
+                                aria-pressed={format === name}
+                                onMouseEnter={() => { mdSound?.playHover?.(); prefetchFormat(name); }}
+                                onFocus={() => prefetchFormat(name)}
+                                onClick={() => { mdSound?.playClick?.(); setFormat(name); }}
+                            >
+                                {name}
+                            </button>
+                        ))}
+                    </div>
 
-        // Matches if the term is found in Archetype name, Pilot name, or Placement
-        return archetype.includes(query) || pilot.includes(query) || placement.includes(query);
-      })
-      .sort((a, b) => {
-        const idA = Number(a?.Id || a?.['_id'] || a?.['id'] || 0);
-        const idB = Number(b?.Id || b?.['_id'] || b?.['id'] || 0);
-        
-        if (idB !== idA) {
-          return idB - idA;
-        }
-        
-        const dateA = new Date(a.lastUpdated || a.LastUpdated || 0);
-        const dateB = new Date(b.lastUpdated || b.LastUpdated || 0);
-        return dateB - dateA; 
-      });
-  }, [metaDecks, searchTerm]); // Only recalculates when the fetched decks or search term change!
+                    <div className="mdc-search">
+                        <label htmlFor="mdc-search" className="visually-hidden">Search decks by archetype, pilot or placement</label>
+                        <input
+                            id="mdc-search"
+                            type="search"
+                            className="mdc-search__input"
+                            placeholder="Search archetype, pilot or placement..."
+                            autoComplete="off"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                        {searching && (
+                            <button type="button" className="mdc-search__clear" aria-label="Clear search" onClick={() => setSearch('')}>✕</button>
+                        )}
+                    </div>
+                </div>
 
-// Pagination calculates off the filtered list
-const totalPages = Math.ceil(filteredAndSortedDecks.length / DECKS_PER_PAGE) || 1;
-const paginatedDecks = filteredAndSortedDecks.slice(
-  (currentPage - 1) * DECKS_PER_PAGE, 
-  currentPage * DECKS_PER_PAGE
-);
+                <p className="mdc-status" role="status" aria-live="polite">{status}</p>
 
-  return (
-    <div className="md-theme-bg min-vh-100 py-5 mt-5" style={{ fontFamily: "'Cascadia Mono', monospace" }}>
-      <style>{`
-        .cascadia-font { font-family: 'Cascadia Mono', monospace !important; }
-        .ygo-deck-card {
-          transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-          transform-style: preserve-3d;
-        }
-        .ygo-deck-card:hover {
-          transform: translateY(-6px) scale(1.015);
-          box-shadow: 0 12px 30px rgba(0, 242, 255, 0.18) !important;
-          border-color: #00f2ff !important;
-        }
-        .fanned-container { perspective: 1000px; }
-        .card-left, .card-center, .card-right {
-          position: absolute;
-          transition: all 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
-          transform-origin: bottom center;
-          border-radius: 4px;
-        }
-        .card-left { transform: translateX(-15px) rotate(-6deg) scale(0.9); z-index: 1; opacity: 0.65; filter: brightness(0.6) blur(0.5px); }
-        .card-right { transform: translateX(15px) rotate(6deg) scale(0.9); z-index: 2; opacity: 0.65; filter: brightness(0.6) blur(0.5px); }
-        .card-center { transform: translateY(0) scale(1); z-index: 3; box-shadow: 0 8px 18px rgba(0,0,0,0.85); }
-        
-        .ygo-deck-card:hover .card-left { transform: translateX(-68px) translateY(-10px) rotate(-18deg) scale(0.95); opacity: 1; filter: brightness(0.95) blur(0); box-shadow: -8px 12px 20px rgba(0,0,0,0.6); }
-        .ygo-deck-card:hover .card-right { transform: translateX(68px) translateY(-10px) rotate(18deg) scale(0.95); opacity: 1; filter: brightness(0.95) blur(0); box-shadow: 8px 12px 20px rgba(0,0,0,0.6); }
-        .ygo-deck-card:hover .card-center { transform: translateY(-20px) scale(1.15); z-index: 4; filter: brightness(1.1); box-shadow: 0 15px 35px rgba(0, 242, 255, 0.5); }
-        
-        .holo-glow {
-          position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-          width: 0px; height: 0px; background: radial-gradient(circle, rgba(0, 242, 255, 0.35) 0%, rgba(0, 0, 0, 0) 70%);
-          border-radius: 50%; transition: all 0.5s ease; z-index: 0; opacity: 0;
-        }
-        .ygo-deck-card:hover .holo-glow { width: 250px; height: 250px; opacity: 1; }
+                {loading ? (
+                    <div className="mdc-grid" aria-hidden="true">
+                        {SKELETONS.map((i) => <div key={i} className="mdc-skeleton" />)}
+                    </div>
+                ) : error ? (
+                    <div className="mdc-state mdc-state--error">
+                        <h2>CONNECTION FAILURE</h2>
+                        <p>{error}</p>
+                        <Button variant="outline-danger" className="fw-bold" onClick={() => refetch()}>RETRY CONNECTION</Button>
+                    </div>
+                ) : totalCount === 0 ? (
+                    <div className="mdc-state"><h2>NO DECKS ARCHIVED FOR {format} YET</h2></div>
+                ) : matchCount === 0 ? (
+                    <div className="mdc-state">
+                        <h2>NO DECKS MATCHED &quot;{search.trim().toUpperCase()}&quot;</h2>
+                        <Button variant="outline-info" onClick={() => setSearch('')}>CLEAR SEARCH</Button>
+                    </div>
+                ) : (
+                    <>
+                        <div className="mdc-grid">
+                            {decks.map((deck) => <MetaDeckCard key={deck.id || deck.archetype} deck={deck} mdSound={mdSound} />)}
+                        </div>
 
-        /* 🚀 Marquee Animation - ONLY triggers if has-overflow is true */
-        .marquee-wrapper {
-          display: inline-block;
-          width: 100%;
-          overflow: hidden;
-          white-space: nowrap;
-          text-overflow: ellipsis;
-          vertical-align: middle;
-        }
-        
-        .ygo-deck-card:hover .marquee-wrapper.has-overflow {
-          text-overflow: clip;
-        }
-        
-        .ygo-deck-card:hover .marquee-wrapper.has-overflow .marquee-content {
-          display: inline-block;
-          animation: text-slide 3.5s ease-in-out infinite alternate;
-        }
-        
-        @keyframes text-slide {
-          0%, 15% { transform: translateX(0); }
-          85%, 100% { transform: translateX(-35%); }
-        }
-      `}</style>
-
-      <Container>
-        <div className="p-4 rounded-3 mb-4" style={{ background: 'transparent' }}>
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 className="fw-bold text-info cascadia-font m-0 d-flex align-items-center gap-2" style={{ letterSpacing: '1px', textShadow: '0 0 12px rgba(0, 210, 255, 0.4)' }}>
-                TOURNAMENT META ARCHIVE
-              </h2>
-              <span className="text-white-50 small cascadia-font">
-                Real-time competitive metagame profiles & decklists
-              </span>
-            </div>
-          </div>
+                        {totalPages > 1 && (
+                            <nav className="mdc-pager" aria-label="Pages">
+                                <Button variant="outline-info" className="fw-bold px-4" disabled={page === 1}
+                                    onClick={() => { mdSound?.playClick?.(); setPage(page - 1); scrollToTop(); }}>
+                                    ◄ PREV
+                                </Button>
+                                <span className="mdc-pager__label">PAGE {page} OF {totalPages}</span>
+                                <Button variant="outline-info" className="fw-bold px-4" disabled={page === totalPages}
+                                    onClick={() => { mdSound?.playClick?.(); setPage(page + 1); scrollToTop(); }}>
+                                    NEXT ►
+                                </Button>
+                            </nav>
+                        )}
+                    </>
+                )}
+            </Container>
         </div>
-
-        <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.98)', backdropFilter: 'blur(0px)', position: 'sticky', top: '70px', zIndex: 1000 }} text="white" className="shadow-lg p-3 mb-4 md-panel border-info border-opacity-25">
-          <Card.Header className="bg-transparent pb-3 d-flex gap-2 flex-wrap">
-            {formats.map((fmt) => {
-              const isActive = activeFormat === fmt.name;
-              return (
-                <Button
-                  key={fmt.name}
-                  variant={isActive ? fmt.variant : `outline-${fmt.variant}`}
-                  className="flex-fill fw-bold cascadia-font text-nowrap py-2"
-                  onMouseEnter={() => mdSound?.playHover?.()}
-                  onClick={() => { 
-                    mdSound?.playClick?.(); 
-                    setActiveFormat(fmt.name); 
-                    setSearchTerm(''); // Clear search when switching format
-                  }}
-                >
-                  {fmt.name}
-                </Button>
-              );
-            })}
-          </Card.Header>
-
-          {/* ⚡ Instant Holographic Search Bar */}
-          <div className="pt-2 px-1">
-            <div className="position-relative">
-              <input
-                type="text"
-                className="form-control bg-black text-white border-secondary terminal-font py-2"
-                placeholder="SEARCH ARCHETYPE, PILOT, OR PLACEMENT (E.G. 'SNAKE-EYE', '1ST PLACE')..."
-                style={{
-                  fontFamily: "'Cascadia Mono', monospace",
-                  fontSize: '0.85rem',
-                  borderColor: 'rgba(0, 242, 255, 0.3)',
-                  boxShadow: 'none'
-                }}
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1); // Reset to page 1 so results don't render off-screen
-                }}
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
-                  className="btn btn-sm text-white-50 position-absolute end-0 top-50 translate-middle-y me-2"
-                  style={{ border: 'none', background: 'transparent', fontSize: '0.8rem' }}
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            {searchTerm && (
-              <div className="text-white-50 small mt-2 cascadia-font d-flex justify-content-between">
-                <span>QUERY: "{searchTerm.toUpperCase()}"</span>
-                <span className="text-info">{filteredAndSortedDecks.length} DECK(S) FOUND</span>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {loading ? (
-          <div className="d-flex justify-content-center align-items-center mt-5">
-            <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)', maxWidth: '30rem' }} className="border-info p-4 text-center md-panel shadow-lg">
-              <Card.Body>
-                <Spinner animation="border" variant="info" className="mb-3" style={{ width: '3rem', height: '3rem' }} />
-                <h5 className="text-info cascadia-font fw-bold m-0" style={{ letterSpacing: '1px' }}>ACCESSING METAGAME DATABASE...</h5>
-                <p className="text-white-50 small mt-2 m-0 cascadia-font">Synchronizing {activeFormat} tournament archives from MongoDB</p>
-              </Card.Body>
-            </Card>
-          </div>
-        ) : error ? (
-          <div className="d-flex justify-content-center align-items-center mt-5">
-            <Card style={{ backgroundColor: 'rgba(20, 8, 8, 0.95)', backdropFilter: 'blur(0px)', maxWidth: '32rem' }} className="border-danger p-4 text-center md-panel shadow-lg text-white">
-              <Card.Body>
-                <h4 className="text-danger cascadia-font fw-bold mb-3" style={{ letterSpacing: '2px' }}>CONNECTION FAILURE</h4>
-                <p className="text-white-50 mb-3 cascadia-font">{error}</p>
-                <Button variant="outline-danger" className="cascadia-font fw-bold" onClick={() => setActiveFormat(prev => prev)}>RETRY CONNECTION</Button>
-              </Card.Body>
-            </Card>
-          </div>
-        ) : metaDecks.length === 0 ? (
-          <div className="text-center py-5 text-white-50 cascadia-font">
-            <h5>NO DECKS ARCHIVED FOR {activeFormat} FORMAT YET</h5>
-          </div>
-        ) : filteredAndSortedDecks.length === 0 ? (
-          <div className="text-center py-5 text-white-50 cascadia-font">
-            <h5>NO DECKS MATCHED "{searchTerm.toUpperCase()}" FOR {activeFormat} FORMAT</h5>
-            <Button 
-              variant="outline-info" 
-              size="sm" 
-              className="mt-3 cascadia-font" 
-              onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
-            >
-              CLEAR SEARCH QUERY
-            </Button>
-          </div>
-        ) : (
-          <>
-            <Row xs={1} md={2} lg={3} className="g-4">
-              {paginatedDecks.map((deck) => {
-                const deckId = deck?.Id || deck?.['_id'] || deck?.['id'];
-                const archetype = deck?.archetype || deck?.Archetype || 'TOURNAMENT META DECK';
-                const sampleDeck = deck?.sampleDeck || deck?.SampleDeck;
-                const mainDeck = sampleDeck?.mainDeck || sampleDeck?.MainDeck || [];
-                const extraDeck = sampleDeck?.extraDeck || sampleDeck?.ExtraDeck || [];
-                const sideDeck = sampleDeck?.sideDeck || sampleDeck?.SideDeck || [];
-                
-                const rawPlacement = deck?.placement || deck?.Placement || 'Tournament Placement';
-                const deckYear = (deck?.lastUpdated || deck?.LastUpdated) 
-                  ? new Date(deck.lastUpdated || deck.LastUpdated).getFullYear() 
-                  : new Date().getFullYear();
-
-                const finalBadgeText = `${rawPlacement}`;
-                const pilotText = `PILOT: ${deck?.pilot || deck?.Author || activeFormat}`;
-                const fannedCardIds = getFannedCards(mainDeck, extraDeck, sideDeck);
-
-                return (
-                  <Col key={deckId || archetype}>
-                    <Card style={{ backgroundColor: 'rgba(8, 12, 20, 0.95)', backdropFilter: 'blur(0px)' }} text="white" className="border-info border-opacity-50 shadow h-100 md-panel ygo-deck-card d-flex flex-column">
-                      <Card.Header className="bg-transparent border-bottom border-info border-opacity-25 px-3 py-3 overflow-hidden">
-                        <div className="d-flex flex-column gap-2 w-100">
-                          <h5 className="m-0 fw-bold text-white cascadia-font" style={{ fontSize: '1.25rem', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2' }} title={archetype}>
-                            {archetype}
-                          </h5>
-                          <div className="d-flex align-items-center w-100">
-                            {/* 🚀 Replaced standard Badge with OverflowBadge */}
-                            <OverflowBadge 
-                              bg="dark" 
-                              className="text-light fw-bold px-2 py-1 cascadia-font border border-secondary border-opacity-50" 
-                              style={{ fontSize: '0.8rem', maxWidth: '100%' }}
-                              title={finalBadgeText}
-                              text={finalBadgeText}
-                            />
-                          </div>
-                        </div>
-                      </Card.Header>
-
-                      <Card.Body className="d-flex flex-column justify-content-between p-3">
-                        <div>
-                          <div className="my-3 d-flex justify-content-center align-items-center position-relative fanned-container" style={{ height: '220px', width: '100%' }}>
-                            <div className="holo-glow"></div>
-                            <img src={`${CDN_BASE_URL}/${fannedCardIds[0]}.jpg`} alt="Card 1" className="border border-info border-opacity-25 card-left" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
-                            <img src={`${CDN_BASE_URL}/${fannedCardIds[2]}.jpg`} alt="Card 3" className="border border-info border-opacity-25 card-right" style={{ height: '170px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
-                            <img src={`${CDN_BASE_URL}/${fannedCardIds[1]}.jpg`} alt="Card 2" className="border border-info card-center" style={{ height: '185px', objectFit: 'contain' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.ygoprodeck.com/images/cards/back_high.jpg'; }} />
-                          </div>
-
-                          <div className="d-flex align-items-center mb-2 w-100">
-                            {/* 🚀 Replaced pilot span with OverflowBadge */}
-                            <OverflowBadge 
-                              bg="dark"
-                              className="border border-success text-warning px-2 py-1 cascadia-font" 
-                              style={{ fontSize: '0.85rem', maxWidth: '100%' }} 
-                              title={pilotText}
-                              text={pilotText}
-                            />
-                          </div>
-
-                          <div className="p-2.5 rounded mb-2" style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
-                            <h6 className="text-info fw-bold border-bottom border-info border-opacity-25 pb-1 mb-1.5 cascadia-font" style={{ fontSize: '0.85rem', letterSpacing: '1px' }}>DECK BREAKDOWN</h6>
-                            <div className="d-flex justify-content-between text-white cascadia-font" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-                              <span className="text-white-50">MAIN DECK:</span>
-                              <strong className="text-info">{mainDeck.length} CARDS</strong>
-                            </div>
-                            <div className="d-flex justify-content-between text-white cascadia-font" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-                              <span className="text-white-50">EXTRA DECK:</span>
-                              <strong className="text-warning">{extraDeck.length} CARDS</strong>
-                            </div>
-                            <div className="d-flex justify-content-between text-white cascadia-font" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-                              <span className="text-white-50">SIDE DECK:</span>
-                              <strong className="text-success">{sideDeck.length} CARDS</strong>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="pt-2 border-top border-secondary border-opacity-25 mt-1">
-                          <div className="d-flex align-items-center justify-content-between mb-1.5">
-                            <span className="small text-white-50 cascadia-font" style={{ fontSize: '0.75rem' }}>LAST UPDATED:</span>
-                            <span className="small text-info cascadia-font" style={{ fontSize: '0.8rem' }}>
-                              {(deck?.lastUpdated || deck?.LastUpdated) ? new Date(deck.lastUpdated || deck.LastUpdated).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'RECENTLY'}
-                            </span>
-                          </div>
-
-                          <Button as={Link} href={`/meta-decks/${deckId}`} variant="outline-info" className="w-100 fw-bold cascadia-font text-nowrap py-1.5 mt-1" style={{ fontSize: '0.9rem', letterSpacing: '0.5px' }} onMouseEnter={() => mdSound?.playHover?.()} onClick={() => mdSound?.playClick?.()}>
-                            VIEW DECK PROFILE
-                          </Button>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                );
-              })}
-            </Row>
-
-            {totalPages > 1 && (
-              <div className="d-flex align-items-center justify-content-center gap-3 mt-5 pt-4 border-top border-info border-opacity-25">
-                <Button variant="outline-info" className="cascadia-font fw-bold px-4" disabled={currentPage === 1} onMouseEnter={() => mdSound?.playHover?.()} onClick={() => { mdSound?.playClick?.(); setCurrentPage(prev => Math.max(prev - 1, 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-                  ◄ PREV
-                </Button>
-                <span className="text-info cascadia-font fw-bold px-3">PAGE {currentPage} OF {totalPages}</span>
-                <Button variant="outline-info" className="cascadia-font fw-bold px-4" disabled={currentPage === totalPages} onMouseEnter={() => mdSound?.playHover?.()} onClick={() => { mdSound?.playClick?.(); setCurrentPage(prev => Math.min(prev + 1, totalPages)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-                  NEXT ►
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </Container>
-    </div>
-  );
+    );
 }
