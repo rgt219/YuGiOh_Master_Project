@@ -16,6 +16,7 @@ namespace YuGiOhDeckApi.Data
         private readonly IMongoCollection<MasterDuelCardDocument> _mdCardsCollection;
         private readonly IMongoCollection<NewsArticle> _newsCollection;
         private readonly IMongoCollection<DeckPlaylist> _deckPlaylistCollection;
+        private readonly IMongoCollection<CollectionEntry> _collectionCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -30,6 +31,7 @@ namespace YuGiOhDeckApi.Data
             _mdCardsCollection = database.GetCollection<MasterDuelCardDocument>("MasterDuelCards");
             _newsCollection = database.GetCollection<NewsArticle>("NewsArticles");
             _deckPlaylistCollection = database.GetCollection<DeckPlaylist>("DeckPlaylists");
+            _collectionCollection = database.GetCollection<CollectionEntry>("UserCollections");
 
             IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
             _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");
@@ -38,6 +40,17 @@ namespace YuGiOhDeckApi.Data
             {
                 var indexKeys = Builders<MetaDeck>.IndexKeys.Descending(x => x.LastUpdated);
                 _metaDeckCollection.Indexes.CreateOne(new CreateIndexModel<MetaDeck>(indexKeys));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[INDEX_CREATION_WARNING]: {ex.Message}");
+            }
+
+            try
+            {
+                // One row per (user, card). Unique, so a card can't be listed twice for one user.
+                var collectionIndex = Builders<CollectionEntry>.IndexKeys.Ascending(x => x.UserId).Ascending(x => x.CardId);
+                _collectionCollection.Indexes.CreateOne(new CreateIndexModel<CollectionEntry>(collectionIndex, new CreateIndexOptions { Unique = true }));
             }
             catch (Exception ex)
             {

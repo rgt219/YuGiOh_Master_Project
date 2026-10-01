@@ -158,6 +158,15 @@ export default function NavbarYGO() {
                   <NavDropdown.Item as={Link} href="/profile" onClick={onNavigate}>
                     VIEW PROFILE
                   </NavDropdown.Item>
+                  <NavDropdown.Item
+                    as={Link}
+                    href="/collection"
+                    active={matches(pathname, '/collection')}
+                    aria-current={matches(pathname, '/collection') ? 'page' : undefined}
+                    onClick={onNavigate}
+                  >
+                    MY COLLECTION
+                  </NavDropdown.Item>
                   <NavDropdown.Divider />
                   <NavDropdown.Item onClick={handleLogout} className="text-danger">
                     LOGOUT

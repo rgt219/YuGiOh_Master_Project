@@ -119,6 +119,7 @@ jobs:
           cache: npm # reuses downloaded packages between runs
           cache-dependency-path: YuGiOh_Deck_React/package-lock.json
       - run: npm ci --legacy-peer-deps # install exactly what package-lock.json says
+      - run: npm test # unit tests (Vitest)
       - run: npm run build
         env:
           # These are baked into the site at build time (see the Dockerfile).

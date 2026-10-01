@@ -28,6 +28,8 @@ namespace YuGiOhDeckApi.Repositories
         Task<bool> SaveMasterDuelDatabaseAsync(MasterDuelDatabaseSyncResponseDto syncPayload);
         Task<List<MasterDuelCardDocument>> GetRestrictedMasterDuelCardsAsync();
         Task<BanListsResponse> GetCombinedBanListsAsync();
+        Task<List<CollectionEntry>> GetCollectionAsync(string userId);
+        Task SetCollectionQuantityAsync(string userId, int cardId, int quantity);
         Task<List<NewsArticle>> GetLatestNewsAsync(int limit = 20);
         Task SaveNewsArticlesBulkAsync(List<NewsArticle> articles);
         Task<DeckPlaylist> GetPlaylistByIdAsync(string id);

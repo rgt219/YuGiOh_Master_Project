@@ -1,0 +1,177 @@
+/* =====================================================================
+   Collection binder. Class names start with "cb-" (collection binder),
+   plus ".holo" for the tilt-and-shine effect.
+
+   Reading guide, top to bottom:
+     1. toolbar and progress bar     4. page-turn animation
+     2. the book (cover, pages)      5. holo tilt and shine
+     3. pockets (card slots)         6. small screens and reduced motion
+   ===================================================================== */
+
+.cb-wrap { --flip-ms: 800ms; /* keep in sync with FLIP_MS in CollectionBinder.js */ }
+
+/* ---------- 1. Toolbar ---------- */
+.cb-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 14px; }
+.cb-select { display: flex; flex-direction: column; gap: 4px; min-width: min(100%, 340px); }
+.cb-progress { min-width: 220px; font-size: 0.8rem; }
+.cb-bar { height: 6px; margin-top: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.cb-bar__fill { height: 100%; background: linear-gradient(90deg, #00d2ff, #7b61ff); transition: width 0.4s ease; }
+
+/* ---------- 2. The book ---------- */
+.cb-book {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 22px;
+    border-radius: 18px;
+    /* the "leather" cover: a dark gradient with a thin light edge */
+    background: linear-gradient(145deg, #1d2636, #0b1019);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(0, 210, 255, 0.18);
+    /* the stitching: a dashed line drawn just inside the edge */
+    outline: 2px dashed rgba(0, 210, 255, 0.22);
+    outline-offset: -10px;
+}
+.cb-book:focus-visible { outline: 2px solid #00d2ff; outline-offset: 3px; }
+
+.cb-spread { position: relative; display: grid; grid-template-columns: 1fr; perspective: 2600px; }
+.cb-spread--two { grid-template-columns: 1fr 1fr; }
+
+.cb-page {
+    position: relative;
+    box-sizing: border-box;
+    height: 100%;
+    padding: 18px 18px 34px;
+    isolation: isolate; /* keeps this page's overlays (codes, buttons) from poking through a page that is turning on top of it */
+    background: linear-gradient(180deg, #111826, #0b1019);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.cb-page--blank { background: linear-gradient(180deg, #0e1420, #0a0e16); }
+.cb-spread--two > .cb-page:first-child { border-radius: 10px 0 0 10px; }
+.cb-spread--two > .cb-page:nth-child(2) { border-radius: 0 10px 10px 0; }
+.cb-spread:not(.cb-spread--two) > .cb-page { border-radius: 10px; }
+
+.cb-pageno { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-size: 0.7rem; letter-spacing: 2px; color: rgba(255, 255, 255, 0.35); font-family: 'Cascadia Mono', monospace; }
+
+/* The shadow where the pages curve into the middle, and the metal rings holding them. */
+.cb-spread--two::before {
+    content: '';
+    position: absolute; top: 0; bottom: 0; left: 50%;
+    width: 70px; transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.55) 46%, rgba(0, 0, 0, 0.55) 54%, transparent);
+    z-index: 3; pointer-events: none;
+}
+.cb-rings { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; justify-content: space-evenly; z-index: 4; pointer-events: none; }
+.cb-rings span {
+    display: block; width: 54px; height: 15px; border-radius: 8px;
+    background: linear-gradient(180deg, #e3eaf2, #7b8794 50%, #2c333c);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ---------- 3. Pockets ---------- */
+.cb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+.cb-pocket {
+    position: relative;
+    aspect-ratio: 59 / 86; /* the shape of a Yu-Gi-Oh! card */
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+.cb-pocket--empty { background: transparent; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05); }
+
+/* The plastic sleeve: a faint glare across the top-left and a lip along the top edge. */
+.cb-pocket:not(.cb-pocket--empty)::before {
+    content: '';
+    position: absolute; inset: 0; z-index: 2;
+    border-radius: 7px; pointer-events: none;
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.16), transparent 32%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0, transparent 3px);
+}
+
+.cb-card { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 6px; user-select: none; }
+.is-missing .cb-card { filter: grayscale(1) brightness(0.32) contrast(0.9); opacity: 0.7; }
+
+.cb-code {
+    position: absolute; left: 6px; bottom: 5px; z-index: 3;
+    font: 0.58rem 'Cascadia Mono', monospace; letter-spacing: 0.5px;
+    color: rgba(0, 210, 255, 0.9); text-shadow: 0 1px 3px #000;
+    opacity: 0; transition: opacity 0.15s;
+}
+.is-missing .cb-code, .cb-pocket:hover .cb-code { opacity: 1; }
+
+.cb-qty {
+    position: absolute; top: 5px; right: 5px; z-index: 3;
+    padding: 1px 6px; border-radius: 10px;
+    font: 700 0.7rem 'Cascadia Mono', monospace;
+    color: #001a22; background: #00d2ff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* The - and + buttons: only visible while pointing at (or tabbing to) a pocket. */
+.cb-controls { position: absolute; left: 0; right: 0; bottom: 6px; z-index: 5; display: flex; justify-content: center; gap: 8px; opacity: 0; transition: opacity 0.15s; }
+.cb-pocket:hover .cb-controls, .cb-pocket:focus-within .cb-controls { opacity: 1; }
+@media (hover: none) { .cb-controls { opacity: 1; } } /* touch screens have no hover, so always show them */
+.cb-controls button {
+    width: 28px; height: 28px; border-radius: 50%; padding: 0;
+    font: 700 1rem/1 'Cascadia Mono', monospace; color: #00d2ff;
+    background: rgba(0, 0, 0, 0.78); border: 1px solid rgba(0, 210, 255, 0.6); cursor: pointer;
+}
+.cb-controls button:hover:not(:disabled) { background: #00d2ff; color: #001a22; }
+.cb-controls button:disabled { opacity: 0.3; cursor: default; }
+
+/* ---------- 4. Page-turn animation ---------- */
+/* The "leaf" is the page being turned. It has two faces (front and back) glued together and spins around the spine.
+   backface-visibility: hidden means each face only shows while it is facing you. */
+.cb-leaf {
+    position: absolute; top: 0; bottom: 0; width: 50%;
+    z-index: 2;
+    transform-style: preserve-3d;
+    animation-duration: var(--flip-ms);
+    animation-timing-function: cubic-bezier(0.45, 0.05, 0.25, 1);
+    animation-fill-mode: forwards;
+}
+.cb-leaf--next { right: 0; transform-origin: left center; animation-name: cb-turn-next; }
+.cb-leaf--prev { left: 0; transform-origin: right center; animation-name: cb-turn-prev; }
+
+.cb-leaf__face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.cb-leaf__back { transform: rotateY(180deg); }
+
+@keyframes cb-turn-next { from { transform: rotateY(0deg); } to { transform: rotateY(-180deg); } }
+@keyframes cb-turn-prev { from { transform: rotateY(0deg); } to { transform: rotateY(180deg); } }
+
+.cb-nav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 16px; }
+
+/* ---------- 5. Holo tilt and shine ---------- */
+/* HoloCard.js sets --rx / --ry (tilt) and --mx / --my (where the pointer is). Everything visual happens here. */
+.holo {
+    position: relative; width: 100%; height: 100%; border-radius: 6px;
+    transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 0.12s ease-out;
+    will-change: transform;
+}
+.holo--on:hover { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6), 0 0 14px rgba(0, 210, 255, 0.25); }
+
+/* The shine: a soft white spot under the pointer, plus a rainbow stripe, both blended into the card art. */
+.holo--on::after {
+    content: '';
+    position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    opacity: 0; transition: opacity 0.2s;
+    background:
+        radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.55), transparent 42%),
+        linear-gradient(115deg, transparent 15%, rgba(0, 210, 255, 0.35) 38%, rgba(255, 70, 210, 0.3) 50%, rgba(255, 230, 0, 0.3) 62%, transparent 85%);
+    background-size: 100% 100%, 220% 220%;
+    background-position: 0 0, calc(var(--mx, 50%) * 1) calc(var(--my, 50%) * 1);
+    mix-blend-mode: overlay;
+}
+.holo--on:hover::after { opacity: 1; }
+.holo--off { transform: none !important; }
+
+/* ---------- 6. Small screens and reduced motion ---------- */
+@media (max-width: 991.98px) {
+    .cb-book { max-width: 520px; padding: 14px; }
+    .cb-page { padding: 12px 12px 30px; }
+    .cb-grid { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .holo { transform: none !important; transition: none; }
+    .cb-leaf { animation: none; }
+}

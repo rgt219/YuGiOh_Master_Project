@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +15,7 @@ import MetaDeckHeader from '@/components/MetaDeckHeader';
 import MetaDeckInspector from '@/components/MetaDeckInspector';
 import MetaDeckGrid from '@/components/MetaDeckGrid';
 import DeckPriceWidget from '@/components/DeckPriceWidget';
+import CollectionGapPanel from '@/components/collection/CollectionGapPanel';
 import '@/mdstyles.css';
 import '@/components/metadecks.css';
 
@@ -55,6 +56,13 @@ export default function MetaDeckProfile() {
         const first = mainCards[0];
         if (first && !store.getState().hovered) store.hover(first);
     }, [mainCards, store]);
+
+    // One entry per copy, for EVERY card id in the deck. (allCards skips cards whose details failed to load;
+    // the collection is matched by id, so those still need to be counted.)
+    const gapCards = useMemo(() => {
+        if (!deck) return [];
+        return [...deck.main, ...deck.extra, ...deck.side].map((id) => cardMap[String(id)] || { id: String(id), name: `Card #${id}` });
+    }, [deck, cardMap]);
 
     const handleExportYDK = useCallback(() => {
         if (!deck) return;
@@ -129,6 +137,8 @@ export default function MetaDeckProfile() {
 
                 <div className="mdp-main">
                     <div className="mdp-decks">
+                        <CollectionGapPanel cards={gapCards} loading={cardsLoading} />
+
                         <div className="mdp-size" role="group" aria-label="Card size">
                             <span>Card size</span>
                             {SIZES.map(([value, label]) => (

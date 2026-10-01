@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -9,6 +9,7 @@ import AiDeckCopywriter from "@/components/AiDeckCopywriter";
 import AiComboPlaybook from "@/components/AiComboPlaybook";
 import '@/mdstyles.css';
 import DeckPriceWidget from "@/components/DeckPriceWidget";
+import CollectionGapPanel from "@/components/collection/CollectionGapPanel";
 
 const getAttributeColor = (attribute) => {
   if (!attribute) return 'secondary';
@@ -77,6 +78,17 @@ export default function DeckProfileDetails() {
         };
         loadDeckData();
     }, [deckId]);
+
+    // Every card in the deck, one entry per copy (main + extra + side). Used by the price box and the collection panel.
+    const allDeckCards = useMemo(() => {
+        if (!deck) return [];
+        const lists = [
+            deck.mainDeck || deck.MainDeck || [],
+            deck.extraDeck || deck.ExtraDeck || [],
+            deck.sideDeck || deck.SideDeck || [],
+        ];
+        return lists.flat().map((card) => (typeof card === 'object' && card !== null ? card : { id: card }));
+    }, [deck]);
 
     const handleExportYDK = () => {
         if (!deck) return;
@@ -435,11 +447,9 @@ export default function DeckProfileDetails() {
                                 </Card.Body>
                             </Card>
 
-                            <DeckPriceWidget 
-                                mainDeck={mainDeck} 
-                                extraDeck={extraDeck} 
-                                sideDeck={sideDeck} 
-                            />
+                            <DeckPriceWidget cards={allDeckCards} />
+
+                            <CollectionGapPanel cards={allDeckCards} />
                         </div>
                     </Col>
 

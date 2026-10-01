@@ -9,6 +9,7 @@ import {
 } from '@/constants/cardSearchConstants';
 import { useCardSearch, useGenesysPoints, useArchetypes } from '@/hooks/useCardSearch';
 import CardSearchInspectorModal from '@/components/CardSearchInspectorModal';
+import CollectionStepper from '@/components/collection/CollectionStepper';
 import '@/mdstyles.css';
 
 /* ------------------------------------------------------------------ *
@@ -395,6 +396,7 @@ const setCard = useCallback((cardId) => setFilters((previous) => ({ ...previous,
                                     <span className="cs-tile__name text-white fw-bold small" title={card.name}>{card.name}</span>
                                     <span className="text-info-50 small terminal-font d-block mt-auto" style={{ fontSize: '0.65rem' }}>ID: #{card.id}</span>
                                 </button>
+                                <CollectionStepper cardId={card.id} cardName={card.name} />
                             </Col>
                         ))}
                     </Row>
