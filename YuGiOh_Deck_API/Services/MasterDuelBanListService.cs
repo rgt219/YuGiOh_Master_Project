@@ -4,7 +4,7 @@ using YuGiOhDeckApi.Repositories;
 
 namespace YuGiOhDeckApi.Services
 {
-    
+
 
     public class MasterDuelBanListService : IMasterDuelBanListService
     {
@@ -44,7 +44,7 @@ namespace YuGiOhDeckApi.Services
         {
             try
             {
-                _logger.LogInformation("Admin requested Master Duel Database sync...");
+                _logger.LogInformation("Starting Master Duel database sync...");
 
                 var response = await _httpClient.GetFromJsonAsync<MasterDuelDatabaseSyncResponseDto>("internal/banlist/masterduel");
 
@@ -69,6 +69,7 @@ namespace YuGiOhDeckApi.Services
                         Format = "Master Duel",
                         Source = "https://www.masterduelmeta.com/forbidden-limited-list",
                         UpdatedAt = DateTime.UtcNow,
+                        SyncVersion = MasterDuelBanListResponse.CurrentSyncVersion,
                         Count = restrictedCards.Count, // This will now accurately reflect the ~206 unique restricted cards
                         Cards = restrictedCards
                     };
@@ -113,6 +114,7 @@ namespace YuGiOhDeckApi.Services
                     Format = "Master Duel",
                     Source = "Local Database Generation",
                     UpdatedAt = DateTime.UtcNow,
+                    SyncVersion = MasterDuelBanListResponse.CurrentSyncVersion,
                     Count = cleanBanList.Count, // This will be exactly 206!
                     Cards = cleanBanList
                 };

@@ -1,3 +1,4 @@
+using YuGiOhDeckApi.Models;
 using YuGiOhDeckApi.Services;
 
 namespace YuGiOhDeckApi.BackgroundServices
@@ -39,12 +40,18 @@ namespace YuGiOhDeckApi.BackgroundServices
                 var service = scope.ServiceProvider.GetRequiredService<IMasterDuelBanListService>();
 
                 // Restarts and extra replicas shouldn't re-scrape data that was just refreshed.
+                // But data saved by an older version of the sync is always re-scraped, however new it is.
                 var latest = await service.GetMasterDuelBanListAsync();
-                if (latest != null && DateTime.UtcNow - latest.UpdatedAt < FreshFor)
+                if (latest != null
+                    && latest.SyncVersion == MasterDuelBanListResponse.CurrentSyncVersion
+                    && DateTime.UtcNow - latest.UpdatedAt < FreshFor)
                 {
                     _logger.LogInformation("Master Duel data is fresh (updated {UpdatedAt:u}); skipping sync.", latest.UpdatedAt);
                     return;
                 }
+
+                _logger.LogInformation("Master Duel sync starting (stored data: {Info}).",
+                    latest == null ? "none" : $"updated {latest.UpdatedAt:u}, version {latest.SyncVersion}");
 
                 for (int attempt = 1; attempt <= MaxAttempts && !ct.IsCancellationRequested; attempt++)
                 {
