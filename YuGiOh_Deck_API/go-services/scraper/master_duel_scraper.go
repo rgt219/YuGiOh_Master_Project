@@ -28,9 +28,32 @@ type ObtainEntry struct {
 	Source SourceDetail `json:"source"`
 }
 
+// flexString reads a JSON string OR number into a string. Master Duel Meta sends some ids as numbers
+// ("konamiID": 12345) and others as strings ("12345"); a plain string field fails on the numbers, which
+// used to cut the download off at the last page (the newest cards).
+type flexString string
+
+func (f *flexString) UnmarshalJSON(data []byte) error {
+	s := strings.TrimSpace(string(data))
+	if s == "null" {
+		*f = ""
+		return nil
+	}
+	if strings.HasPrefix(s, `"`) {
+		var str string
+		if err := json.Unmarshal(data, &str); err != nil {
+			return err
+		}
+		*f = flexString(str)
+		return nil
+	}
+	*f = flexString(s) // a number: keep its digits as text
+	return nil
+}
+
 type MDMCardEntity struct {
-	KonamiID     string        `json:"konamiID"`
-	GameID       string        `json:"gameId"`
+	KonamiID     flexString    `json:"konamiID"`
+	GameID       flexString    `json:"gameId"`
 	Name         string        `json:"name"`
 	Type         string        `json:"type"`
 	AlternateArt bool          `json:"alternateArt"`
