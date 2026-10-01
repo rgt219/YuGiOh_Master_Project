@@ -24,29 +24,51 @@ const getGenesysMap = async () => {
   }
 };
 
-// 🚀 2. THE MASTER DUEL DICTIONARY (Forces your Scraper as the Source of Truth)
-let globalMDBanlistMap = null;
-const getMDBanlistMap = async () => {
-  if (globalMDBanlistMap) return globalMDBanlistMap;
+// 🚀 2. THE BAN LISTS (Your API is the source of truth for Master Duel, TCG and OCG)
+// Each entry is { id, name, status }. `id` is the YGOPRODeck card id, matched on the server,
+// so card names that are spelled differently between sites ("Maliss <Q> Red Ransom" vs
+// "Maliss Q Red Ransom") no longer get lost.
+let globalBanLists = null;
+const getBanLists = async () => {
+  if (globalBanLists) return globalBanLists;
   try {
-    // Hits your newly refactored C# controller route
-    const res = await fetch(`${API_BASE_URL}/BanList/masterduel`);
-    if (!res.ok) throw new Error("Failed to fetch custom MD banlist");
-    
-    const apiResponse = await res.json();
-    const map = {};
-    
-    if (apiResponse && apiResponse.cards) {
-      apiResponse.cards.forEach(item => {
-        map[item.name] = item.status;
-      });
-    }
-    globalMDBanlistMap = map;
-    return map;
+    const res = await fetch(`${API_BASE_URL}/BanList/cards`);
+    if (!res.ok) throw new Error("Failed to fetch ban lists");
+    const data = await res.json();
+    const build = (entries = []) => {
+      const byId = {};
+      entries.forEach(e => { if (e.id) byId[e.id] = e.status; });
+      return { entries, byId };
+    };
+    globalBanLists = {
+      masterduel: build(data.masterduel),
+      tcg: build(data.tcg),
+      ocg: build(data.ocg),
+    };
+    return globalBanLists;
   } catch (err) {
-    console.error("Failed to fetch custom MD banlist dictionary:", err);
-    return {}; 
+    console.error("Failed to fetch ban lists from API:", err);
+    // Not cached, so the next visit tries again.
+    return { masterduel: build0(), tcg: build0(), ocg: build0() };
   }
+};
+const build0 = () => ({ entries: [], byId: {} });
+
+// YGOPRODeck lookup by card id, 50 at a time.
+const fetchCardsByIds = async (ids) => {
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += 50) chunks.push(ids.slice(i, i + 50));
+  const responses = await Promise.all(
+    chunks.map(chunk => fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${chunk.join(',')}&misc=yes`))
+  );
+  const json = await Promise.all(responses.map(r => (r.ok ? r.json() : { data: [] })));
+  return json.flatMap(j => j.data || []);
+};
+
+const toStatus = (raw) => {
+  if (raw === "Banned" || raw === "Forbidden") return "Forbidden";
+  if (raw === "Limited") return "Limited";
+  return "Semi-Limited";
 };
 
 export function useBanList(format) {
@@ -55,124 +77,80 @@ export function useBanList(format) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
     setIsLoading(true);
     setError(null);
 
-    // 🚀 3. Fetch BOTH dictionaries before processing any cards
-    Promise.all([getGenesysMap(), getMDBanlistMap()]).then(([genesysMap, mdBanlistMap]) => {
-      
+    const formatCard = (card, genesysMap, lists, status) => {
+      const priceObj = card.card_prices?.[0] || {};
+      const banObj = card.banlist_info || {};
+      const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
+      const image = card.card_images?.[0]?.image_url || "";
+
+      return {
+        id: card.id, name: card.name, type: card.type, race: card.race || "", attribute: card.attribute || "",
+        status, desc: card.desc || "No card text available.", atk: card.atk ?? null, def: card.def ?? null,
+        level: card.level ?? card.rank ?? card.linkval ?? null, image, fallbackImage: image,
+        prices: {
+          tcgplayer: priceObj.tcgplayer_price ? `$${priceObj.tcgplayer_price}` : "N/A",
+          cardmarket: priceObj.cardmarket_price ? `€${priceObj.cardmarket_price}` : "N/A",
+          ebay: priceObj.ebay_price ? `$${priceObj.ebay_price}` : "N/A"
+        },
+        banlist: {
+          masterduel: lists.masterduel.byId[card.id] || "Unlimited",
+          tcg: lists.tcg.byId[card.id] || banObj.ban_tcg || "Unlimited",
+          ocg: lists.ocg.byId[card.id] || banObj.ban_ocg || "Unlimited"
+        },
+        isLinkOrPendulum,
+        genesysPoints: isLinkOrPendulum ? "N/A" : (genesysMap[card.id] ?? 0)
+      };
+    };
+
+    const load = async () => {
+      const [genesysMap, lists] = await Promise.all([getGenesysMap(), getBanLists()]);
+      const own = lists[format] || build0();
+
       if (format === 'masterduel') {
-          // Since we already fetched the MD map, we can just use it directly!
-          const mdCardNames = Object.keys(mdBanlistMap);
-          
-          if (mdCardNames.length === 0) {
-              setError("No cards returned from Master Duel scraper.");
-              setIsLoading(false);
-              return;
-          }
-
-          const chunks = [];
-          for (let i = 0; i < mdCardNames.length; i += 25) {
-            chunks.push(mdCardNames.slice(i, i + 25));
-          }
-
-          const fetchPromises = chunks.map(chunk => 
-            fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${encodeURIComponent(chunk.join('|'))}&misc=yes`)
-          );
-
-          Promise.all(fetchPromises).then(async (responses) => {
-            const jsonResults = await Promise.all(responses.map(r => r.ok ? r.json() : { data: [] }));
-            const rawCards = [];
-            jsonResults.forEach(res => { if (res.data) rawCards.push(...res.data); });
-
-            const formattedCards = rawCards.map((card) => {
-              const priceObj = card.card_prices?.[0] || {};
-              const banObj = card.banlist_info || {};
-              
-              const mdStatus = mdBanlistMap[card.name] || "Unlimited";
-              const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
-
-              return {
-                id: card.id,
-                name: card.name,
-                type: card.type,
-                race: card.race || "",
-                attribute: card.attribute || "",
-                status: mdStatus,
-                desc: card.desc || "No card text available.",
-                atk: card.atk ?? null,
-                def: card.def ?? null,
-                level: card.level ?? card.rank ?? card.linkval ?? null,
-                image: card.card_images?.[0]?.image_url || "",
-                fallbackImage: card.card_images?.[0]?.image_url || "",
-                prices: {
-                  tcgplayer: priceObj.tcgplayer_price ? `$${priceObj.tcgplayer_price}` : "N/A",
-                  cardmarket: priceObj.cardmarket_price ? `€${priceObj.cardmarket_price}` : "N/A",
-                  ebay: priceObj.ebay_price ? `$${priceObj.ebay_price}` : "N/A"
-                },
-                // Uses your custom map as the MD source of truth
-                banlist: { masterduel: mdStatus, tcg: banObj.ban_tcg || "Unlimited", ocg: banObj.ban_ocg || "Unlimited" },
-                isLinkOrPendulum,
-                genesysPoints: isLinkOrPendulum ? "N/A" : (genesysMap[card.id] ?? 0)
-              };
-            });
-
-            setCards(formattedCards);
-            setIsLoading(false);
-          }).catch((err) => {
-            console.error("Master Duel Live API Fetch Error:", err);
-            setError("Could not load live Master Duel ban list from server.");
-            setIsLoading(false);
-          });
-
-      } else {
-        // TCG & OCG TAB LOGIC
-        fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?banlist=${format}&misc=yes`)
-          .then((res) => {
-            if (!res.ok) throw new Error("Failed to fetch ban list data");
-            return res.json();
-          })
-          .then((data) => {
-            const formattedCards = (data.data || []).map((card) => {
-              const priceObj = card.card_prices?.[0] || {};
-              const banObj = card.banlist_info || {};
-              const rawStatus = format === 'ocg' ? banObj.ban_ocg : banObj.ban_tcg;
-
-              let status = "Semi-Limited";
-              if (rawStatus === "Banned" || rawStatus === "Forbidden") status = "Forbidden";
-              if (rawStatus === "Limited") status = "Limited";
-
-              const isLinkOrPendulum = (card.type || "").toLowerCase().includes("link") || (card.type || "").toLowerCase().includes("pendulum");
-
-              // 🚀 4. THE OVERRIDE: Ignore YGOPRODeck's MD status and inject your Scraper's data instead!
-              const trueMDStatus = mdBanlistMap[card.name] || "Unlimited";
-
-              return {
-                id: card.id, name: card.name, type: card.type, race: card.race || "", attribute: card.attribute || "",
-                status: status, desc: card.desc || "No card text available.", atk: card.atk ?? null, def: card.def ?? null,
-                level: card.level ?? card.rank ?? card.linkval ?? null, image: card.card_images?.[0]?.image_url || "",
-                fallbackImage: card.card_images?.[0]?.image_url || "",
-                prices: { tcgplayer: priceObj.tcgplayer_price ? `$${priceObj.tcgplayer_price}` : "N/A", cardmarket: priceObj.cardmarket_price ? `€${priceObj.cardmarket_price}` : "N/A", ebay: priceObj.ebay_price ? `$${priceObj.ebay_price}` : "N/A" },
-                banlist: { 
-                  masterduel: trueMDStatus, // 🚀 Override applied here
-                  tcg: banObj.ban_tcg || "Unlimited", 
-                  ocg: banObj.ban_ocg || "Unlimited" 
-                },
-                isLinkOrPendulum, 
-                genesysPoints: isLinkOrPendulum ? "N/A" : (genesysMap[card.id] ?? 0)
-              };
-            });
-            setCards(formattedCards);
-            setIsLoading(false);
-          })
-          .catch((err) => {
-            console.error(`${format.toUpperCase()} Fetch Error:`, err);
-            setError(`Could not load live ${format.toUpperCase()} ban list.`);
-            setIsLoading(false);
-          });
+        const ids = own.entries.filter(e => e.id).map(e => e.id);
+        if (ids.length === 0) throw new Error("No cards returned from the Master Duel ban list.");
+        const raw = await fetchCardsByIds(ids);
+        return raw.map(card => formatCard(card, genesysMap, lists, own.byId[card.id] || "Unlimited"));
       }
-    });
 
+      // TCG & OCG: YGOPRODeck's list, plus anything your API knows about that YGOPRODeck doesn't have yet.
+      let ygoCards = [];
+      try {
+        const res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?banlist=${format}&misc=yes`);
+        if (res.ok) ygoCards = (await res.json()).data || [];
+      } catch (err) {
+        console.error(`${format.toUpperCase()} YGOPRODeck fetch error:`, err);
+      }
+
+      const have = new Set(ygoCards.map(c => c.id));
+      const missingIds = own.entries.filter(e => e.id && !have.has(e.id)).map(e => e.id);
+      const extra = missingIds.length ? await fetchCardsByIds(missingIds) : [];
+
+      const all = [...ygoCards, ...extra];
+      if (all.length === 0) throw new Error(`No cards returned for the ${format.toUpperCase()} ban list.`);
+
+      return all.map(card => {
+        // Your API's status wins; otherwise fall back to what YGOPRODeck says.
+        const rawYgo = format === 'ocg' ? card.banlist_info?.ban_ocg : card.banlist_info?.ban_tcg;
+        return formatCard(card, genesysMap, lists, own.byId[card.id] || toStatus(rawYgo));
+      });
+    };
+
+    load()
+      .then((formatted) => { if (!cancelled) { setCards(formatted); setIsLoading(false); } })
+      .catch((err) => {
+        console.error(`${format.toUpperCase()} ban list error:`, err);
+        if (!cancelled) {
+          setError(`Could not load the ${format.toUpperCase()} ban list.`);
+          setIsLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
   }, [format]);
 
   return { cards, isLoading, error };

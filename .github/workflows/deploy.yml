@@ -321,7 +321,11 @@ jobs:
           # Give the new revision a readable, unique name built from the commit and run number.
           SUFFIX="s${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
           ensure_registry api
-          az containerapp update -n api -g "$RG" --image "$REGISTRY/api:$TAG" --revision-suffix "$SUFFIX" -o none
+          # GoWorker__ConnectionString is set here on purpose: go-worker is internal-only, so the
+          # Deck API must reach it by its in-environment address. Setting it on every deploy keeps
+          # a portal edit or an old secret from changing it.
+          az containerapp update -n api -g "$RG" --image "$REGISTRY/api:$TAG" --revision-suffix "$SUFFIX" \
+            --set-env-vars GoWorker__ConnectionString=http://go-worker -o none
           # Save both names so the next steps can use them.
           echo "PREV_REVISION=$PREV" >> "$GITHUB_ENV"
           echo "NEW_REVISION=api--$SUFFIX" >> "$GITHUB_ENV"

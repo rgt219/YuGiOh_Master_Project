@@ -57,51 +57,62 @@ type MasterDuelDatabaseSyncResponse struct {
 	Cards     []MDMCardEntity `json:"cards"`
 }
 
+// Master Duel Meta has well over 10,000 cards. A download with far fewer means a page was cut off
+// (for example by Cloudflare), and saving it would wipe real cards from the database.
+const minExpectedCards = 5000
+
+func fetchPage(client *http.Client, limit, skip int) ([]MDMCardEntity, error) {
+	targetURL := fmt.Sprintf("https://www.masterduelmeta.com/api/v1/cards?alternateArt[$ne]=true&limit=%d&skip=%d", limit, skip)
+
+	req, err := http.NewRequest("GET", targetURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build request: %w", err)
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Referer", "https://www.masterduelmeta.com/")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("http execution failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("MasterDuelMeta API returned HTTP status %d", resp.StatusCode)
+	}
+
+	var batch []MDMCardEntity
+	// Cloudflare can answer 200 OK with an HTML page, which fails to decode here.
+	if err := json.NewDecoder(resp.Body).Decode(&batch); err != nil {
+		return nil, fmt.Errorf("failed to decode JSON response: %w", err)
+	}
+	return batch, nil
+}
+
 func FetchMasterDuelBanList() (*MasterDuelDatabaseSyncResponse, error) {
 	var allCards []MDMCardEntity
 	skip := 0
 	limit := 3000
 
-	client := &http.Client{Timeout: 30 * time.Second}
+	client := &http.Client{Timeout: 60 * time.Second}
 
 	for {
-		targetURL := fmt.Sprintf("https://www.masterduelmeta.com/api/v1/cards?alternateArt[$ne]=true&limit=%d&skip=%d", limit, skip)
-
-		req, err := http.NewRequest("GET", targetURL, nil)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build request: %w", err)
-		}
-
-		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-		req.Header.Set("Accept", "application/json")
-		req.Header.Set("Referer", "https://www.masterduelmeta.com/")
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return nil, fmt.Errorf("http execution failed: %w", err)
-		}
-
-		// Check for explicit HTTP Error blocks
-		if resp.StatusCode != http.StatusOK {
-			resp.Body.Close()
-			if len(allCards) > 0 {
-				fmt.Printf("Notice: API returned %d at skip %d. Saving %d cards!\n", resp.StatusCode, skip, len(allCards))
-				break
-			}
-			return nil, fmt.Errorf("MasterDuelMeta API returned HTTP status %d", resp.StatusCode)
-		}
-
+		// Retry each page a few times before giving up on the whole download.
 		var batch []MDMCardEntity
-		// ⚡ THE FIX: Catch Cloudflare's 200 OK HTML pages right here!
-		if err := json.NewDecoder(resp.Body).Decode(&batch); err != nil {
-			resp.Body.Close()
-			if len(allCards) > 0 {
-				fmt.Printf("Notice: JSON decode failed at skip %d (Likely Cloudflare HTML intercept). Safely saving %d cards!\n", skip, len(allCards))
+		var err error
+		for attempt := 1; attempt <= 3; attempt++ {
+			batch, err = fetchPage(client, limit, skip)
+			if err == nil {
 				break
 			}
-			return nil, fmt.Errorf("failed to decode JSON response: %w", err)
+			fmt.Printf("Page at skip %d failed (attempt %d/3): %v\n", skip, attempt, err)
+			time.Sleep(time.Duration(attempt) * 5 * time.Second)
 		}
-		resp.Body.Close()
+		if err != nil {
+			// Do not return a partial list: the caller would treat it as a complete sync.
+			return nil, fmt.Errorf("download incomplete at skip %d after %d cards: %w", skip, len(allCards), err)
+		}
 
 		if len(batch) == 0 {
 			break
@@ -116,6 +127,10 @@ func FetchMasterDuelBanList() (*MasterDuelDatabaseSyncResponse, error) {
 
 		skip += limit
 		time.Sleep(4 * time.Second)
+	}
+
+	if len(allCards) < minExpectedCards {
+		return nil, fmt.Errorf("only %d cards downloaded (expected at least %d); refusing to use a partial list", len(allCards), minExpectedCards)
 	}
 
 	fmt.Printf("====================================================\n")
@@ -143,6 +158,8 @@ func FetchMasterDuelBanList() (*MasterDuelDatabaseSyncResponse, error) {
 func normalizeStatus(raw string) string {
 	s := strings.ToLower(strings.TrimSpace(raw))
 	switch {
+	case strings.HasPrefix(s, "unlimited"):
+		return "Unlimited"
 	case strings.Contains(s, "ban"), strings.Contains(s, "forbid"), s == "0", s == "forbidden":
 		return "Forbidden"
 	case strings.Contains(s, "limited 2"), strings.Contains(s, "semi"), s == "2":
