@@ -1,0 +1,46 @@
+/* Additions for NavbarYGO. Safe to keep beside your existing .cyber-* styles. */
+:root { --ygo-nav-height: 64px; }
+
+.cyber-navbar { min-height: var(--ygo-nav-height); padding-block: 0.6rem; }
+
+/* Keep content from stretching across ultrawide screens */
+.ygo-nav-inner { max-width: 1600px; }
+
+/* Slightly larger, roomier links on desktop */
+@media (min-width: 992px) {
+  .cyber-navbar .nav-link { font-size: 1rem; padding: 0.6rem 0.75rem; }
+}
+
+/* Active group underline */
+.ygo-nav-group > .nav-link { position: relative; }
+.ygo-nav-group > .nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0.75rem; right: 0.75rem; bottom: 0.15rem;
+  height: 2px;
+  background: #0dcaf0;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+.ygo-nav-group.is-active > .nav-link { color: #0dcaf0; }
+.ygo-nav-group.is-active > .nav-link::after,
+.ygo-nav-group:hover > .nav-link::after { transform: scaleX(1); }
+
+/* Login/Register match the user-menu height */
+.ygo-nav-btn { padding: 0.35rem 1rem; line-height: 1.5; }
+
+/* Visible keyboard focus */
+.cyber-navbar .nav-link:focus-visible,
+.cyber-navbar .dropdown-item:focus-visible,
+.cyber-navbar .navbar-brand:focus-visible {
+  outline: 2px solid #0dcaf0;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ygo-nav-group > .nav-link::after { transition: none; }
+}
+
+/* Put this on your page wrapper / layout <main> so content clears the fixed bar */
+.page-under-nav { padding-top: calc(var(--ygo-nav-height) + 1.25rem); }

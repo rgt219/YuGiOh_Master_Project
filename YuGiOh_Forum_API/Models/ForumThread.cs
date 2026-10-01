@@ -69,7 +69,6 @@ namespace YuGiOh_Forum_API.Models
 
     public class VoteRequest
     {
-        public string Username { get; set; } = string.Empty;
         public string VoteType { get; set; } = "up"; // "up" or "down"
     }
 }
