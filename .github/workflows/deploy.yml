@@ -38,8 +38,9 @@ env:
   REGISTRY: yugiohapidocker.azurecr.io # your Azure Container Registry
   RG: ErreGeTe # your Azure resource group
   SITE_URL: https://erregeteygo.com # checked at the very end of the deploy
-  # The URL the Deck API smoke test calls. Replace with a real /health endpoint when you add one.
-  SMOKE_PATH: /api/mongodb/DeckListMongoDb/user/447572
+  # The URL the Deck API smoke test calls. /health is public and checks the database.
+  # (The old path needed a login after the API started requiring tokens.)
+  SMOKE_PATH: /health
 
 jobs:
   # ===================================================================

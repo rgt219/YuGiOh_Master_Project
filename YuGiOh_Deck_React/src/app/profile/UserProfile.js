@@ -5,6 +5,7 @@ import { Container, Row, Col, Card, Badge, Spinner, Button, Modal, Form } from '
 import Link from 'next/link'; 
 import { getFannedCards } from '@/utils/metaDeckHelpers';
 import '@/mdstyles.css';
+import { authHeader } from '@/utils/authHeader';
 
 const CDN_BASE_URL = 'https://cards.erregeteygo.com/card-images';
 
@@ -131,8 +132,8 @@ export default function UserProfile() {
             try {
                 // Fetch Decks and Playlists concurrently
                 const [decksRes, playlistsRes] = await Promise.all([
-                    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb/user/${localUser.id}`),
-                    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Playlist/user/${localUser.id}`)
+                    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb/user/${localUser.id}`, { headers: authHeader() }),
+                    fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Playlist/user/${localUser.id}`, { headers: authHeader() })
                 ]);
 
                 if (playlistsRes.ok) {
@@ -189,7 +190,7 @@ export default function UserProfile() {
     const handleDeleteDeck = async (deckId) => {
         if (!localUser?.id || !window.confirm("SYSTEM_CONFIRMATION: PURGE_ARCHIVED_DECK?")) return;
         try {
-            const response = await fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb/${deckId}/user/${localUser.id}`, { method: 'DELETE' });
+            const response = await fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/mongodb/DeckListMongoDb/${deckId}/user/${localUser.id}`, { method: 'DELETE', headers: authHeader() });
             if (response.ok) setUserDecks(prev => prev.filter(deck => deck.id !== deckId));
         } catch (error) { console.error("NETWORK_ERROR", error); }
     };
@@ -209,7 +210,7 @@ export default function UserProfile() {
         try {
             const response = await fetch("https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Playlist", {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeader() },
                 body: JSON.stringify(newPlaylistPayload)
             });
 
@@ -234,7 +235,8 @@ export default function UserProfile() {
 
         try {
             const response = await fetch(`https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Playlist/${playlistId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: authHeader()
             });
 
             if (response.ok) {

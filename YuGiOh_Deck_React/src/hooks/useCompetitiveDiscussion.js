@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_URLS } from '@/config';
+import { authHeader } from '@/utils/authHeader';
 
 export function useCompetitiveDiscussion() {
     const [threads, setThreads] = useState([]);
@@ -57,6 +58,7 @@ export function useCompetitiveDiscussion() {
             try {
                 const uploadRes = await fetch(`${baseUrl}/api/forums/upload`, {
                     method: "POST",
+                    headers: authHeader(),
                     body: formData
                 });
 

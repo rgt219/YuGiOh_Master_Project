@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_URLS } from '../config';
+import { authHeader } from '@/utils/authHeader';
 
 export function useGeneralDiscussion() {
     const [threads, setThreads] = useState([]);
@@ -56,6 +57,7 @@ export function useGeneralDiscussion() {
                 const baseUrl = API_URLS?.FORUMS || "";
                 const uploadRes = await fetch(`${baseUrl}/api/forums/upload`, {
                     method: "POST",
+                    headers: authHeader(),
                     body: formData
                 });
 
@@ -63,14 +65,14 @@ export function useGeneralDiscussion() {
                     const uploadData = await uploadRes.json();
                     uploadedMediaUrls.push(uploadData.url);
                 } else {
-                    alert("⚠️ Failed to upload file to Azure Blob Storage.");
+                    alert("Failed to upload file to Azure Blob Storage.");
                     setIsSubmitting(false);
                     setIsUploading(false);
                     return;
                 }
             } catch (uploadErr) {
                 console.error("Upload error:", uploadErr);
-                alert("⚠️ Error uploading media file.");
+                alert("Error uploading media file.");
                 setIsSubmitting(false);
                 setIsUploading(false);
                 return;

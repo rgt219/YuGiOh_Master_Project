@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { authHeader } from '@/utils/authHeader';
 import { Modal, Button, Spinner, Badge, Alert, Card } from 'react-bootstrap';
 
 export default function AiComboPlaybook({ show, onHide, deckName = "Untitled Deck", mainDeck = [], extraDeck = [] }) {
@@ -78,7 +79,7 @@ Output JSON ONLY in this exact structure:
                 `https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Ai/suggest`,
                 {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeader() },
                     body: JSON.stringify({ systemPrompt })
                 }
             );

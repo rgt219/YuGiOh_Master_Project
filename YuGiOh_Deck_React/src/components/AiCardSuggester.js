@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { authHeader } from '@/utils/authHeader';
 import { Modal, Button, Form, Spinner, Card, Badge, Nav, ProgressBar, Alert } from 'react-bootstrap';
 
 export default function AiCardSuggester({ show, onHide, mainDeck = [], extraDeck = [], onAddCard, onAutoBuildDeck }) {
@@ -21,10 +22,10 @@ export default function AiCardSuggester({ show, onHide, mainDeck = [], extraDeck
     });
 
     const quickChips = [
-        { label: "🛡️ Hand Traps", prompt: "Suggest 3 staple hand traps that fit this deck strategy." },
-        { label: "🎯 Consistency", prompt: "Suggest 3 consistency boosters or searchers for this deck." },
-        { label: "💥 Board Breakers", prompt: "Suggest 3 go-second board breakers for this setup." },
-        { label: "🃏 Extra Deck Staples", prompt: "Suggest 3 generic Extra Deck monsters that complement this engine." },
+        { label: "Hand Traps", prompt: "Suggest 3 staple hand traps that fit this deck strategy." },
+        { label: "Consistency", prompt: "Suggest 3 consistency boosters or searchers for this deck." },
+        { label: "Board Breakers", prompt: "Suggest 3 go-second board breakers for this setup." },
+        { label: "Extra Deck Staples", prompt: "Suggest 3 generic Extra Deck monsters that complement this engine." },
     ];
 
     const handleFormatChange = (formatKey) => {
@@ -36,7 +37,7 @@ export default function AiCardSuggester({ show, onHide, mainDeck = [], extraDeck
             `https://api.happybush-e43d89b2.eastus.azurecontainerapps.io/api/Ai/suggest`,
             {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeader() },
                 body: JSON.stringify({ systemPrompt })
             }
         );
