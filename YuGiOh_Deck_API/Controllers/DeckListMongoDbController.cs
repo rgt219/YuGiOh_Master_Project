@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,6 +16,9 @@ namespace YuGiOhDeckApi.Controllers
     {
         private readonly IMongoDbService _mongoDbService;
         private readonly IKafkaProducerService _kafkaProducerService;
+
+        // Identity comes from the validated token, never from the URL or body.
+        private string? CurrentUserId => User.FindFirst("userId")?.Value;
 
         public DeckListMongoDbController(IMongoDbService mongoDbService, IKafkaProducerService kafkaProducerService)
         {
@@ -40,10 +44,12 @@ namespace YuGiOhDeckApi.Controllers
             return Ok(hydratedDeck);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Save([FromBody] DeckList newDeck)
         {
             Console.WriteLine($"[API_TRACE] Received request for deck: {newDeck.Title}");
+            newDeck.UserId = CurrentUserId!; // owner is always the caller
 
             try
             {
@@ -77,37 +83,45 @@ namespace YuGiOhDeckApi.Controllers
             return CreatedAtAction(nameof(Get), new { id = newDeck.Id }, newDeck);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update([FromBody] DeckList deckList, string id)
         {
+            var mine = await _mongoDbService.GetByUserIdAsync(CurrentUserId!);
+            if (!mine.Any(d => d.Id == id))
+                return NotFound(new { message = "DECK_NOT_FOUND_OR_OWNER_MISMATCH" });
+
+            deckList.Id = id;
+            deckList.UserId = CurrentUserId!;
             await _mongoDbService.UpdateByIdAsync(deckList, id);
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteById(string id)
         {
-            await _mongoDbService.DeleteByIdAsync(id);
+            // Owner-scoped delete: matches on deck id AND the caller's user id.
+            var success = await _mongoDbService.DeleteUserDeckAsync(id, CurrentUserId!);
+            if (!success)
+                return NotFound(new { message = "DECK_NOT_FOUND_OR_OWNER_MISMATCH" });
             return NoContent();
         }
 
-        [HttpDelete("title/{title}")]
-        public async Task<ActionResult> DeleteByTitle(string title)
-        {
-            await _mongoDbService.DeleteByTitleAsync(title);
-            return NoContent();
-        }
-
+        [Authorize]
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<List<DeckList>>> GetByUserId(string userId)
         {
+            if (userId != CurrentUserId) return Forbid();
             var decks = await _mongoDbService.GetByUserIdAsync(userId);
             return Ok(decks ?? new List<DeckList>());
         }
 
+        [Authorize]
         [HttpDelete("{deckId}/user/{userId}")]
         public async Task<ActionResult> DeleteUserDeck(string deckId, string userId)
         {
+            if (userId != CurrentUserId) return Forbid();
             var success = await _mongoDbService.DeleteUserDeckAsync(deckId, userId);
             if (!success)
             {

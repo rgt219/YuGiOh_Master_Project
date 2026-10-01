@@ -1,4 +1,7 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using YuGiOh_Analytics_Consumer.Service;
 using YuGiOhDeckApi.Data;
@@ -38,7 +41,14 @@ namespace YuGiOhDeckApi
                 client.Timeout = TimeSpan.FromMinutes(2);
             });
 
-            builder.Services.AddHttpClient<IMasterDuelBanListService, MasterDuelBanListService>();
+            builder.Services.AddHttpClient<IMasterDuelBanListService, MasterDuelBanListService>(client =>
+            {
+                var baseUrl = builder.Configuration["GoWorker:ConnectionString"]
+                        ?? builder.Configuration["GoWorker:BaseUrl"]
+                        ?? "http://localhost:8080";
+                client.BaseAddress = new Uri(baseUrl);
+                client.Timeout = TimeSpan.FromMinutes(5); // the full card database scrape is slow
+            });
 
             builder.Services.AddHttpClient<INewsScraperService, GoNewsScraperClient>(client =>
             {
@@ -53,6 +63,7 @@ namespace YuGiOhDeckApi
 
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
             builder.Services.AddHostedService<MetaDeckBackgroundService>();
+            builder.Services.AddHostedService<MasterDuelBackgroundService>();
 
             string blobConnectionString = builder.Configuration["BlobStorage:ConnectionString"]
                            ?? builder.Configuration["BlobStorage__ConnectionString"]
@@ -88,6 +99,33 @@ namespace YuGiOhDeckApi
 
                 return database.GetCollection<CardStat>("DeckStats");
             });
+
+            // --- Authentication: validate JWTs issued by YuGiOhIdentityApi ---
+            // Env vars in Azure: Jwt__Key, Jwt__Issuer, Jwt__Audience (same values as the Identity API).
+            var jwtKey = builder.Configuration["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+                throw new InvalidOperationException("Jwt:Key is missing. It must match the Identity API's signing key.");
+
+            builder.Services
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.MapInboundClaims = false; // keep claim names as issued ("sub", "userId")
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        ValidateAudience = true,
+                        ValidAudience = builder.Configuration["Jwt:Audience"],
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+                        ClockSkew = TimeSpan.FromMinutes(1),
+                        NameClaimType = "sub"
+                    };
+
+                });
+            builder.Services.AddAuthorization();
 
             builder.Services.AddCors(options =>
             {
@@ -153,6 +191,20 @@ namespace YuGiOhDeckApi
             app.MapHub<ActivityHub>("/activityHub");
 
             app.MapGet("/", () => "DECK API");
+
+            // Public liveness + database check, used by the deploy smoke test (replaces a user-specific URL).
+            app.MapGet("/health", async (IMongoDbService db) =>
+            {
+                try
+                {
+                    await db.GetByUserIdAsync("__health__"); // cheap read that proves Mongo answers
+                    return Results.Ok(new { status = "ok" });
+                }
+                catch
+                {
+                    return Results.StatusCode(503);
+                }
+            });
             app.MapControllers();
 
             app.Run();

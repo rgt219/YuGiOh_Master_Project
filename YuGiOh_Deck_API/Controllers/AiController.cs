@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using System.Text.Json;
 
-namespace YourAppName.Controllers
+namespace YuGiOhDeckApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -22,6 +23,7 @@ namespace YourAppName.Controllers
             public string SystemPrompt { get; set; } = string.Empty;
         }
 
+        [Authorize]
         [HttpPost("suggest")]
         public async Task<IActionResult> Suggest([FromBody] SystemPromptRequest request)
         {

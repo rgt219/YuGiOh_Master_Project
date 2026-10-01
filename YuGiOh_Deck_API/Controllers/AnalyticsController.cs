@@ -54,22 +54,6 @@ namespace YuGiOhDeckApi.Controllers
             }
         }
 
-        // POST: api/analytics/reaggregate
-        [HttpPost("reaggregate")]
-        public async Task<IActionResult> ReaggregateAnalytics()
-        {
-            try
-            {
-                await _mongoDbService.RecomputeCardAnalyticsAsync();
-                return Ok(new { message = "Successfully recomputed card analytics across all formats." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error reaggregating card analytics.");
-                return StatusCode(500, new { message = "Failed to reaggregate analytics.", error = ex.Message });
-            }
-        }
-
         [HttpGet("recent-activity")]
         public async Task<IActionResult> GetRecentActivity([FromQuery] int limit = 5)
         {

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace YuGiOhDeckApi.Controllers
     {
         private readonly IMongoDbService _mongoDbService;
 
+        private string? CurrentUserId => User.FindFirst("userId")?.Value;
+
         public PlaylistController(IMongoDbService mongoDbService)
         {
             _mongoDbService = mongoDbService;
@@ -29,7 +32,13 @@ namespace YuGiOhDeckApi.Controllers
                 return NotFound(new { message = "Playlist not found..." });
             }
 
-            var hydratedDecks = _mongoDbService.GetDeckListsInPlaylistAsync(playlist.DeckIds);
+            // Private playlists are only visible to their owner (the token is optional on this route).
+            if (!playlist.IsPublic && (CurrentUserId == null || playlist.UserId != CurrentUserId))
+            {
+                return NotFound(new { message = "Playlist not found..." });
+            }
+
+            var hydratedDecks = await _mongoDbService.GetDeckListsInPlaylistAsync(playlist.DeckIds);
 
             return Ok(new
             {
@@ -38,16 +47,20 @@ namespace YuGiOhDeckApi.Controllers
             });
         }
 
+        [Authorize]
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<List<DeckPlaylist>>> GetUserPlaylists(string userId)
         {
+            if (userId != CurrentUserId) return Forbid();
             var playlists = await _mongoDbService.GetPlaylistsByUserIdAsync(userId);
             return Ok(playlists ?? new List<DeckPlaylist>());
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreatePlaylist([FromBody] DeckPlaylist playlist)
         {
+            playlist.UserId = CurrentUserId;
             try
             {
                 await _mongoDbService.CreatePlaylistAsync(playlist);
@@ -60,24 +73,27 @@ namespace YuGiOhDeckApi.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("{playlistId}/add-deck/{deckId}")]
         public async Task<IActionResult> AddDeckToPlaylist(string playlistId, string deckId)
         {
+            var existing = await _mongoDbService.GetPlaylistByIdAsync(playlistId);
+            if (existing == null || existing.UserId != CurrentUserId)
+                return NotFound(new { message = "Playlist not found..." });
+
             await _mongoDbService.AddDeckToPlaylistAsync(playlistId, deckId);
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{playlistId}")]
         public async Task<IActionResult> DeletePlaylistById(string playlistId)
         {
-            await _mongoDbService.DeletePlaylistByIdAsync(playlistId);
-            return NoContent();
-        }
+            var existing = await _mongoDbService.GetPlaylistByIdAsync(playlistId);
+            if (existing == null || existing.UserId != CurrentUserId)
+                return NotFound(new { message = "Playlist not found..." });
 
-        [HttpDelete("title/{playlistId}")]
-        public async Task<IActionResult> DeletePlaylistByTitle(string playlistTitle)
-        {
-            await _mongoDbService.DeletePlaylistByTitleAsync(playlistTitle);
+            await _mongoDbService.DeletePlaylistByIdAsync(playlistId);
             return NoContent();
         }
     }

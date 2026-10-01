@@ -11,10 +11,12 @@ namespace YuGiOhDeckApi.Data
             return allLists.OrderByDescending(b => b.UpdatedAt).FirstOrDefault();
         }
 
+        // Insert the new ban list first, then remove the old ones, so readers never see an empty collection.
         public async Task SaveMasterDuelBanListAsync(MasterDuelBanListResponse banlist)
         {
-            await _mdBanlistCollection.DeleteManyAsync(_ => true);
+            banlist.Id = null; // let Mongo generate a fresh _id
             await _mdBanlistCollection.InsertOneAsync(banlist);
+            await WithRetryAsync(() => _mdBanlistCollection.DeleteManyAsync(b => b.Id != banlist.Id));
         }
 
         public async Task<List<MasterDuelCardDocument>> GetAllMasterDuelCardsAsync() => await _mdCardsCollection.Find(_ => true).ToListAsync();
@@ -31,34 +33,37 @@ namespace YuGiOhDeckApi.Data
             if (syncPayload.Cards == null || syncPayload.Cards.Count == 0) return false;
             var uniqueCards = syncPayload.Cards.Where(c => !string.IsNullOrWhiteSpace(c.Name)).GroupBy(c => c.Name.Trim()).Select(g => g.First()).ToList();
 
-            await _mdCardsCollection.Database.DropCollectionAsync("MasterDuelCards");
-            foreach (var card in uniqueCards) { card.UpdatedAt = DateTime.UtcNow; card.Id = null; }
+            // Every card in this sync gets the same stamp; anything older is stale and removed at the end.
+            var stamp = DateTime.UtcNow;
+            foreach (var card in uniqueCards) { card.UpdatedAt = stamp; card.Id = null; }
 
-            int batchSize = 10;
-            for (int i = 0; i < uniqueCards.Count; i += batchSize)
+            try
             {
-                var batch = uniqueCards.Skip(i).Take(batchSize).ToList();
-                if (batch.Any())
+                int batchSize = 10; // small batches keep Cosmos DB from throttling
+                for (int i = 0; i < uniqueCards.Count; i += batchSize)
                 {
-                    bool batchSuccess = false;
-                    int retries = 0;
-                    while (!batchSuccess && retries < 10)
-                    {
-                        try
-                        {
-                            await _mdCardsCollection.InsertManyAsync(batch, new InsertManyOptions { IsOrdered = false });
-                            batchSuccess = true;
-                        }
-                        catch (Exception)
-                        {
-                            retries++;
-                            if (retries >= 10) throw;
-                            await Task.Delay(500 * retries);
-                        }
-                    }
+                    var batch = uniqueCards.Skip(i).Take(batchSize).ToList();
+                    await WithRetryAsync(() => _mdCardsCollection.InsertManyAsync(batch, new InsertManyOptions { IsOrdered = false }));
                 }
             }
+            catch
+            {
+                // Failed halfway: discard the partial new data and keep the old collection intact.
+                await _mdCardsCollection.DeleteManyAsync(c => c.UpdatedAt == stamp);
+                throw;
+            }
+
+            await WithRetryAsync(() => _mdCardsCollection.DeleteManyAsync(c => c.UpdatedAt < stamp));
             return true;
+        }
+
+        private static async Task WithRetryAsync(Func<Task> action, int maxAttempts = 10)
+        {
+            for (int attempt = 1; ; attempt++)
+            {
+                try { await action(); return; }
+                catch when (attempt < maxAttempts) { await Task.Delay(500 * attempt); }
+            }
         }
     }
 }

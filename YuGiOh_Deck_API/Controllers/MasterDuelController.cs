@@ -45,31 +45,5 @@ namespace YuGiOhDeckApi.Controllers
 
             return Ok(data);
         }
-
-        [HttpPost("sync")]
-        public async Task<IActionResult> SyncMasterDuelDatabase()
-        {
-            var success = await _masterDuelService.TriggerScrapeAndSaveAsync();
-
-            if (!success)
-            {
-                return StatusCode(500, new { message = "Sync failed. Check Go Worker logs for Cloudflare blocks or timeouts." });
-            }
-
-            return Ok(new { message = "Master Duel data successfully synced and saved to MongoDB." });
-        }
-
-        [HttpPost("build-banlist")]
-        public async Task<IActionResult> BuildMasterDuelBanList()
-        {
-            var success = await _masterDuelService.BuildBanListFromDatabaseAsync();
-
-            if (!success)
-            {
-                return StatusCode(500, new { message = "Failed to build ban list. Make sure MasterDuelCards is populated." });
-            }
-
-            return Ok(new { message = "Master Duel Ban List successfully generated from local database (206 cards)." });
-        }
     }
 }
