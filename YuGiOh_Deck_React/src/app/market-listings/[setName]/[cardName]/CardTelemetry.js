@@ -10,6 +10,7 @@ import GameStatsCard from '@/telemetry/GameStatsCard';
 import CrossFormatStatsCard from '@/telemetry/CrossFormatStatsCard';
 import ContainingDecksTable from '@/telemetry/ContainingDecksTable';
 import MarketPage from '@/components/market/MarketPage';
+import TrackPriceButton from '@/components/market/TrackPriceButton';
 import Breadcrumbs from '@/components/market/Breadcrumbs';
 import { LoadingBlock } from '@/components/market/MarketStatus';
 
@@ -60,7 +61,17 @@ function TelemetryContent({ setName, cardName }) {
                     />
 
                     {data.tcgProductId ? (
-                        <MarketWatch productId={data.tcgProductId} />
+                        <>
+                            <div className="d-flex justify-content-end">
+                                <TrackPriceButton
+                                    productId={data.tcgProductId}
+                                    cardName={displayName}
+                                    setName={data.selectedSet}
+                                    rarity={data.selectedRarity}
+                                />
+                            </div>
+                            <MarketWatch productId={data.tcgProductId} />
+                        </>
                     ) : (
                         <div className="text-center text-warning py-4 border border-warning border-opacity-25 rounded bg-black bg-opacity-50">
                             NO PRICING DATA FOUND FOR THIS PRODUCT ID

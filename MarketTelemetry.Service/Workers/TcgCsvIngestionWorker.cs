@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MarketTelemetry.Service.Data;
+using MarketTelemetry.Service.Events;
 using MarketTelemetry.Service.Models;
 using System.Net.Http.Json;
 using System.Net.Http;
@@ -11,13 +12,15 @@ namespace MarketTelemetry.Service.Workers
     {
         private readonly ILogger<TcgCsvIngestionWorker> _logger;
         private readonly MarketDbService _dbService;
+        private readonly IPriceDropPublisher _priceDropPublisher;
         private readonly HttpClient _httpClient;
         private const int YugiohCategoryId = 2;
 
-        public TcgCsvIngestionWorker(ILogger<TcgCsvIngestionWorker> logger, MarketDbService dbService, IHttpClientFactory httpClientFactory)
+        public TcgCsvIngestionWorker(ILogger<TcgCsvIngestionWorker> logger, MarketDbService dbService, IPriceDropPublisher priceDropPublisher, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
             _dbService = dbService;
+            _priceDropPublisher = priceDropPublisher;
             _httpClient = httpClientFactory.CreateClient();
             // This User-Agent now satisfies both TCGCSV and the Yugipedia MediaWiki API!
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "ErregeteygoMarketWorker/1.0");
@@ -49,6 +52,41 @@ namespace MarketTelemetry.Service.Workers
                 _logger.LogWarning("Failed to fetch wiki image for {Set}: {Message}", setName, ex.Message);
             }
             return null;
+        }
+
+        // Looks for drops on the cards people are tracking and publishes one event per drop.
+        // It runs BEFORE today's prices are saved, so "yesterday's price" is still the newest thing in the database.
+        // It also never throws: price history is the core product, and an alerting problem must not stop it being saved.
+        private async Task PublishPriceDropsAsync(List<MarketSnapshot> snapshots, DateTime todayUtc, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var watched = await _dbService.GetWatchedProductIdsAsync(snapshots.Select(s => s.ProductId));
+                if (watched.Count == 0) return;
+
+                var previous = await _dbService.GetPreviousSnapshotsAsync(watched, todayUtc);
+
+                foreach (var snapshot in snapshots.Where(s => watched.Contains(s.ProductId)))
+                {
+                    previous.TryGetValue(snapshot.ProductId, out var before);
+                    var drop = PriceDropDetector.Detect(before, snapshot, todayUtc);
+                    if (drop == null) continue;
+
+                    try
+                    {
+                        await _priceDropPublisher.PublishAsync(drop, cancellationToken);
+                        _logger.LogInformation("Price drop published: {Card} ({Set}) {Old} -> {New}", drop.CardName, drop.SetName, drop.OldPrice, drop.NewPrice);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _logger.LogWarning("Could not publish price drop for product {ProductId}: {Message}", drop.ProductId, ex.Message);
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogWarning("Price drop check failed; prices will still be saved: {Message}", ex.Message);
+            }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -136,6 +174,10 @@ namespace MarketTelemetry.Service.Workers
 
                                 if (snapshots.Any())
                                 {
+                                    // Alerts first, then save. If the app dies in between, the set is not marked as ingested,
+                                    // so the retry finds the same drops and publishes the same EventIds (which the Deck API ignores).
+                                    await PublishPriceDropsAsync(snapshots, todayUtc, stoppingToken);
+
                                     await _dbService.SaveSnapshotsBulkAsync(snapshots);
                                     _logger.LogInformation("Ingested {Count} prices for set: {Set}", snapshots.Count, group.Name);
                                 }

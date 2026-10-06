@@ -1,0 +1,109 @@
+/* The notification bell (navbar) and the live toast. Everything is prefixed nb- so nothing else is affected. */
+
+.nb { display: flex; align-items: center; }
+
+/* ---- the bell button ---- */
+.nb-toggle {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  background: transparent; border: 0; border-radius: 8px;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+}
+.nb-toggle::after { display: none; }            /* hide Bootstrap's little dropdown arrow */
+.nb-toggle:hover, .nb-toggle.show { color: #0dcaf0; background: rgba(13, 202, 240, 0.1); }
+.nb-toggle:focus-visible { outline: 2px solid #0dcaf0; outline-offset: 2px; }
+
+.nb-badge {
+  position: absolute; top: 2px; right: 0;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px;
+  background: #dc3545; color: #fff;
+  font-size: 0.7rem; font-weight: 700; line-height: 1;
+}
+
+/* ---- the dropdown panel ---- */
+.nb-panel {
+  width: min(380px, 92vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0;
+  background: #0b1220;
+  border: 1px solid rgba(13, 202, 240, 0.25);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+}
+.nb-panel__head {
+  position: sticky; top: 0; z-index: 1;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px;
+  background: #0b1220;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.nb-panel__title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; color: #0dcaf0; }
+.nb-link-btn {
+  background: none; border: 0; padding: 0;
+  color: #0dcaf0; font-size: 0.8rem; cursor: pointer;
+}
+.nb-link-btn:disabled { color: rgba(255, 255, 255, 0.3); cursor: default; }
+.nb-link-btn:focus-visible { outline: 2px solid #0dcaf0; outline-offset: 2px; }
+
+.nb-note { padding: 18px 14px; color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; }
+.nb-note--warn { color: #ffc107; padding: 8px 14px; }
+
+/* ---- the list ---- */
+.nb-list { display: flex; flex-direction: column; }
+.nb-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  width: 100%; box-sizing: border-box;
+  padding: 12px 14px;
+  color: inherit; text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+a.nb-row:hover, a.nb-row:focus-visible { background: rgba(13, 202, 240, 0.08); outline: none; }
+.nb-row.is-unread { background: rgba(13, 202, 240, 0.05); }
+
+.nb-dot { flex: 0 0 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #0dcaf0; }
+.nb-dot.is-read { background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); }
+
+.nb-row__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }  /* min-width:0 lets long names wrap instead of widening the panel */
+.nb-row__title { color: #fff; font-weight: 600; font-size: 0.9rem; overflow-wrap: anywhere; }
+.nb-row__message { color: rgba(255, 255, 255, 0.7); font-size: 0.82rem; overflow-wrap: anywhere; }
+.nb-row__time { color: rgba(255, 255, 255, 0.4); font-size: 0.75rem; }
+
+/* On phones the menu opens inside the collapsed navbar: fill the width instead of floating. */
+@media (max-width: 991.98px) {
+  .nb { align-items: stretch; flex-direction: column; }
+  .nb-panel { width: 100%; max-height: 60vh; margin-top: 6px; }
+}
+
+/* ---- the live toast ---- */
+.nb-toast {
+  position: fixed; right: 16px; bottom: 16px; z-index: 1100;
+  display: flex; align-items: flex-start; gap: 6px;
+  width: min(360px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 12px 8px 12px 14px;
+  background: #0b1220;
+  border: 1px solid rgba(13, 202, 240, 0.5);
+  border-left-width: 4px;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  animation: nb-slide-in 0.25s ease-out;
+}
+.nb-toast__body {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 2px;
+  color: #fff; text-decoration: none; font-size: 0.85rem;
+}
+.nb-toast__body strong { color: #0dcaf0; overflow-wrap: anywhere; }
+.nb-toast__body span { color: rgba(255, 255, 255, 0.75); overflow-wrap: anywhere; }
+.nb-toast__close {
+  background: none; border: 0; color: rgba(255, 255, 255, 0.6);
+  font-size: 1.3rem; line-height: 1; padding: 0 8px; cursor: pointer;
+}
+.nb-toast__close:hover { color: #fff; }
+
+@keyframes nb-slide-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nb-toast { animation: none; } }

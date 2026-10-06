@@ -8,6 +8,8 @@ import {
     ALL_RACES_TYPES, RARITIES, LEVELS, LINKS, SCALES,
 } from '@/constants/cardSearchConstants';
 import { useCardSearch, useGenesysPoints, useArchetypes } from '@/hooks/useCardSearch';
+import { useBanStatus } from '@/hooks/useBanStatus';
+import { withBanStatus } from '@/lib/banStatus';
 import CardSearchInspectorModal from '@/components/CardSearchInspectorModal';
 import CollectionStepper from '@/components/collection/CollectionStepper';
 import '@/mdstyles.css';
@@ -217,10 +219,12 @@ const setCard = useCallback((cardId) => setFilters((previous) => ({ ...previous,
         [rawCards, filters.inspectedCardId]
     );
     const genesys = useGenesysPoints(Boolean(baseInspectCard));
+    const banLists = useBanStatus(Boolean(baseInspectCard)); // Master Duel / TCG / OCG status from our own API
     const inspectCard = useMemo(() => {
-        if (!baseInspectCard || baseInspectCard.isLinkOrPendulum) return baseInspectCard;
-        return { ...baseInspectCard, genesysPoints: genesys ? (genesys[baseInspectCard.id] ?? 0) : '…' };
-    }, [baseInspectCard, genesys]);
+        const card = withBanStatus(baseInspectCard, banLists);
+        if (!card || card.isLinkOrPendulum) return card;
+        return { ...card, genesysPoints: genesys ? (genesys[card.id] ?? 0) : '…' };
+    }, [baseInspectCard, banLists, genesys]);
 
     return (
         <div className="cs-root md-theme-bg min-vh-100 text-white" style={{ paddingTop: '90px', paddingBottom: '60px', backgroundColor: '#0a0d14', fontFamily: "'Cascadia Mono', monospace" }}>

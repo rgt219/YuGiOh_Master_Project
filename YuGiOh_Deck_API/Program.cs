@@ -11,6 +11,7 @@ using YuGiOhDeckApi.Repositories;
 using YuGiOhDeckApi.Hubs;
 using Azure.Storage.Blobs;
 using YuGiOhDeckApi.BackgroundServices;
+using YuGiOhDeckApi.Notifications;
 
 namespace YuGiOhDeckApi
 {
@@ -23,6 +24,7 @@ namespace YuGiOhDeckApi
             builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
+            builder.Services.AddSingleton<INotificationStore, MongoNotificationStore>();
             builder.Services.AddSignalR();
             builder.Services.AddHttpClient();
 
@@ -123,6 +125,19 @@ namespace YuGiOhDeckApi
                         ClockSkew = TimeSpan.FromMinutes(1),
                         NameClaimType = "sub"
                     };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var token = context.Request.Query["access_token"];
+                            if (!string.IsNullOrEmpty(token) &&
+                                context.HttpContext.Request.Path.StartsWithSegments("/notificationHub"))
+                            {
+                                context.Token = token;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
 
                 });
             builder.Services.AddAuthorization();
@@ -189,6 +204,7 @@ namespace YuGiOhDeckApi
             app.UseAuthorization();
 
             app.MapHub<ActivityHub>("/activityHub");
+            app.MapHub<NotificationHub>("/notificationHub");
 
             app.MapGet("/", () => "DECK API");
 

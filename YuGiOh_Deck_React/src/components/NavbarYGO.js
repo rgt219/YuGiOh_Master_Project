@@ -9,6 +9,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/Button';
 import { mdSound } from '../utils/mdSound';
+import NotificationBell from './notifications/NotificationBell';
 import './navbar.css';
 
 // NOTE: 'bootstrap/dist/css/bootstrap.min.css' and '../mdstyles.css' should be
@@ -146,6 +147,8 @@ export default function NavbarYGO() {
               so logged-in users never see a LOGIN/REGISTER flash. */}
           {user !== undefined && (
             <Nav className="ms-lg-auto align-items-lg-center gap-2 mt-3 mt-lg-0 pt-2 pt-lg-0 border-top border-lg-0 border-secondary border-opacity-25 flex-shrink-0">
+              {/* Renders nothing when logged out, but must stay mounted so it can clear itself on logout. */}
+              <NotificationBell user={user} />
               {user ? (
                 <NavDropdown
                   id="user-dropdown"
@@ -157,15 +160,6 @@ export default function NavbarYGO() {
                 >
                   <NavDropdown.Item as={Link} href="/profile" onClick={onNavigate}>
                     VIEW PROFILE
-                  </NavDropdown.Item>
-                  <NavDropdown.Item
-                    as={Link}
-                    href="/collection"
-                    active={matches(pathname, '/collection')}
-                    aria-current={matches(pathname, '/collection') ? 'page' : undefined}
-                    onClick={onNavigate}
-                  >
-                    MY COLLECTION
                   </NavDropdown.Item>
                   <NavDropdown.Divider />
                   <NavDropdown.Item onClick={handleLogout} className="text-danger">

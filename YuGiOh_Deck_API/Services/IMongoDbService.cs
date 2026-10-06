@@ -30,6 +30,10 @@ namespace YuGiOhDeckApi.Repositories
         Task<BanListsResponse> GetCombinedBanListsAsync();
         Task<List<CollectionEntry>> GetCollectionAsync(string userId);
         Task SetCollectionQuantityAsync(string userId, int cardId, int quantity);
+        Task<List<PriceWatch>> GetWatchesAsync(string userId);
+        Task AddWatchAsync(string userId, int productId, string cardName, string setName, string rarity);
+        Task RemoveWatchAsync(string userId, int productId);
+        Task<List<string>> GetWatcherUserIdsAsync(int productId);
         Task<List<NewsArticle>> GetLatestNewsAsync(int limit = 20);
         Task SaveNewsArticlesBulkAsync(List<NewsArticle> articles);
         Task<DeckPlaylist> GetPlaylistByIdAsync(string id);

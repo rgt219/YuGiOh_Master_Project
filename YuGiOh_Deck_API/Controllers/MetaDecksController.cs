@@ -13,7 +13,7 @@ namespace YuGiOhDeckApi.Controllers
     {
         private readonly IMongoDbService _mongoDbService;
         private readonly ILogger<MetaDecksController> _logger;
-        private readonly IDistributedCache _cache; // ⚡ Injecting Redis
+        private readonly IDistributedCache _cache; 
 
         public MetaDecksController(IMongoDbService mongoDbService, ILogger<MetaDecksController> logger, IDistributedCache cache)
         {

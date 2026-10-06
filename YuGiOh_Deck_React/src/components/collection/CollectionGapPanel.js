@@ -46,18 +46,18 @@ export default function CollectionGapPanel({ cards = [], loading = false }) {
                 )}
 
                 {rows.length > 0 && (
-                    <ul className="cg-list">
+                    <div className="cg-list" role="list">
                         {rows.map((row) => (
-                            <li key={row.id} className={`cg-row${row.missing === 0 ? ' cg-row--done' : ''}`}>
+                            <div key={row.id} role="listitem" className={`cg-row${row.missing === 0 ? ' cg-row--done' : ''}`}>
                                 <span className="cg-row__name" title={row.name}>{row.name}</span>
                                 <span className="cg-row__count terminal-font">
                                     <span className={row.missing > 0 ? 'text-warning' : 'text-success'}>{row.owned}</span>
                                     <span className="text-white-50"> / {row.needed}</span>
                                 </span>
                                 <CollectionStepper cardId={row.id} cardName={row.name} />
-                            </li>
+                            </div>
                         ))}
-                    </ul>
+                    </div>
                 )}
 
                 {gap.rows.length > 0 && !gap.complete && (

@@ -292,12 +292,17 @@ jobs:
       - name: Deploy Market Telemetry API
         env:
           COSMOSDB_CONNECTION_STRING: ${{ secrets.COSMOSDB_CONNECTION_STRING }}
+          KAFKA_CONNECTION_STRING: ${{ secrets.KAFKA_CONNECTION_STRING }}
         run: |
           source "$RUNNER_TEMP/lib.sh"
-          az containerapp secret set -n market-api -g "$RG" -o none --secrets "cosmosdb-conn=$COSMOSDB_CONNECTION_STRING"
+          az containerapp secret set -n market-api -g "$RG" -o none --secrets \
+            "cosmosdb-conn=$COSMOSDB_CONNECTION_STRING" \
+            "kafka-conn=$KAFKA_CONNECTION_STRING"
           deploy_image market-api market-api --set-env-vars \
             MongoDBSettings__ConnectionURI=secretref:cosmosdb-conn \
-            MongoDBSettings__DatabaseName=Erregeteygo_Market_DB
+            MongoDBSettings__DatabaseName=Erregeteygo_Market_DB \
+            Kafka__ConnectionString=secretref:kafka-conn \
+            Kafka__BootstrapServers=ygoevents.servicebus.windows.net:9093
 
       # ---- Deck API: "test first, then switch" (blue/green) in three steps ----
       #

@@ -17,6 +17,7 @@ namespace YuGiOhDeckApi.Data
         private readonly IMongoCollection<NewsArticle> _newsCollection;
         private readonly IMongoCollection<DeckPlaylist> _deckPlaylistCollection;
         private readonly IMongoCollection<CollectionEntry> _collectionCollection;
+        private readonly IMongoCollection<PriceWatch> _watchCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -32,6 +33,7 @@ namespace YuGiOhDeckApi.Data
             _newsCollection = database.GetCollection<NewsArticle>("NewsArticles");
             _deckPlaylistCollection = database.GetCollection<DeckPlaylist>("DeckPlaylists");
             _collectionCollection = database.GetCollection<CollectionEntry>("UserCollections");
+            _watchCollection = database.GetCollection<PriceWatch>("PriceWatches");
 
             IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
             _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");
@@ -43,7 +45,7 @@ namespace YuGiOhDeckApi.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[INDEX_CREATION_WARNING]: {ex.Message}");
+                Console.WriteLine($"[INDEX CREATION WARNING]: {ex.Message}");
             }
 
             try
@@ -54,7 +56,20 @@ namespace YuGiOhDeckApi.Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[INDEX_CREATION_WARNING]: {ex.Message}");
+                Console.WriteLine($"[INDEX CREATION WARNING]: {ex.Message}");
+            }
+
+            try
+            {
+                var watchIndex = Builders<PriceWatch>.IndexKeys.Ascending(x => x.UserId);
+                _watchCollection.Indexes.CreateOne(new CreateIndexModel<PriceWatch>(watchIndex, new CreateIndexOptions { Unique = true }));
+
+                var byProduct = Builders<PriceWatch>.IndexKeys.Ascending(x => x.ProductId);
+                _watchCollection.Indexes.CreateOne(new CreateIndexModel<PriceWatch>(byProduct));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[INDEX CREATION WARNING]: {ex.Message}");
             }
 
             _ = InitializeCardCache();

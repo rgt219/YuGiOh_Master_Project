@@ -211,6 +211,48 @@ namespace MarketTelemetry.Service.Data
             }
         }
 
+        // ---- Price alerts -------------------------------------------------------------------------------
+        // The Deck API owns the "PriceWatches" collection (one row per user + tracked product) and writes it
+        // into the same "Decklists" database this service already reads CardAnalytics and MetaDecks from.
+        // We only READ it here, and only to learn which products are worth checking for a price drop.
+
+        /// <summary>Of the given products, which ones does at least one user track?</summary>
+        public async Task<HashSet<int>> GetWatchedProductIdsAsync(IEnumerable<int> productIds)
+        {
+            var ids = productIds.Distinct().ToList();
+            if (ids.Count == 0) return new HashSet<int>();
+
+            var watches = _decklistDatabase.GetCollection<BsonDocument>("PriceWatches");
+            var rows = await watches
+                .Find(Builders<BsonDocument>.Filter.In("productId", ids))
+                .Project(Builders<BsonDocument>.Projection.Include("productId").Exclude("_id"))
+                .ToListAsync();
+
+            return rows.Select(r => r["productId"].ToInt32()).ToHashSet();
+        }
+
+        /// <summary>
+        /// For each product, its newest snapshot from BEFORE <paramref name="before"/> (normally: before today),
+        /// which is the price to compare today's price against. Products with no history are left out.
+        /// </summary>
+        public async Task<Dictionary<int, MarketSnapshot>> GetPreviousSnapshotsAsync(IEnumerable<int> productIds, DateTime before)
+        {
+            var result = new Dictionary<int, MarketSnapshot>();
+
+            foreach (var productId in productIds.Distinct())
+            {
+                var previous = await _metricsCollection
+                    .Find(x => x.ProductId == productId && x.Timestamp < before)
+                    .SortByDescending(x => x.Timestamp)
+                    .Limit(1)
+                    .FirstOrDefaultAsync();
+
+                if (previous != null) result[productId] = previous;
+            }
+
+            return result;
+        }
+
         public async Task<List<MarketSnapshot>> GetHistoricalPricesAsync(int productId, int days)
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-days);

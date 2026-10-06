@@ -1,4 +1,5 @@
 using MarketTelemetry.Service.Data;
+using MarketTelemetry.Service.Events;
 using MarketTelemetry.Service.Models;
 using MarketTelemetry.Service.Workers;
 
@@ -43,6 +44,8 @@ builder.Services.Configure<MongoDBSettings>(
 
 // 3. Register MongoDB Data Service
 builder.Services.AddSingleton<MarketDbService>();
+
+builder.Services.AddSingleton<IPriceDropPublisher, KafkaPriceDropPublisher>();
 
 // 4. Redis Cache (with fallback handling in controllers)
 // builder.Services.AddStackExchangeRedisCache(options =>
