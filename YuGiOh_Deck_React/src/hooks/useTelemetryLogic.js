@@ -20,6 +20,7 @@ export default function useCardTelemetryLogic(setName, cardName) {
     const [loading, setLoading] = useState(true);
     const [resolvedKonamiId, setResolvedKonamiId] = useState(rawKonamiId || null);
     const [rarityToProductIdMap, setRarityToProductIdMap] = useState({});
+    const [productIdToRarity, setProductIdToRarity] = useState({});
 
     useEffect(() => {
         async function fetchCardDetails() {
@@ -96,6 +97,11 @@ export default function useCardTelemetryLogic(setName, cardName) {
                     );
                     const newMap = {};
                     cardVariants.forEach(v => { newMap[v.rarity.toLowerCase()] = v.productId; });
+                    
+                    const byId = {};
+                    cardVariants.forEach(v => { byId[v.productId] = v.rarity; });
+
+                    setProductIdToRarity(byId);
                     setRarityToProductIdMap(newMap);
                 }
             } catch (err) {
@@ -127,8 +133,10 @@ export default function useCardTelemetryLogic(setName, cardName) {
         router.push(`/market-listings/${encodeURIComponent(selectedSet)}/${encodeURIComponent(decodedCardName)}?konamiId=${resolvedKonamiId}&id=${targetProdId}&rarity=${encodeURIComponent(printing.set_rarity)}`, { scroll: false });
     };
 
+    const resolvedRarity = selectedRarity || productIdToRarity[tcgProductId] || '';
+
     return {
-        decodedCardName, tcgProductId, selectedRarity, cardDetails, comprehensiveAnalytics,
+        decodedCardName, tcgProductId, selectedRarity, resolvedRarity, cardDetails, comprehensiveAnalytics,
         printingsMap, selectedSet, loading, resolvedKonamiId, handleSetChange, handleRarityClick
     };
 }

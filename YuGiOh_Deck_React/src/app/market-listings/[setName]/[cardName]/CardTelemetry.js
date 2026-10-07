@@ -67,7 +67,7 @@ function TelemetryContent({ setName, cardName }) {
                                     productId={data.tcgProductId}
                                     cardName={displayName}
                                     setName={data.selectedSet}
-                                    rarity={data.selectedRarity}
+                                    rarity={data.resolvedRarity}
                                 />
                             </div>
                             <MarketWatch productId={data.tcgProductId} />
