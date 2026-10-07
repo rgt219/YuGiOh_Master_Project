@@ -14,6 +14,12 @@ namespace YuGiOhDeckApi.Data
             return watches.OrderByDescending(w => w.CreatedAt).ToList();
         }
 
+        // Who is tracking this product? Used by the price-drop consumer to decide who gets a notification.
+        public async Task<List<string>> GetWatcherUserIdsAsync(int productId) =>
+            await _watchCollection.Find(w => w.ProductId == productId)
+                                  .Project(w => w.UserId)
+                                  .ToListAsync();
+
         // "Track" is safe to repeat: tracking a card you already track changes nothing (SetOnInsert only
         // applies when the row is created), so a double click or a retry can't make a duplicate.
         public async Task AddWatchAsync(string userId, int productId, string cardName, string setName, string rarity)
