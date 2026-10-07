@@ -61,15 +61,19 @@ namespace YuGiOhDeckApi.Data
 
             try
             {
-                var watchIndex = Builders<PriceWatch>.IndexKeys.Ascending(x => x.UserId);
-                _watchCollection.Indexes.CreateOne(new CreateIndexModel<PriceWatch>(watchIndex, new CreateIndexOptions { Unique = true }));
+                // One row per (user, product), enforced through ONE unique field (see PriceWatch.Key).
+                var keyIndex = Builders<PriceWatch>.IndexKeys.Ascending(x => x.Key);
+                _watchCollection.Indexes.CreateOne(new CreateIndexModel<PriceWatch>(keyIndex, new CreateIndexOptions { Unique = true }));
 
-                var byProduct = Builders<PriceWatch>.IndexKeys.Ascending(x => x.ProductId);
-                _watchCollection.Indexes.CreateOne(new CreateIndexModel<PriceWatch>(byProduct));
+                // "My tracked cards"
+                _watchCollection.Indexes.CreateOne(new CreateIndexModel<PriceWatch>(Builders<PriceWatch>.IndexKeys.Ascending(x => x.UserId)));
+
+                // "Who is tracking this product?" and "which products are tracked at all?"
+                _watchCollection.Indexes.CreateOne(new CreateIndexModel<PriceWatch>(Builders<PriceWatch>.IndexKeys.Ascending(x => x.ProductId)));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[INDEX CREATION WARNING]: {ex.Message}");
+                Console.WriteLine($"[INDEX_CREATION_WARNING] PriceWatches: {ex.Message}");
             }
 
             _ = InitializeCardCache();

@@ -18,16 +18,21 @@ namespace YuGiOhDeckApi.Notifications
             try
             {
                 // The last line of defence against duplicate alerts: the same event can only be saved once per user.
-                var perEvent = Builders<Notification>.IndexKeys.Ascending(n => n.UserId).Ascending(n => n.EventId);
+                // One unique index over ONE field (see Notification.DedupeKey).
+                var perEvent = Builders<Notification>.IndexKeys.Ascending(n => n.DedupeKey);
                 _notifications.Indexes.CreateOne(new CreateIndexModel<Notification>(perEvent, new CreateIndexOptions { Unique = true }));
 
                 // Speeds up "my newest notifications".
                 var newestFirst = Builders<Notification>.IndexKeys.Ascending(n => n.UserId).Descending(n => n.CreatedAt);
                 _notifications.Indexes.CreateOne(new CreateIndexModel<Notification>(newestFirst));
+
+                // Cosmos DB's Mongo API needs an index on any field you sort by. This one covers "newest first".
+                var byDate = Builders<Notification>.IndexKeys.Descending(n => n.CreatedAt);
+                _notifications.Indexes.CreateOne(new CreateIndexModel<Notification>(byDate));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[INDEX_CREATION_WARNING]: {ex.Message}");
+                Console.WriteLine($"[INDEX_CREATION_WARNING] Notifications: {ex.Message}");
             }
         }
 
@@ -35,6 +40,7 @@ namespace YuGiOhDeckApi.Notifications
         {
             if (notification.CreatedAt == default) notification.CreatedAt = DateTime.UtcNow;
             notification.Id = null; // let MongoDB create the id
+            notification.DedupeKey = $"{notification.UserId}|{notification.EventId}";
 
             try
             {

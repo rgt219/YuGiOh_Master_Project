@@ -24,9 +24,13 @@ namespace YuGiOhDeckApi.Data
         // applies when the row is created), so a double click or a retry can't make a duplicate.
         public async Task AddWatchAsync(string userId, int productId, string cardName, string setName, string rarity)
         {
+            var key = PriceWatch.BuildKey(userId, productId);
+
             await _watchCollection.UpdateOneAsync(
-                w => w.UserId == userId && w.ProductId == productId,
+                w => w.Key == key,
                 Builders<PriceWatch>.Update
+                    .SetOnInsert(w => w.UserId, userId)
+                    .SetOnInsert(w => w.ProductId, productId)
                     .SetOnInsert(w => w.CardName, cardName)
                     .SetOnInsert(w => w.SetName, setName)
                     .SetOnInsert(w => w.Rarity, rarity)

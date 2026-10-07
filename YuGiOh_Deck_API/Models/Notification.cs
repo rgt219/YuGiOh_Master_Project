@@ -38,6 +38,11 @@ namespace YuGiOhDeckApi.Models
         [BsonElement("eventId")]
         public string EventId { get; set; } = string.Empty;
 
+        // "{userId}|{eventId}". A UNIQUE index on this single field blocks a second copy of the same alert for a user.
+        // Set by the store, never by callers. (Single field on purpose: see PriceWatch.Key.)
+        [BsonElement("dedupeKey")]
+        public string DedupeKey { get; set; } = string.Empty;
+
         [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; }
 
