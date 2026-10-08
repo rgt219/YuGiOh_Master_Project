@@ -13,6 +13,9 @@ namespace YuGiOhDeckApi.Notifications
 
         private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
+        // The same problem is reported once, then at most once every 5 minutes.
+        private readonly LogThrottle _problems = new(TimeSpan.FromMinutes(5));
+
         private readonly IConfiguration _config;
         private readonly PriceDropNotifier _notifier;
         private readonly ILogger<PriceDropConsumer> _logger;
@@ -51,13 +54,47 @@ namespace YuGiOhDeckApi.Notifications
 
                 // A brand-new group starts from the oldest message still kept, so nothing published before the
                 // first deploy is missed. After that, the committed bookmark decides where to continue.
-                AutoOffsetReset = AutoOffsetReset.Earliest
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+
+                // Event Hubs closes idle connections after a few minutes and the client reconnects by itself.
+                // That is normal, so do not write a log line every time it happens.
+                LogConnectionClose = false,
+                SocketKeepaliveEnable = true
             };
 
-            using var consumer = new ConsumerBuilder<string, string>(config).Build();
-            consumer.Subscribe(Topic);
-            _logger.LogInformation("Price drop consumer listening on '{Topic}' as group '{Group}'", Topic, GroupId);
+            // The server name is safe to log. The connection string (a password) never is.
+            _logger.LogInformation("Price drop consumer connecting to {Server}, topic '{Topic}', group '{Group}'...",
+                bootstrapServers, Topic, GroupId);
 
+            using var consumer = new ConsumerBuilder<string, string>(config)
+                // Connection-level trouble (broker unreachable, bad credentials...). Goes through the throttle.
+                .SetErrorHandler((_, error) => ReportProblem(error.IsFatal ? $"FATAL: {error.Reason}" : error.Reason))
+                // The client's own chatter. Only warnings and worse are kept (a LOWER level number means MORE severe).
+                .SetLogHandler((_, log) =>
+                {
+                    if (log.Level > SyslogLevel.Warning) return;
+                    ReportProblem(log.Message);
+                })
+                // This is the proof that we are really connected: the hub accepted us and gave us partitions to read.
+                .SetPartitionsAssignedHandler((_, partitions) =>
+                {
+                    var hidden = _problems.Clear();
+                    if (hidden >= 0)
+                        _logger.LogInformation("Price drop consumer recovered ({Hidden} repeated error reports were hidden).", hidden);
+
+                    _logger.LogInformation("Price drop consumer connected. Joined group '{Group}' on '{Topic}', partitions assigned: {Partitions}",
+                        GroupId, Topic, partitions.Count == 0 ? "none" : string.Join(", ", partitions.Select(p => p.Partition.Value)));
+                })
+                .SetPartitionsRevokedHandler((_, partitions) =>
+                {
+                    _logger.LogInformation("Price drop consumer released partitions: {Partitions}",
+                        string.Join(", ", partitions.Select(p => p.Partition.Value)));
+                })
+                .Build();
+
+            consumer.Subscribe(Topic);
+
+            var failures = 0;
             try
             {
                 while (!stoppingToken.IsCancellationRequested)
@@ -66,11 +103,16 @@ namespace YuGiOhDeckApi.Notifications
                     try
                     {
                         result = consumer.Consume(stoppingToken);   // waits here until a message arrives
+                        failures = 0;
                     }
                     catch (ConsumeException ex)
                     {
-                        _logger.LogError("Could not read from '{Topic}': {Reason}", Topic, ex.Error.Reason);
-                        await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                        failures++;
+                        ReportProblem($"Could not read from '{Topic}': {ex.Error.Reason}");
+
+                        // Wait longer after each failure: 5s, 10s, 20s, 40s, then 60s at most.
+                        var delay = TimeSpan.FromSeconds(Math.Min(60, 5 * Math.Pow(2, Math.Min(failures - 1, 4))));
+                        await Task.Delay(delay, stoppingToken);
                         continue;
                     }
 
@@ -87,7 +129,19 @@ namespace YuGiOhDeckApi.Notifications
             finally
             {
                 consumer.Close();   // leave the group cleanly so another instance can take over straight away
+                _logger.LogInformation("Price drop consumer stopped.");
             }
+        }
+
+        // One place for "something is wrong with the connection": reported once, repeats counted instead of printed.
+        private void ReportProblem(string reason)
+        {
+            if (!_problems.ShouldLog(reason, out var hidden)) return;
+
+            if (hidden > 0)
+                _logger.LogError("Price drop consumer problem: {Reason} (the same problem was reported {Hidden} more times since the last report)", reason, hidden);
+            else
+                _logger.LogError("Price drop consumer problem: {Reason}", reason);
         }
 
         private async Task ProcessAsync(string json, CancellationToken stoppingToken)
@@ -109,6 +163,9 @@ namespace YuGiOhDeckApi.Notifications
                 _logger.LogError("Skipping empty price drop message.");
                 return;
             }
+
+            // Debug level: useful when investigating, invisible in normal running. (Turn it on with Logging__LogLevel__YuGiOhDeckApi.Notifications=Debug.)
+            _logger.LogDebug("Received price drop {EventId} for product {ProductId}", message.EventId, message.ProductId);
 
             for (var attempt = 1; attempt <= MaxAttempts; attempt++)
             {

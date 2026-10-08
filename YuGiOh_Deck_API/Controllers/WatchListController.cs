@@ -16,9 +16,10 @@ namespace YuGiOhDeckApi.Controllers
         private readonly ILogger<PriceWatch> _logger;
         private string? CurrentUserId => User.FindFirst("userId")?.Value;
 
-        public WatchListController(IMongoDbService mongoDbService)
+        public WatchListController(IMongoDbService mongoDbService, ILogger<PriceWatch> logger)
         {
             _mongoDbService = mongoDbService;
+            _logger = logger;
         }
 
         [HttpGet]

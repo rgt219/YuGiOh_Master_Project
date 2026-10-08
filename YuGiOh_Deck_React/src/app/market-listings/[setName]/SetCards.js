@@ -138,7 +138,11 @@ function SetCardsContent({ setName }) {
                     ) : (
                         <div className={styles.cardGrid}>
                             {visibleCards.map((card, index) => {
-                                const href = `/market-listings/${encodeURIComponent(setName)}/${encodeURIComponent(card.cardName)}${card.productId ? `?id=${card.productId}` : ''}`;
+                                const query = new URLSearchParams();
+                                if (card.productId) query.set('id', card.productId);
+                                if (card.rarity) query.set('rarity', card.rarity);
+                                const queryString = query.toString();
+                                const href = `/market-listings/${encodeURIComponent(setName)}/${encodeURIComponent(card.cardName)}${queryString ? `?${queryString}` : ''}`;
                                 // Warm the price-history cache while the pointer is still over the tile: the next page then opens with its chart data ready.
                                 const warmUp = () => prefetchPriceHistory(queryClient, card.productId);
                                 return (

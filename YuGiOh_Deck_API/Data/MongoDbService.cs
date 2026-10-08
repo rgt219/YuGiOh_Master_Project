@@ -18,6 +18,7 @@ namespace YuGiOhDeckApi.Data
         private readonly IMongoCollection<DeckPlaylist> _deckPlaylistCollection;
         private readonly IMongoCollection<CollectionEntry> _collectionCollection;
         private readonly IMongoCollection<PriceWatch> _watchCollection;
+        private readonly IMongoCollection<DeckNote> _deckNoteCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -34,6 +35,7 @@ namespace YuGiOhDeckApi.Data
             _deckPlaylistCollection = database.GetCollection<DeckPlaylist>("DeckPlaylists");
             _collectionCollection = database.GetCollection<CollectionEntry>("UserCollections");
             _watchCollection = database.GetCollection<PriceWatch>("PriceWatches");
+            _deckNoteCollection = database.GetCollection<DeckNote>("DeckNotes");
 
             IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
             _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");
@@ -74,6 +76,20 @@ namespace YuGiOhDeckApi.Data
             catch (Exception ex)
             {
                 Console.WriteLine($"[INDEX_CREATION_WARNING] PriceWatches: {ex.Message}");
+            }
+
+            try
+            {
+                var keyIndex = Builders<DeckNote>.IndexKeys.Ascending(x => x.Key);
+                _deckNoteCollection.Indexes.CreateOne(new CreateIndexModel<DeckNote>(keyIndex, new CreateIndexOptions { Unique = true }));
+
+                _deckNoteCollection.Indexes.CreateOne(new CreateIndexModel<DeckNote>(Builders<DeckNote>.IndexKeys.Ascending(x => x.UserId)));
+
+                _deckNoteCollection.Indexes.CreateOne(new CreateIndexModel<DeckNote>(Builders<DeckNote>.IndexKeys.Ascending(x => x.DeckId)));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[INDEX_CREATION_WARNING] DeckNotes: {ex.Message}");
             }
 
             _ = InitializeCardCache();

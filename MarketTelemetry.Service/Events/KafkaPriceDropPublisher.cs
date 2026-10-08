@@ -17,6 +17,7 @@ namespace MarketTelemetry.Service.Events
 
         private readonly ILogger<KafkaPriceDropPublisher> _logger;
         private readonly IProducer<string, string>? _producer;
+        private string? _lastProblem;   // so the same connection problem is reported once, not on every retry
 
         public KafkaPriceDropPublisher(IConfiguration config, ILogger<KafkaPriceDropPublisher> logger)
         {
@@ -40,8 +41,22 @@ namespace MarketTelemetry.Service.Events
                 SaslUsername = "$ConnectionString",
                 SaslPassword = connectionString,
                 Acks = Acks.All,                 // wait until Event Hubs has the message before calling it sent
-                MessageTimeoutMs = 15000         // give up (and throw) after 15 seconds instead of hanging forever
-            }).Build();
+                MessageTimeoutMs = 15000,        // give up (and throw) after 15 seconds instead of hanging forever
+                LogConnectionClose = false,      // Event Hubs closes idle connections; the client reconnects by itself, no need to log it
+                SocketKeepaliveEnable = true
+            })
+            .SetErrorHandler((_, error) =>
+            {
+                // Same reason as last time? Stay quiet. A new reason is worth a line.
+                if (error.Reason == _lastProblem) return;
+                _lastProblem = error.Reason;
+                _logger.LogError("Price drop publisher connection problem: {Reason}", error.Reason);
+            })
+            .Build();
+
+            // The server name is safe to log. The connection string (a password) never is.
+            _logger.LogInformation("Price drop publisher ready: {Server}, topic '{Topic}'. (The actual connection opens on the first publish.)",
+                bootstrapServers, PriceDropEvent.Topic);
         }
 
         public async Task PublishAsync(PriceDropEvent priceDrop, CancellationToken cancellationToken = default)
@@ -52,7 +67,7 @@ namespace MarketTelemetry.Service.Events
                 return;
             }
 
-            await _producer.ProduceAsync(
+            var delivery = await _producer.ProduceAsync(
                 PriceDropEvent.Topic,
                 new Message<string, string>
                 {
@@ -61,6 +76,12 @@ namespace MarketTelemetry.Service.Events
                     Value = JsonSerializer.Serialize(priceDrop, Json)
                 },
                 cancellationToken);
+
+            _lastProblem = null;   // a publish worked, so any earlier connection problem is over
+
+            // Debug level: shows where each message landed when investigating, silent in normal running.
+            _logger.LogDebug("Published price drop for product {ProductId} to {Topic} [partition {Partition}, offset {Offset}]",
+                priceDrop.ProductId, PriceDropEvent.Topic, delivery.Partition.Value, delivery.Offset.Value);
         }
 
         public void Dispose()

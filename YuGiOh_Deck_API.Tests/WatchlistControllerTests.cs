@@ -6,13 +6,14 @@ using Xunit;
 using YuGiOhDeckApi.Controllers;
 using YuGiOhDeckApi.Models;
 using YuGiOhDeckApi.Repositories;
+using Microsoft.Extensions.Logging.Abstractions;
 
 public class WatchListControllerTests
 {
     private static WatchListController Build(Mock<IMongoDbService> db, string userId = "user-1")
     {
         var identity = new ClaimsIdentity(new[] { new Claim("userId", userId) }, "TestAuth");
-        return new WatchListController(db.Object)
+        return new WatchListController(db.Object, NullLogger<PriceWatch>.Instance)
         {
             ControllerContext = new ControllerContext
             {

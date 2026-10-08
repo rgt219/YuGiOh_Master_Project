@@ -44,5 +44,10 @@ namespace YuGiOhDeckApi.Repositories
         Task DeletePlaylistByIdAsync(string playlistId);
         Task DeletePlaylistByTitleAsync(string playlistTitle);
 
+        Task<DeckNote?> GetDeckNoteAsync(string userId, string deckId);                              // one note, or null
+        Task<List<DeckNote>> GetDeckNotesAsync(string userId);                                       // all of one user's notes (tag filter)
+        Task<DeckNote> SaveDeckNoteAsync(string userId, string deckId, string notes, List<string> tags); // upsert, returns the saved note
+        Task<bool> DeleteDeckNoteAsync(string userId, string deckId);                                // true if something was deleted
+        Task DeleteDeckNotesByDeckAsync(string deckId);
     }
 }
