@@ -51,30 +51,37 @@ namespace YuGiOhDeckApi.BackgroundServices
                         var scraperService = scope.ServiceProvider.GetRequiredService<IMetaDeckScraperService>();
                         var mongoDbService = scope.ServiceProvider.GetRequiredService<IMongoDbService>();
 
-                        // 🚀 1. Run the multi-format scraper (TCG, OCG, Master Duel, Genesys)
+                        // 1. Run the multi-format scraper (TCG, OCG, Master Duel, Genesys)
                         var scrapedDecks = await scraperService.ScrapeMetaDecksAsync();
 
                         if (scrapedDecks != null && scrapedDecks.Count > 0)
                         {
-                            // ⚡ FIX: Save the scraped decks into MongoDB!
-                            await mongoDbService.SaveMetaDecksBulkAsync(scrapedDecks);
-                            _logger.LogInformation("Successfully saved {Count} meta decks to MongoDB.", scrapedDecks.Count);
+                            var inserted = await mongoDbService.SaveMetaDecksBulkAsync(scrapedDecks);
+                            _logger.LogInformation("Saved {Inserted} new meta decks ({Scraped} scraped).", inserted, scrapedDecks.Count);
 
-                            await mongoDbService.RecomputeCardAnalyticsAsync();
-                            _logger.LogInformation("Successfully recomputed card analytics and deck totals.");
-
-                            try
+                            // Only rebuild analytics (and clear caches) when something actually changed.
+                            if (inserted > 0)
                             {
-                                var cache = scope.ServiceProvider.GetRequiredService<IDistributedCache>();
-                                await cache.RemoveAsync("meta_decks_v2_all");
-                                await cache.RemoveAsync("meta_decks_v2_tcg");
-                                await cache.RemoveAsync("meta_decks_v2_ocg");
-                                await cache.RemoveAsync("meta_decks_v2_master duel");
-                                await cache.RemoveAsync("meta_decks_v2_genesys");
+                                await mongoDbService.RecomputeCardAnalyticsAsync();
+                                _logger.LogInformation("Recomputed card analytics and deck totals.");
+
+                                try
+                                {
+                                    var cache = scope.ServiceProvider.GetRequiredService<IDistributedCache>();
+                                    await cache.RemoveAsync("meta_decks_v2_all");
+                                    await cache.RemoveAsync("meta_decks_v2_tcg");
+                                    await cache.RemoveAsync("meta_decks_v2_ocg");
+                                    await cache.RemoveAsync("meta_decks_v2_master duel");
+                                    await cache.RemoveAsync("meta_decks_v2_genesys");
+                                }
+                                catch (Exception redisEx)
+                                {
+                                    _logger.LogWarning("Redis cache clear skipped (Local Redis offline): {Message}", redisEx.Message);
+                                }
                             }
-                            catch (Exception redisEx)
+                            else
                             {
-                                _logger.LogWarning("Redis cache clear skipped (Local Redis offline): {Message}", redisEx.Message);
+                                _logger.LogInformation("No new meta decks; skipping analytics recompute.");
                             }
                         }
                     }

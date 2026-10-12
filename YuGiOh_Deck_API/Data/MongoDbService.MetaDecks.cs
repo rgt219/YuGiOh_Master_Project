@@ -33,14 +33,13 @@ namespace YuGiOhDeckApi.Data
             await _metaDeckCollection.ReplaceOneAsync(filter, metaDeck, new ReplaceOptions { IsUpsert = true });
         }
 
-        // 🚀 THE FIX: APPEND ONLY, SKIP IF EXISTS
-        public async Task SaveMetaDecksBulkAsync(List<MetaDeck> metaDecks)
+        public async Task<int> SaveMetaDecksBulkAsync(List<MetaDeck> metaDecks)
         {
-            if (metaDecks == null || !metaDecks.Any()) return;
+            if (metaDecks == null || !metaDecks.Any()) return 0;
 
             // Gather distinct IDs from the incoming scrape
             var incomingIds = metaDecks.Where(d => !string.IsNullOrWhiteSpace(d.Id)).Select(d => d.Id).Distinct().ToList();
-            if (!incomingIds.Any()) return;
+            if (!incomingIds.Any()) return 0;
 
             // Query MongoDB for IDs that ALREADY exist
             var existingFilter = Builders<MetaDeck>.Filter.In(d => d.Id, incomingIds);
@@ -57,7 +56,7 @@ namespace YuGiOhDeckApi.Data
             if (!brandNewDecks.Any())
             {
                 Console.WriteLine($"[META_DECKS_SYNC]: All {metaDecks.Count} scraped decks already exist. 0 inserted.");
-                return;
+                return 0;
             }
 
             Console.WriteLine($"[META_DECKS_SYNC]: Inserting {brandNewDecks.Count} new decks. Skipped {existingIdSet.Count}.");
@@ -86,6 +85,8 @@ namespace YuGiOhDeckApi.Data
                     }
                 }
             }
+
+            return brandNewDecks.Count;
         }
 
         public async Task RecomputeCardAnalyticsAsync()
