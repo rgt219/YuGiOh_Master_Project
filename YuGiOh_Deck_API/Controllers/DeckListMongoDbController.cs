@@ -7,6 +7,7 @@ using YuGiOhDeckApi.Data;
 using YuGiOhDeckApi.Models;
 using YuGiOhDeckApi.Repositories;
 using YuGiOh_Analytics_Consumer.Service;
+using YuGiOhDeckApi.Controllers;
 
 namespace YuGiOhDeckApi.Controllers
 {
@@ -105,6 +106,7 @@ namespace YuGiOhDeckApi.Controllers
             var success = await _mongoDbService.DeleteUserDeckAsync(id, CurrentUserId!);
             if (!success)
                 return NotFound(new { message = "DECK_NOT_FOUND_OR_OWNER_MISMATCH" });
+            await _mongoDbService.DeleteDeckNotesByDeckAsync(id);
             return NoContent();
         }
 
@@ -127,6 +129,7 @@ namespace YuGiOhDeckApi.Controllers
             {
                 return NotFound(new { message = "DECK_NOT_FOUND_OR_OWNER_MISMATCH" });
             }
+            await _mongoDbService.DeleteDeckNotesByDeckAsync(deckId);
             return NoContent();
         }
 

@@ -16,6 +16,10 @@ namespace MarketTelemetry.Service.Workers
         private readonly HttpClient _httpClient;
         private const int YugiohCategoryId = 2;
 
+        // The daily run happens at this hour (UTC). 6 = 2 AM Eastern (during daylight time), when TCGCSV has long since refreshed.
+        // It also runs once on startup, so a missed day is caught up; sets already ingested today are skipped.
+        private const int RunHourUtc = 6;
+
         public TcgCsvIngestionWorker(ILogger<TcgCsvIngestionWorker> logger, MarketDbService dbService, IPriceDropPublisher priceDropPublisher, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
@@ -91,8 +95,6 @@ namespace MarketTelemetry.Service.Workers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            using var timer = new PeriodicTimer(TimeSpan.FromHours(24));
-
             do
             {
                 _logger.LogInformation("Starting daily TCGCSV market ingestion...");
@@ -196,7 +198,27 @@ namespace MarketTelemetry.Service.Workers
                     _logger.LogError(ex, "Failed to run daily market telemetry pipeline.");
                 }
 
-            } while (await timer.WaitForNextTickAsync(stoppingToken) && !stoppingToken.IsCancellationRequested);
+            } while (await WaitUntilNextRunAsync(stoppingToken));
+        }
+
+        // Sleeps until the next RunHourUtc. Returns false if the app is shutting down.
+        private async Task<bool> WaitUntilNextRunAsync(CancellationToken stoppingToken)
+        {
+            var now = DateTime.UtcNow;
+            var next = now.Date.AddHours(RunHourUtc);
+            if (next <= now) next = next.AddDays(1);
+
+            _logger.LogInformation("Next market ingestion scheduled for {NextRun:u} (in {Hours:0.0} hours).", next, (next - now).TotalHours);
+
+            try
+            {
+                await Task.Delay(next - now, stoppingToken);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
         }
     }
 }
