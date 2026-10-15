@@ -25,6 +25,8 @@ namespace YuGiOhDeckApi
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
             builder.Services.AddSingleton<INotificationStore, MongoNotificationStore>();
+            builder.Services.AddSingleton<INotificationPusher, SignalRNotificationPusher>();
+            builder.Services.AddSingleton<PriceDropNotifier>();
             builder.Services.AddSignalR();
             builder.Services.AddHttpClient();
 
@@ -62,8 +64,8 @@ namespace YuGiOhDeckApi
             });
 
             builder.Services.AddHostedService<NewsBackgroundService>();
-
             builder.Services.AddHostedService<KafkaToSignalRBridge>();
+            builder.Services.AddHostedService<PriceDropConsumer>();
             builder.Services.AddHostedService<MetaDeckBackgroundService>();
             builder.Services.AddHostedService<MasterDuelBackgroundService>();
 
