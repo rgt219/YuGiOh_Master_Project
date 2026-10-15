@@ -211,6 +211,18 @@ namespace MarketTelemetry.Service.Data
             }
         }
 
+        public async Task SavePriceDropCheckAsync(BsonDocument record)
+        {
+            try
+            {
+                await _marketDatabase.GetCollection<BsonDocument>("PriceDropChecks").InsertOneAsync(record);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PRICE_DROP_CHECK_RECORD_FAILED]: {ex.Message}");
+            }
+        }
+
         // ---- Price alerts -------------------------------------------------------------------------------
         // The Deck API owns the "PriceWatches" collection (one row per user + tracked product) and writes it
         // into the same "Decklists" database this service already reads CardAnalytics and MetaDecks from.

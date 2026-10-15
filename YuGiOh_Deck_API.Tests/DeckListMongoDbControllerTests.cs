@@ -110,6 +110,52 @@ public class DeckControllerTests
         var result = await controller.DeleteById("deck-9");
 
         Assert.IsType<NotFoundObjectResult>(result);
-        mockService.Verify(s => s.DeleteByIdAsync(It.IsAny<string>()), Times.Never);
+        mockService.Verify(s => s.DeleteDeckNotesByDeckAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteUserDeck_WhenOwner_DeletesDeckNotes()
+    {
+        var mockService = new Mock<IMongoDbService>();
+        mockService.Setup(s => s.DeleteUserDeckAsync("deck-1", "user-1")).ReturnsAsync(true);
+        var mockKafka = new Mock<IKafkaProducerService>();
+
+        var controller = BuildController(mockService, mockKafka, "user-1");
+
+        var result = await controller.DeleteUserDeck("deck-1", "user-1");
+
+        Assert.IsType<NoContentResult>(result);
+        mockService.Verify(s => s.DeleteDeckNotesByDeckAsync("deck-1"), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteById_WhenOwner_DeletesDeckNotes()
+    {
+        var mockService = new Mock<IMongoDbService>();
+        mockService.Setup(s => s.DeleteUserDeckAsync("deck-1", "user-1")).ReturnsAsync(true);
+        var mockKafka = new Mock<IKafkaProducerService>();
+
+        var controller = BuildController(mockService, mockKafka, "user-1");
+
+        var result = await controller.DeleteById("deck-1");
+
+        Assert.IsType<NoContentResult>(result);
+        mockService.Verify(s => s.DeleteDeckNotesByDeckAsync("deck-1"), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteUserDeck_WhenUserIdDoesNotMatchToken_ReturnsForbid()
+    {
+        var mockService = new Mock<IMongoDbService>();
+        mockService.Setup(s => s.DeleteUserDeckAsync("deck-1", "user-1")).ReturnsAsync(true);
+        var mockKafka = new Mock<IKafkaProducerService>();
+
+        var controller = BuildController(mockService, mockKafka, "user-1");
+
+        var result = await controller.DeleteUserDeck("deck-1", "user-2");
+
+        Assert.IsType<ForbidResult>(result);
+        mockService.Verify(s => s.DeleteUserDeckAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        mockService.Verify(s => s.DeleteDeckNotesByDeckAsync(It.IsAny<string>()), Times.Never);
     }
 }

@@ -10,6 +10,8 @@ import AiComboPlaybook from "@/components/AiComboPlaybook";
 import '@/mdstyles.css';
 import DeckPriceWidget from "@/components/DeckPriceWidget";
 import CollectionGapPanel from "@/components/collection/CollectionGapPanel";
+import DeckNotesPanel from "@/components/DeckNotesPanel";
+import { getCurrentUserId } from "@/lib/currentUser";
 
 const getAttributeColor = (attribute) => {
   if (!attribute) return 'secondary';
@@ -41,6 +43,8 @@ export default function DeckProfileDetails() {
     const [hoveredCardData, setHoveredCardData] = useState(null);
     const [pinnedCardData, setPinnedCardData] = useState(null);
     const [cardCounts, setCardCounts] = useState({ monsters: 0, spells: 0, traps: 0 });
+
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     useEffect(() => {
         if (!deckId) return;
@@ -78,6 +82,8 @@ export default function DeckProfileDetails() {
         };
         loadDeckData();
     }, [deckId]);
+
+    useEffect(() => { setCurrentUserId(getCurrentUserId()); }, []);
 
     // Every card in the deck, one entry per copy (main + extra + side). Used by the price box and the collection panel.
     const allDeckCards = useMemo(() => {
@@ -178,6 +184,8 @@ export default function DeckProfileDetails() {
     const activeAtk = typeof activeCard === 'object' ? (activeCard.atk ?? activeCard.Atk) : null;
     const activeDef = typeof activeCard === 'object' ? (activeCard.def ?? activeCard.Def) : null;
     const activeDesc = typeof activeCard === 'object' ? (activeCard.desc || activeCard.Desc || 'Click or hover over any card thumbnail in the decklists below to view its full stats and effect text.') : 'Hover over a card to view details.';
+    // after the early returns for loading/error, with the other derived values like `title`
+    const isOwner = Boolean(currentUserId) && String(deck.userId) === currentUserId;
 
     const getCardSmallImg = (card) => {
         if (!card) return 'https://images.ygoprodeck.com/images/cards/back_high.jpg';
@@ -450,6 +458,7 @@ export default function DeckProfileDetails() {
                             <DeckPriceWidget cards={allDeckCards} />
 
                             <CollectionGapPanel cards={allDeckCards} />
+                            {isOwner && <DeckNotesPanel deckId={deckId} />}
                         </div>
                     </Col>
 
