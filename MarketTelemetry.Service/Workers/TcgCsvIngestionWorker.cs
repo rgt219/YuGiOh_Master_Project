@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MarketTelemetry.Service.Data;
 using MarketTelemetry.Service.Events;
 using MarketTelemetry.Service.Models;
@@ -61,37 +62,86 @@ namespace MarketTelemetry.Service.Workers
         // Looks for drops on the cards people are tracking and publishes one event per drop.
         // It runs BEFORE today's prices are saved, so "yesterday's price" is still the newest thing in the database.
         // It also never throws: price history is the core product, and an alerting problem must not stop it being saved.
-        private async Task PublishPriceDropsAsync(List<MarketSnapshot> snapshots, DateTime todayUtc, CancellationToken cancellationToken)
+        //
+        // Every check on a set that has watchers also leaves ONE small record in the "PriceDropChecks" collection:
+        // which cards were watched, the old and new price, whether a drop was found, and whether it was published
+        // (or why not). Container App logs are live-only, so this is how you see what happened after the fact.
+        private async Task PublishPriceDropsAsync(List<MarketSnapshot> snapshots, DateTime todayUtc, string setName, CancellationToken cancellationToken)
         {
+            var cards = new BsonArray();
+            string? setError = null;
+            var watchedCount = 0;
+            var previousCount = 0;
+
             try
             {
                 var watched = await _dbService.GetWatchedProductIdsAsync(snapshots.Select(s => s.ProductId));
-                if (watched.Count == 0) return;
+                watchedCount = watched.Count;
+                if (watched.Count == 0) return;   // nobody tracks anything in this set: nothing to record
+
+                _logger.LogInformation("Price drop check: {Count} watched card(s) in set '{SetName}'.", watched.Count, setName);
 
                 var previous = await _dbService.GetPreviousSnapshotsAsync(watched, todayUtc);
+                previousCount = previous.Count;
 
                 foreach (var snapshot in snapshots.Where(s => watched.Contains(s.ProductId)))
                 {
                     previous.TryGetValue(snapshot.ProductId, out var before);
                     var drop = PriceDropDetector.Detect(before, snapshot, todayUtc);
+
+                    var card = new BsonDocument
+                    {
+                        { "productId", snapshot.ProductId },
+                        { "cardName", snapshot.CardName ?? "" },
+                        { "rarity", snapshot.Rarity ?? "" },
+                        { "previousPrice", Dec(before?.MarketPrice) },
+                        { "currentPrice", Dec(snapshot.MarketPrice) },
+                        { "dropDetected", drop != null },
+                        { "published", false },
+                        { "error", BsonNull.Value }
+                    };
+                    cards.Add(card);
+
                     if (drop == null) continue;
 
                     try
                     {
                         await _priceDropPublisher.PublishAsync(drop, cancellationToken);
+                        card["published"] = true;
                         _logger.LogInformation("Price drop published: {Card} ({Set}) {Old} -> {New}", drop.CardName, drop.SetName, drop.OldPrice, drop.NewPrice);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
+                        card["error"] = ex.Message;
                         _logger.LogWarning("Could not publish price drop for product {ProductId}: {Message}", drop.ProductId, ex.Message);
                     }
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                setError = ex.Message;
                 _logger.LogWarning("Price drop check failed; prices will still be saved: {Message}", ex.Message);
             }
+            finally
+            {
+                if (watchedCount > 0)
+                {
+                    await _dbService.SavePriceDropCheckAsync(new BsonDocument
+                    {
+                        { "runAt", DateTime.UtcNow },
+                        { "snapshotDay", todayUtc },
+                        { "setName", setName },
+                        { "watchedCount", watchedCount },
+                        { "previousSnapshotsFound", previousCount },
+                        { "cards", cards },
+                        { "error", setError == null ? BsonNull.Value : (BsonValue)setError }
+                    });
+                }
+            }
         }
+
+        private static BsonValue Dec(decimal? value) =>
+            value.HasValue ? (BsonValue)new BsonDecimal128(value.Value) : BsonNull.Value;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -178,7 +228,7 @@ namespace MarketTelemetry.Service.Workers
                                 {
                                     // Alerts first, then save. If the app dies in between, the set is not marked as ingested,
                                     // so the retry finds the same drops and publishes the same EventIds (which the Deck API ignores).
-                                    await PublishPriceDropsAsync(snapshots, todayUtc, stoppingToken);
+                                    await PublishPriceDropsAsync(snapshots, todayUtc, group.Name, stoppingToken);
 
                                     await _dbService.SaveSnapshotsBulkAsync(snapshots);
                                     _logger.LogInformation("Ingested {Count} prices for set: {Set}", snapshots.Count, group.Name);
