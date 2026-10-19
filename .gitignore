@@ -1,36 +1,66 @@
+# ==========================================================================
+# ErreGeTe YGO monorepo: only React (Next.js), .NET and Go belong here.
+# Everything else (editor state, scanners, scratch files, installers, docs
+# generators) is ignored so the Source Control panel shows real changes only.
+# ==========================================================================
+
 # ==========================================
-# 1. .NET / C# Build Artifacts & Binaries
+# 1. .NET / C# build artifacts & binaries
 # ==========================================
 bin/
 obj/
 out/
 [Bb]in/
 [Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
 TestResults/
 *.user
 *.suo
-*.userosv
 *.userprefs
-*.pidb
-*.booproj
+*.rsuser
+*.pubxml.user
 *.svclog
 *.cache
+*.lscache
+*.nupkg
+*.snupkg
+_ReSharper*/
+*.DotSettings.user
+*.png
+*.webp
+*.mp4
+*.jpg
+*.ttf
+*.otf
+*.http
+.venv/
+__pycache__/
+.pytest_cache/
 
-# Publish & Coverage outputs
+# Publish & coverage outputs
 publish/
 *.publishsettings
 coverage*.xml
 coverage*.json
 *.coverage
+*.trx
 
 # ==========================================
-# 2. React / Node.js Dependencies & Builds
+# 2. React / Next.js / Node
 # ==========================================
 node_modules/
-/build
-/dist
-/.pnp
+build/
+dist/
+.next/
+.pnp
 .pnp.js
+next-env.d.ts
+*.tsbuildinfo
+.vercel/
+.turbo/
 
 # Logs
 npm-debug.log*
@@ -39,50 +69,89 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-# Local environment files (Secrets & Keys)
+# Local environment files (secrets and keys). The example file stays tracked.
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+!.env.example
 
 # ==========================================
-# 3. IDEs & Editors
+# 3. Go
 # ==========================================
-# Visual Studio
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# ==========================================
+# 4. Code quality scanners (SonarQube / SonarLint / SonarScanner)
+#    These are generated on every analysis and are never source code.
+# ==========================================
+.sonarqube/
+sonarqube/
+.sonarlint/
+.sonar/
+.scannerwork/
+SonarQubeAnalysisConfig.xml
+SonarProjectConfig.xml
+SonarLint.xml
+Sonar-*.ruleset
+FilesToAnalyze.txt
+ProjectOutFolderPath.txt
+
+# ==========================================
+# 5. IDEs & editors (per-machine settings)
+# ==========================================
 .vs/
 *.sln.docstates
-
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 *.code-workspace
-
-# JetBrains (Rider / WebStorm)
 .idea/
 *.iws
 *.iml
 *.ipr
 
 # ==========================================
-# 4. Operating System Files
+# 6. Operating system files
 # ==========================================
 .DS_Store
 .DS_Store?
 ehthumbs.db
 Thumbs.db
 desktop.ini
+$RECYCLE.BIN/
 
 # ==========================================
-# 5. Temporary & Log Files
+# 7. Temporary, backup and duplicate files
 # ==========================================
 *.log
 *.tmp
 *.temp
-YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj.lscache
-YuGiOh_Deck_API.Tests/YuGiOhDeckAPI.Tests.csproj.lscache
-.gitignore
-YuGiOhIdentityApi/YuGiOhIdentityApi.csproj.lscache
+*.bak
+*.orig
+*~
+# Windows "copy and paste" duplicates, e.g. "iris_short - Copy.mp4"
+* - Copy.*
+* - Copy (*).*
+
+# ==========================================
+# 8. Scratch files that are not part of the app
+#    (python doc generators, generated guides, debug dumps, installers)
+# ==========================================
+__pycache__/
+*.pyc
+.venv/
+generate_full_guide.py
+*_Master_Guide.pdf
+mdm_debug.html
+*_debug.html
+# Uncomment if this file is a generated dump rather than a fixture:
+# YuGiOh_Analytics_Consumer/data.json
+YuGiOh_Deck_React/public/images/continuous.webp

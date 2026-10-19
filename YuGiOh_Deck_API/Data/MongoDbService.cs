@@ -19,6 +19,7 @@ namespace YuGiOhDeckApi.Data
         private readonly IMongoCollection<CollectionEntry> _collectionCollection;
         private readonly IMongoCollection<PriceWatch> _watchCollection;
         private readonly IMongoCollection<DeckNote> _deckNoteCollection;
+        private readonly IMongoCollection<CardCompanions> _cardCompanionsCollection;
         private List<CardData> _masterCache = new();
 
         public MongoDbService(IOptions<MongoDBSettings> mongoDBSettings)
@@ -36,6 +37,7 @@ namespace YuGiOhDeckApi.Data
             _collectionCollection = database.GetCollection<CollectionEntry>("UserCollections");
             _watchCollection = database.GetCollection<PriceWatch>("PriceWatches");
             _deckNoteCollection = database.GetCollection<DeckNote>("DeckNotes");
+            _cardCompanionsCollection = database.GetCollection<CardCompanions>("CardCompanions");
 
             IMongoDatabase usersDatabase = client.GetDatabase(mongoDBSettings.Value.UsersDatabaseName);
             _usersCollection = usersDatabase.GetCollection<BsonDocument>("Users");

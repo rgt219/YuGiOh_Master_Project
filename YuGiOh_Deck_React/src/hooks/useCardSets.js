@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 const YGO_API = 'https://db.ygoprodeck.com/api/v7';
 const DAY = 24 * 60 * 60 * 1000;
 
-/** Every card set (booster, structure deck, ...), newest first. One download a day. */
 export function useCardSets() {
     return useQuery({
         queryKey: ['cardSets'],
@@ -22,13 +21,11 @@ export function useCardSets() {
     });
 }
 
-/** "LOB-EN001" -> 1, so cards sort the way they are numbered in the set. */
 const codeNumber = (code) => {
     const match = /(\d+)\D*$/.exec(code || '');
     return match ? parseInt(match[1], 10) : Number.MAX_SAFE_INTEGER;
 };
 
-/** Every card in one set, in set-number order: [{ id, name, code }]. One slot per card, however many rarities it has. */
 export function useSetCards(setName) {
     return useQuery({
         queryKey: ['setCards', setName],
