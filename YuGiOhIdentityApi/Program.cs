@@ -22,6 +22,10 @@ namespace YuGiOhIdentityApi
                 .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation(o => o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")))
                 .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 
+            // Health: /health/live and /health/ready for Azure's probes, /health (every dependency) for the status page.
+            builder.AddServiceHealthChecks()
+                .AddMongoCheck("MongoDBUsers:ConnectionURI");
+
             // 1. SERVICES CONFIGURATION
             builder.Services.Configure<MongoDBUserSettings>(builder.Configuration.GetSection("MongoDBUsers"));
             builder.Services.AddSingleton<UserRegistrationService>();
@@ -72,6 +76,7 @@ namespace YuGiOhIdentityApi
             app.UseAuthorization();
 
             app.MapGet("/", () => "Hello World from Identity!");
+            app.MapServiceHealthChecks();
             app.MapControllers();
 
             app.Run();

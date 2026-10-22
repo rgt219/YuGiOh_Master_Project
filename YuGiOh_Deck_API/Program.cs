@@ -29,6 +29,16 @@ namespace YuGiOhDeckApi
                 .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation(o => o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")))
                 .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 
+            // Health: /health/live and /health/ready for Azure's probes, /health (every dependency) for the status page.
+            // Only MongoDB is critical. Without Redis, Kafka or the Go worker the API still serves requests.
+            builder.AddServiceHealthChecks()
+                .AddMongoCheck("MongoDB:ConnectionURI")
+                .AddCacheCheck("redis")
+                .AddHttpCheck("go-worker", builder.Configuration["GoWorker:ConnectionString"]
+                                           ?? builder.Configuration["GoWorker:BaseUrl"]
+                                           ?? "http://localhost:8080")
+                .AddKafkaCheck();
+
             builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
             builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
@@ -217,19 +227,8 @@ namespace YuGiOhDeckApi
 
             app.MapGet("/", () => "DECK API");
 
-            // Public liveness + database check, used by the deploy smoke test (replaces a user-specific URL).
-            app.MapGet("/health", async (IMongoDbService db) =>
-            {
-                try
-                {
-                    await db.GetByUserIdAsync("__health__"); // cheap read that proves Mongo answers
-                    return Results.Ok(new { status = "ok" });
-                }
-                catch
-                {
-                    return Results.StatusCode(503);
-                }
-            });
+            // /health is still what the deploy smoke test calls: 200 while MongoDB answers, 503 when it does not.
+            app.MapServiceHealthChecks();
             app.MapControllers();
 
             app.Run();

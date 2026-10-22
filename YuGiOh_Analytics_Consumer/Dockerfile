@@ -17,9 +17,10 @@ COPY Shared/YuGiOh.ServiceDefaults/ Shared/YuGiOh.ServiceDefaults/
 WORKDIR "/src/YuGiOh_Analytics_Consumer"
 RUN dotnet publish "YuGiOh_Analytics_Consumer.csproj" -c Release -o /app/publish
 
-# Stage 2: Runtime
-FROM mcr.microsoft.com/dotnet/runtime:9.0 AS final
+# Stage 2: Runtime. The ASP.NET Core runtime, because the worker serves its health endpoints on port 8080.
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
+EXPOSE 8080
 COPY --from=build /app/publish .
 
 ENTRYPOINT ["dotnet", "YuGiOh_Analytics_Consumer.dll"]

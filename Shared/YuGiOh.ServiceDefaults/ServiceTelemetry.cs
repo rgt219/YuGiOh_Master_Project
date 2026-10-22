@@ -15,8 +15,7 @@ namespace YuGiOh.ServiceDefaults
     // Grafana stack). Without it the instrumentation still runs, so trace IDs keep flowing between services
     // through HTTP and Kafka headers, but nothing leaves the process.
     //
-    // Web APIs add the ASP.NET Core instrumentation on top, see their Program.cs. It lives there and not here
-    // so the Analytics worker does not have to ship the ASP.NET Core runtime.
+    // Web APIs add the ASP.NET Core request instrumentation on top, see their Program.cs.
     public static class ServiceTelemetry
     {
         // Spans from the MongoDB driver itself (built in since driver 3.7). Query text is not recorded.

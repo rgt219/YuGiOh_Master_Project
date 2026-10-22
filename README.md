@@ -73,6 +73,24 @@ flowchart LR
 
 Locally, `docker compose up` runs everything and sends traces, metrics and logs to Grafana (Tempo, Prometheus, Loki) at <http://localhost:3001>.
 
+## Health checks and status page
+
+Every service, including the Go worker and the Analytics worker, answers the same three endpoints (`Shared/YuGiOh.ServiceDefaults/ServiceHealth.cs`, `go-services/health.go`):
+
+| Endpoint | Answers | Used by |
+| --- | --- | --- |
+| `/health/live` | Is the process running? | Azure liveness probe: restarts a stuck replica |
+| `/health/ready` | Can it take traffic (started, not shutting down)? | Azure readiness probe: takes a replica out of rotation |
+| `/health` | Every dependency (MongoDB, Redis, Kafka, Go worker) as JSON | The [/status](https://erregeteygo.com/status) page and the deploy smoke test |
+
+- **Critical vs. optional:** a failing database makes a service `Unhealthy` (HTTP 503). A failing cache, Kafka or Go worker only makes it `Degraded` (HTTP 200), because the service still works.
+- **Costs nothing:** probes never touch the database (on Cosmos DB every call costs request units). The full `/health` check runs only on demand and is reused for 10 seconds. The status page checks only when someone opens it, reuses the result for 30 seconds, and never polls on a timer, so the Deck and Forum APIs can still scale to zero.
+- **No leaks:** the public report only carries fixed descriptions ("reachable", "not reachable", "timed out"). Exception messages stay in the logs.
+- **The status page** (`src/app/status`, `src/app/api/status/route.js`) is served by the site's own server, which reaches every app by its Container App name, internal-only ones included. The Analytics worker sleeps until deck updates arrive, so no answer from it shows as "idle", not "down".
+- **Probes:** `scripts/set-health-probes.sh` points Azure's probes at these endpoints. It is a one-time step, run after the first deploy that includes them. Run it without arguments to see the change, with `--apply` to make it.
+
+To try the status page against a local backend, set `STATUS_DECK_API_URL`, `STATUS_IDENTITY_API_URL` and so on (see `src/lib/systemStatus.js`) before `npm run dev`.
+
 ## Tech stack
 
 **Frontend:** Next.js 16, React 19, Redux Toolkit, TanStack Query, Bootstrap 5, Vitest

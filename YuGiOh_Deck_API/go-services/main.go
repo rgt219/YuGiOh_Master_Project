@@ -30,10 +30,12 @@ func main() {
 
 	r := gin.Default()
 
-	// One span per request, continuing the caller's trace. The "/" status probe is left out.
+	// One span per request, continuing the caller's trace. Health checks and the "/" probe are left out.
 	r.Use(otelgin.Middleware(serviceName, otelgin.WithFilter(func(req *http.Request) bool {
-		return req.URL.Path != "/"
+		return !isHealthPath(req.URL.Path)
 	})))
+
+	registerHealth(r)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "online", "service": "go-worker"})

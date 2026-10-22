@@ -23,6 +23,7 @@ const NAV = [
   { id: 'info', label: 'Info', items: [
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
+    { label: 'System Status', href: '/status' },
   ] },
   { id: 'decks', label: 'Decks', items: [
     { label: 'Community Decks', href: '/community' },

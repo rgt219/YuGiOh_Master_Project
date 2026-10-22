@@ -80,6 +80,9 @@ namespace YuGiOh_Analytics_Consumer
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // Consume() blocks. Step off the startup path first so the web host (health endpoints) can start too.
+            await Task.Yield();
+
             var config = KafkaConnection.Apply(new ConsumerConfig
             {
                 GroupId = _configuration["Kafka:GroupId"],

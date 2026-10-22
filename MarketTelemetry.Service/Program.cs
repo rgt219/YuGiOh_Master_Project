@@ -13,6 +13,12 @@ builder.AddServiceTelemetry("market-api")
     .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation(o => o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")))
     .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 
+// Health: /health/live and /health/ready for Azure's probes, /health (every dependency) for the status page.
+// Only MongoDB is critical: without Kafka, price drops are logged instead of published.
+builder.AddServiceHealthChecks()
+    .AddMongoCheck("MongoDBSettings:ConnectionURI")
+    .AddKafkaCheck();
+
 // Use in-memory distributed cache locally to prevent 5-10s Redis connection timeouts
 // 🚀 Uses lightning-fast local RAM for development, bypassing the Redis timeout
 builder.Services.AddDistributedMemoryCache();
@@ -73,6 +79,7 @@ var app = builder.Build();
 app.UseCors("NextJsCors");
 app.UseRouting();
 app.UseAuthorization();
+app.MapServiceHealthChecks();
 app.MapControllers();
 
 app.Run();

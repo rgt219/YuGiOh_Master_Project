@@ -14,6 +14,10 @@ builder.AddServiceTelemetry("forum-api")
     .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation(o => o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")))
     .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 
+// Health: /health/live and /health/ready for Azure's probes, /health (every dependency) for the status page.
+builder.AddServiceHealthChecks()
+    .AddMongoCheck("MongoDB:ConnectionString", "MongoDB__ConnectionString");
+
 builder.Services.AddSingleton<ForumDbService>();
 
 // --- Authentication: validate JWTs issued by YuGiOhIdentityApi ---
@@ -88,6 +92,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/", () => "FORUM API!");
+app.MapServiceHealthChecks();
 
 app.MapControllers();
 

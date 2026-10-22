@@ -287,8 +287,9 @@ jobs:
             CosmosDb__ConnectionString=secretref:cosmosdb-conn \
             Kafka__ConnectionString=secretref:kafka-conn \
             AzureStorage__ConnectionString=secretref:storage-conn
-          # The consumer has no HTTP surface. Already disabled is fine.
-          az containerapp ingress disable -n analytics -g "$RG" -o none || echo "Ingress already disabled"
+          # The worker answers health checks on port 8080. Internal ingress makes them reachable from the other apps
+          # (the site's /status page) and nothing else: the worker is still not on the internet.
+          az containerapp ingress enable -n analytics -g "$RG" --type internal --target-port 8080 --transport auto -o none
 
       # Same idea for the Market API: save the connection string as a secret, point the env var at it.
       - name: Deploy Market Telemetry API
