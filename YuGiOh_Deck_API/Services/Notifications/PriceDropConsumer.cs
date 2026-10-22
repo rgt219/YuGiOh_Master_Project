@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using YuGiOh.ServiceDefaults;
 
 namespace YuGiOhDeckApi.Notifications
 {
@@ -31,22 +32,16 @@ namespace YuGiOhDeckApi.Notifications
         {
             await Task.Yield();   // let the app finish starting before this blocking loop begins
 
-            var connectionString = _config["Kafka:ConnectionString"];
             var bootstrapServers = _config["Kafka:BootstrapServers"];
-            if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(bootstrapServers))
+            if (!KafkaConnection.IsConfigured(_config))
             {
                 _logger.LogWarning("Kafka settings are missing. The price drop consumer is not running.");
                 return;
             }
 
-            var config = new ConsumerConfig
+            var config = KafkaConnection.Apply(new ConsumerConfig
             {
-                BootstrapServers = bootstrapServers,
                 GroupId = GroupId,
-                SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslMechanism = SaslMechanism.Plain,
-                SaslUsername = "$ConnectionString",
-                SaslPassword = connectionString,
 
                 // We tell Event Hubs "done with this message" ourselves, AFTER it has been handled.
                 // If the app dies mid-message, the message is delivered again instead of being lost.
@@ -60,7 +55,7 @@ namespace YuGiOhDeckApi.Notifications
                 // That is normal, so do not write a log line every time it happens.
                 LogConnectionClose = false,
                 SocketKeepaliveEnable = true
-            };
+            }, _config);
 
             // The server name is safe to log. The connection string (a password) never is.
             _logger.LogInformation("Price drop consumer connecting to {Server}, topic '{Topic}', group '{Group}'...",
@@ -118,7 +113,11 @@ namespace YuGiOhDeckApi.Notifications
 
                     if (result?.Message?.Value == null) continue;
 
-                    await ProcessAsync(result.Message.Value, stoppingToken);
+                    // Continues the Market service's trace that published this price drop.
+                    using (KafkaTracing.StartProcess(result, GroupId))
+                    {
+                        await ProcessAsync(result.Message.Value, stoppingToken);
+                    }
                     consumer.Commit(result);   // only now: handled (or deliberately skipped), so move the bookmark forward
                 }
             }
@@ -178,6 +177,7 @@ namespace YuGiOhDeckApi.Notifications
                 {
                     if (attempt == MaxAttempts)
                     {
+                        KafkaTracing.RecordError(System.Diagnostics.Activity.Current, ex);
                         // TODO (Step 7): park this message in a dead-letter store instead of dropping it.
                         _logger.LogError(ex, "Giving up on price drop {EventId} after {Attempts} attempts", message.EventId, MaxAttempts);
                         return;

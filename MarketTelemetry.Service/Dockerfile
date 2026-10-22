@@ -4,10 +4,12 @@ WORKDIR /src
 
 # Restore dependencies
 COPY ["MarketTelemetry.Service/MarketTelemetry.Service.csproj", "MarketTelemetry.Service/"]
+COPY ["Shared/YuGiOh.ServiceDefaults/YuGiOh.ServiceDefaults.csproj", "Shared/YuGiOh.ServiceDefaults/"]
 RUN dotnet restore "MarketTelemetry.Service/MarketTelemetry.Service.csproj"
 
-# Copy everything else and build
-COPY . .
+# Copy the source and build
+COPY MarketTelemetry.Service/ MarketTelemetry.Service/
+COPY Shared/YuGiOh.ServiceDefaults/ Shared/YuGiOh.ServiceDefaults/
 WORKDIR "/src/MarketTelemetry.Service"
 RUN dotnet build "MarketTelemetry.Service.csproj" -c Release -o /app/build
 

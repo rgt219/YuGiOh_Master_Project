@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-func ScrapeNewsFeeds() ([]models.NewsArticle, error) {
+func ScrapeNewsFeeds(ctx context.Context) ([]models.NewsArticle, error) {
 	fp := gofeed.NewParser()
 	var allArticles []models.NewsArticle
 
@@ -26,7 +27,7 @@ func ScrapeNewsFeeds() ([]models.NewsArticle, error) {
 	for sourceName, feedURL := range feeds {
 		fmt.Printf("[Go RSS Scraper] Fetching news from %s...\n", sourceName)
 
-		req, err := http.NewRequest("GET", feedURL, nil)
+		req, err := http.NewRequestWithContext(ctx, "GET", feedURL, nil)
 		if err != nil {
 			continue
 		}
@@ -64,7 +65,7 @@ func ScrapeNewsFeeds() ([]models.NewsArticle, error) {
 
 			// Fetch the actual article page to harvest its image
 			if item.Link != "" {
-				imageURL = fetchArticleImage(client, item.Link)
+				imageURL = fetchArticleImage(ctx, client, item.Link)
 			}
 
 			if imageURL == "" && item.Image != nil {
@@ -102,8 +103,8 @@ func ScrapeNewsFeeds() ([]models.NewsArticle, error) {
 	return allArticles, nil
 }
 
-func fetchArticleImage(client *http.Client, targetURL string) string {
-	req, err := http.NewRequest("GET", targetURL, nil)
+func fetchArticleImage(ctx context.Context, client *http.Client, targetURL string) string {
+	req, err := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
 	if err != nil {
 		return ""
 	}

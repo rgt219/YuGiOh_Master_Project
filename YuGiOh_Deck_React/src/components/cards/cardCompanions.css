@@ -1,0 +1,56 @@
+.cc-panel { margin-top: 0; }
+.cc-section + .cc-section { margin-top: 1rem; }
+
+.cc-title {
+    color: #0dcaf0;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+}
+
+.cc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 0.6rem;
+}
+
+.cc-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0.35rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(13, 202, 240, 0.25);
+    border-radius: 6px;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.cc-card:hover {
+    transform: translateY(-2px);
+    border-color: #0dcaf0;
+}
+
+.cc-card img {
+    width: 100%;
+    aspect-ratio: 59 / 86;   /* a real Yu-Gi-Oh card's proportions */
+    object-fit: cover;
+    border-radius: 3px;
+}
+
+.cc-name {
+    margin-top: 0.3rem;
+    font-size: 0.7rem;
+    line-height: 1.15;
+    color: #fff;
+    /* cut long names to 2 lines with "…" */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cc-pct {
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+    color: #20c997;
+}

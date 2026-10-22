@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using YuGiOhDeckApi.Hubs;
 using YuGiOh_Analytics_Consumer;
+using YuGiOh.ServiceDefaults;
 
 namespace YuGiOhDeckApi.Services
 {
@@ -28,19 +29,13 @@ namespace YuGiOhDeckApi.Services
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             await Task.Yield();
-            var connString = _config["Kafka:ConnectionString"];
-            if (string.IsNullOrEmpty(connString)) return;
+            if (!KafkaConnection.IsConfigured(_config)) return;
 
-            var config = new ConsumerConfig
+            var config = KafkaConnection.Apply(new ConsumerConfig
             {
                 GroupId = "signalr-consumer",
-                BootstrapServers = _config["Kafka:BootstrapServers"],
-                SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslMechanism = SaslMechanism.Plain,
-                SaslUsername = "$ConnectionString",
-                SaslPassword = connString,
                 AutoOffsetReset = AutoOffsetReset.Latest
-            };
+            }, _config);
 
             using var consumer = new ConsumerBuilder<string, string>(config).Build();
             consumer.Subscribe("deck-updates");
@@ -58,6 +53,9 @@ namespace YuGiOhDeckApi.Services
                     var consumeResult = consumer.Consume(stoppingToken);
                     if (consumeResult?.Message?.Value != null)
                     {
+                        // Continues the trace of the request that published this deck update.
+                        using var activity = KafkaTracing.StartProcess(consumeResult, config.GroupId);
+
                         var rawJson = consumeResult.Message.Value;
 
                         // Deserialize with case-insensitive option

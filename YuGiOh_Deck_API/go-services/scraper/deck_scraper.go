@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,7 +13,7 @@ import (
 	"erregeteygo/worker/models"
 )
 
-func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
+func ScrapeMetaDecks(ctx context.Context, targetURL string) ([]models.MetaDeck, error) {
 	// Simple HTTP client (no cookie jars or complex sessions needed anymore)
 	client := &http.Client{Timeout: 20 * time.Second}
 	var allMetaDecks []models.MetaDeck
@@ -39,7 +40,7 @@ func ScrapeMetaDecks(targetURL string) ([]models.MetaDeck, error) {
 
 			fmt.Printf("[Go API Scraper] Fetching page %d for '%s' from %s\n", page, formatKey, apiURL)
 
-			req, err := http.NewRequest("GET", apiURL, nil)
+			req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
 			if err != nil {
 				break
 			}

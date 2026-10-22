@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -84,10 +85,10 @@ type MasterDuelDatabaseSyncResponse struct {
 // (for example by Cloudflare), and saving it would wipe real cards from the database.
 const minExpectedCards = 5000
 
-func fetchPage(client *http.Client, limit, skip int) ([]MDMCardEntity, error) {
+func fetchPage(ctx context.Context, client *http.Client, limit, skip int) ([]MDMCardEntity, error) {
 	targetURL := fmt.Sprintf("https://www.masterduelmeta.com/api/v1/cards?alternateArt[$ne]=true&limit=%d&skip=%d", limit, skip)
 
-	req, err := http.NewRequest("GET", targetURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", targetURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build request: %w", err)
 	}
@@ -113,7 +114,7 @@ func fetchPage(client *http.Client, limit, skip int) ([]MDMCardEntity, error) {
 	return batch, nil
 }
 
-func FetchMasterDuelBanList() (*MasterDuelDatabaseSyncResponse, error) {
+func FetchMasterDuelBanList(ctx context.Context) (*MasterDuelDatabaseSyncResponse, error) {
 	var allCards []MDMCardEntity
 	skip := 0
 	limit := 3000
@@ -125,7 +126,7 @@ func FetchMasterDuelBanList() (*MasterDuelDatabaseSyncResponse, error) {
 		var batch []MDMCardEntity
 		var err error
 		for attempt := 1; attempt <= 3; attempt++ {
-			batch, err = fetchPage(client, limit, skip)
+			batch, err = fetchPage(ctx, client, limit, skip)
 			if err == nil {
 				break
 			}

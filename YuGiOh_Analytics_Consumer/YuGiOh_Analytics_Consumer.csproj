@@ -18,4 +18,8 @@
       <PublishState>Excluded</PublishState> 
     </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\YuGiOh.ServiceDefaults\YuGiOh.ServiceDefaults.csproj" />
+  </ItemGroup>
 </Project>

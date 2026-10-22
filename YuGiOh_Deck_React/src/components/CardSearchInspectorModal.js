@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Row, Col, Badge, Button } from 'react-bootstrap';
+import CardCompanionsPanel from '@/components/cards/CardCompanionsPanel';
 import Link from 'next/link';
 
 const renderLevelStars = (level) => {
@@ -246,6 +247,14 @@ export default function CardSearchInspectorModal({ inspectCard, setInspectCard }
                         </div>
                     </div>
                 </Modal.Body>
+                <div className="mt-3">
+                    <label className="text-info small terminal-font mb-1 d-block" style={{ fontSize: '0.7rem' }}>
+                        META COMPANIONS
+                    </label>
+                    <div className="rounded bg-black bg-opacity-60 border border-secondary border-opacity-30 p-3">
+                        <CardCompanionsPanel cardId={inspectCard.id} />
+                    </div>
+                </div>
             </Modal>
 
             <Modal show={showLargeImage} onHide={() => setShowLargeImage(false)} centered size="md" contentClassName="bg-transparent border-0 text-center shadow-none">

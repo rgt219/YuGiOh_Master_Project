@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using YuGiOh.ServiceDefaults;
 
 namespace MarketTelemetry.Service.Events
 {
@@ -23,9 +24,8 @@ namespace MarketTelemetry.Service.Events
         {
             _logger = logger;
 
-            var connectionString = config["Kafka:ConnectionString"];
             var bootstrapServers = config["Kafka:BootstrapServers"];
-            if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(bootstrapServers))
+            if (!KafkaConnection.IsConfigured(config))
             {
                 // Local development without Event Hubs: the service still starts, and drops are just logged.
                 _logger.LogWarning("Kafka settings are missing. Price drops will be logged but NOT published.");
@@ -33,18 +33,13 @@ namespace MarketTelemetry.Service.Events
             }
 
             // One producer for the whole life of the app. Opening a connection is slow, so it is done once, not per message.
-            _producer = new ProducerBuilder<string, string>(new ProducerConfig
+            _producer = new ProducerBuilder<string, string>(KafkaConnection.Apply(new ProducerConfig
             {
-                BootstrapServers = bootstrapServers,
-                SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslMechanism = SaslMechanism.Plain,
-                SaslUsername = "$ConnectionString",
-                SaslPassword = connectionString,
                 Acks = Acks.All,                 // wait until Event Hubs has the message before calling it sent
                 MessageTimeoutMs = 15000,        // give up (and throw) after 15 seconds instead of hanging forever
                 LogConnectionClose = false,      // Event Hubs closes idle connections; the client reconnects by itself, no need to log it
                 SocketKeepaliveEnable = true
-            })
+            }, config))
             .SetErrorHandler((_, error) =>
             {
                 // Same reason as last time? Stay quiet. A new reason is worth a line.
@@ -67,15 +62,28 @@ namespace MarketTelemetry.Service.Events
                 return;
             }
 
-            var delivery = await _producer.ProduceAsync(
-                PriceDropEvent.Topic,
-                new Message<string, string>
-                {
-                    // Same key = same partition = one card's events stay in order.
-                    Key = priceDrop.ProductId.ToString(),
-                    Value = JsonSerializer.Serialize(priceDrop, Json)
-                },
-                cancellationToken);
+            var message = new Message<string, string>
+            {
+                // Same key = same partition = one card's events stay in order.
+                Key = priceDrop.ProductId.ToString(),
+                Value = JsonSerializer.Serialize(priceDrop, Json)
+            };
+
+            // The trace ID rides along in the headers, so the Deck API's notification handling joins this trace.
+            using var activity = KafkaTracing.StartPublish(PriceDropEvent.Topic, message);
+            activity?.SetTag("market.product_id", priceDrop.ProductId);
+
+            DeliveryResult<string, string> delivery;
+            try
+            {
+                delivery = await _producer.ProduceAsync(PriceDropEvent.Topic, message, cancellationToken);
+                KafkaTracing.RecordDelivery(activity, delivery);
+            }
+            catch (Exception ex)
+            {
+                KafkaTracing.RecordError(activity, ex);
+                throw;
+            }
 
             _lastProblem = null;   // a publish worked, so any earlier connection problem is over
 

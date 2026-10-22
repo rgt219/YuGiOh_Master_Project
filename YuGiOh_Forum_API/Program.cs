@@ -2,9 +2,17 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using YuGiOh.ServiceDefaults;
 using YuGiOh_Forum_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Traces, metrics and logs (see Shared/YuGiOh.ServiceDefaults). Health probes are left out of traces.
+builder.AddServiceTelemetry("forum-api")
+    .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation(o => o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")))
+    .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 
 builder.Services.AddSingleton<ForumDbService>();
 

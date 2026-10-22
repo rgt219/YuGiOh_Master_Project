@@ -1,10 +1,12 @@
 using YuGiOhIdentityApi.Services;
 using YuGiOhIdentityApi.Models;
-using Microsoft.ApplicationInsights.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using YuGiOhIdentityApi.Repositories;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using YuGiOh.ServiceDefaults;
 //Comment for pushing
 
 namespace YuGiOhIdentityApi
@@ -14,6 +16,11 @@ namespace YuGiOhIdentityApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Traces, metrics and logs (see Shared/YuGiOh.ServiceDefaults). Health probes are left out of traces.
+            builder.AddServiceTelemetry("identity-api")
+                .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation(o => o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")))
+                .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 
             // 1. SERVICES CONFIGURATION
             builder.Services.Configure<MongoDBUserSettings>(builder.Configuration.GetSection("MongoDBUsers"));
@@ -44,7 +51,6 @@ namespace YuGiOhIdentityApi
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddApplicationInsightsTelemetry();
 
             // 2. BUILD THE APP
             var app = builder.Build();

@@ -147,9 +147,11 @@ jobs:
           - image: go-worker
             context: ./YuGiOh_Deck_API/go-services
           - image: forum-api
-            context: ./YuGiOh_Forum_API
+            context: . # repo root, so the build can see Shared/
+            file: YuGiOh_Forum_API/Dockerfile
           - image: identity
-            context: ./YuGiOhIdentityApi
+            context: .
+            file: YuGiOhIdentityApi/Dockerfile
           - image: analytics
             context: .
             file: YuGiOh_Analytics_Consumer/Dockerfile

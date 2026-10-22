@@ -1,0 +1,13 @@
+# Used by every image built from the repo root (the .NET services, which need Shared/).
+# The frontend and the Go worker build from their own folders and are not affected.
+.git/
+.github/
+.vs/
+.vscode/
+**/bin/
+**/obj/
+**/node_modules/
+YuGiOh_Deck_React/
+observability/
+*.pdf
+*.md

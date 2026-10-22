@@ -23,13 +23,11 @@ type YGOProCardData struct {
 
 // SyncAllMissingCardImages scans Azure Blob inventory, queries YGOProDeck's master catalog,
 // identifies missing card IDs, and streams artwork in parallel using Goroutines.
-func SyncAllMissingCardImages(blobConnStr string, containerName string) (int, error) {
+func SyncAllMissingCardImages(ctx context.Context, blobConnStr string, containerName string) (int, error) {
 	client, err := azblob.NewClientFromConnectionString(blobConnStr, nil)
 	if err != nil {
 		return 0, fmt.Errorf("azure blob client connection failed: %w", err)
 	}
-
-	ctx := context.Background()
 
 	// 1. Ensure the blob container exists
 	_, _ = client.CreateContainer(ctx, containerName, nil)
@@ -54,7 +52,11 @@ func SyncAllMissingCardImages(blobConnStr string, containerName string) (int, er
 	// 3. Fetch master card catalog from YGOProDeck REST API
 	fmt.Println("[Go Syncer] Fetching master card catalog from YGOProDeck API...")
 	httpClient := &http.Client{Timeout: 30 * time.Second}
-	resp, err := httpClient.Get("https://db.ygoprodeck.com/api/v7/cardinfo.php")
+	catalogReq, err := http.NewRequestWithContext(ctx, "GET", "https://db.ygoprodeck.com/api/v7/cardinfo.php", nil)
+	if err != nil {
+		return 0, fmt.Errorf("failed to build card catalog request: %w", err)
+	}
+	resp, err := httpClient.Do(catalogReq)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		return 0, fmt.Errorf("failed to fetch card catalog from YGOProDeck API")
 	}
@@ -82,18 +84,18 @@ func SyncAllMissingCardImages(blobConnStr string, containerName string) (int, er
 	}
 
 	// 5. Concurrent upload execution via Goroutines
-	return SyncCardImagesConcurrently(missingCardIDs, blobConnStr, containerName)
+	return SyncCardImagesConcurrently(ctx, missingCardIDs, blobConnStr, containerName)
 }
 
 // SyncSingleCardImage syncs a single card image to Azure Blob Storage if it doesn't already exist.
-func SyncSingleCardImage(cardID string, blobConnStr string, containerName string) error {
+func SyncSingleCardImage(ctx context.Context, cardID string, blobConnStr string, containerName string) error {
 	client, err := azblob.NewClientFromConnectionString(blobConnStr, nil)
 	if err != nil {
 		return fmt.Errorf("azure blob connection failed: %w", err)
 	}
 
 	blobName := fmt.Sprintf("%s.jpg", cardID)
-	ok := processCardImageUpload(client, containerName, cardID, blobName)
+	ok := processCardImageUpload(ctx, client, containerName, cardID, blobName)
 	if !ok {
 		return fmt.Errorf("failed to upload artwork for card ID: %s", cardID)
 	}
@@ -102,7 +104,7 @@ func SyncSingleCardImage(cardID string, blobConnStr string, containerName string
 }
 
 // SyncCardImagesConcurrently uses a worker pool of 15 Goroutines to stream card images in parallel.
-func SyncCardImagesConcurrently(cardIDs []string, blobConnStr string, containerName string) (int, error) {
+func SyncCardImagesConcurrently(ctx context.Context, cardIDs []string, blobConnStr string, containerName string) (int, error) {
 	client, err := azblob.NewClientFromConnectionString(blobConnStr, nil)
 	if err != nil {
 		return 0, fmt.Errorf("azure blob connection failed: %w", err)
@@ -120,7 +122,7 @@ func SyncCardImagesConcurrently(cardIDs []string, blobConnStr string, containerN
 			defer wg.Done()
 			for cardID := range jobs {
 				blobName := fmt.Sprintf("%s.jpg", cardID)
-				success := processCardImageUpload(client, containerName, cardID, blobName)
+				success := processCardImageUpload(ctx, client, containerName, cardID, blobName)
 				results <- success
 			}
 		}()
@@ -145,10 +147,10 @@ func SyncCardImagesConcurrently(cardIDs []string, blobConnStr string, containerN
 	return successCount, nil
 }
 
-func processCardImageUpload(client *azblob.Client, container string, cardID string, blobName string) bool {
+func processCardImageUpload(ctx context.Context, client *azblob.Client, container string, cardID string, blobName string) bool {
 	imageURL := fmt.Sprintf("https://images.ygoprodeck.com/images/cards/%s.jpg", cardID)
 
-	req, err := http.NewRequest("GET", imageURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", imageURL, nil)
 	if err != nil {
 		return false
 	}
@@ -162,7 +164,7 @@ func processCardImageUpload(client *azblob.Client, container string, cardID stri
 
 	contentType := "image/jpeg"
 	_, err = client.UploadStream(
-		context.Background(),
+		ctx,
 		container,
 		blobName,
 		resp.Body,

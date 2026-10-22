@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -9,21 +10,37 @@ import (
 	"erregeteygo/worker/syncer"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 type ImageSyncRequest struct {
 	CardIDs []string `json:"cardIds"`
 }
 
+// work returns the context for a handler's scraping/syncing: it carries the request's trace, so outbound
+// calls show up under the caller's trace, but it is not cancelled when the caller hangs up. Long jobs such
+// as a full image sync keep running after the Deck API's HTTP timeout, as they always have.
+func work(c *gin.Context) context.Context {
+	return context.WithoutCancel(c.Request.Context())
+}
+
 func main() {
+	shutdownTelemetry := setupTelemetry(context.Background())
+	defer shutdownTelemetry(context.Background())
+
 	r := gin.Default()
+
+	// One span per request, continuing the caller's trace. The "/" status probe is left out.
+	r.Use(otelgin.Middleware(serviceName, otelgin.WithFilter(func(req *http.Request) bool {
+		return req.URL.Path != "/"
+	})))
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "online", "service": "go-worker"})
 	})
 
 	r.GET("/internal/banlist/masterduel", func(c *gin.Context) {
-		banList, err := scraper.FetchMasterDuelBanList()
+		banList, err := scraper.FetchMasterDuelBanList(work(c))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error":   "Master Duel Scraper failed",
@@ -38,7 +55,7 @@ func main() {
 	})
 
 	r.POST("/api/scrape-meta-decks", func(c *gin.Context) {
-		decks, err := scraper.ScrapeMetaDecks("")
+		decks, err := scraper.ScrapeMetaDecks(work(c), "")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -51,7 +68,7 @@ func main() {
 	})
 
 	r.POST("/api/scrape-news", func(c *gin.Context) {
-		articles, err := scraper.ScrapeNewsFeeds()
+		articles, err := scraper.ScrapeNewsFeeds(work(c))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -73,9 +90,9 @@ func main() {
 		var err error
 
 		if len(req.CardIDs) > 0 {
-			syncedCount, err = syncer.SyncCardImagesConcurrently(req.CardIDs, blobConnStr, "card-images")
+			syncedCount, err = syncer.SyncCardImagesConcurrently(work(c), req.CardIDs, blobConnStr, "card-images")
 		} else {
-			syncedCount, err = syncer.SyncAllMissingCardImages(blobConnStr, "card-images")
+			syncedCount, err = syncer.SyncAllMissingCardImages(work(c), blobConnStr, "card-images")
 		}
 
 		if err != nil {
@@ -93,7 +110,7 @@ func main() {
 		cardID := c.Param("cardId")
 		blobConnStr := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 
-		err := syncer.SyncSingleCardImage(cardID, blobConnStr, "card-images")
+		err := syncer.SyncSingleCardImage(work(c), cardID, blobConnStr, "card-images")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

@@ -2,12 +2,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy the csproj and restore dependencies
-COPY ["YuGiOhIdentityApi.csproj", "./"]
-RUN dotnet restore "YuGiOhIdentityApi.csproj"
+# Built from the repo root (it needs Shared/): docker build -f YuGiOhIdentityApi/Dockerfile .
+# Copy the csproj files and restore dependencies
+COPY ["YuGiOhIdentityApi/YuGiOhIdentityApi.csproj", "YuGiOhIdentityApi/"]
+COPY ["Shared/YuGiOh.ServiceDefaults/YuGiOh.ServiceDefaults.csproj", "Shared/YuGiOh.ServiceDefaults/"]
+RUN dotnet restore "YuGiOhIdentityApi/YuGiOhIdentityApi.csproj"
 
 # Copy the rest of the code and build
-COPY . .
+COPY YuGiOhIdentityApi/ YuGiOhIdentityApi/
+COPY Shared/YuGiOh.ServiceDefaults/ Shared/YuGiOh.ServiceDefaults/
+WORKDIR "/src/YuGiOhIdentityApi"
 RUN dotnet build "YuGiOhIdentityApi.csproj" -c Release -o /app/build
 
 # Stage 2: Publish

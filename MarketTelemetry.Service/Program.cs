@@ -2,8 +2,16 @@ using MarketTelemetry.Service.Data;
 using MarketTelemetry.Service.Events;
 using MarketTelemetry.Service.Models;
 using MarketTelemetry.Service.Workers;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using YuGiOh.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Traces, metrics and logs (see Shared/YuGiOh.ServiceDefaults). Health probes are left out of traces.
+builder.AddServiceTelemetry("market-api")
+    .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation(o => o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")))
+    .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 
 // Use in-memory distributed cache locally to prevent 5-10s Redis connection timeouts
 // 🚀 Uses lightning-fast local RAM for development, bypassing the Redis timeout

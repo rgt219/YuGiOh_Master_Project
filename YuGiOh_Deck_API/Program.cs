@@ -12,6 +12,9 @@ using YuGiOhDeckApi.Hubs;
 using Azure.Storage.Blobs;
 using YuGiOhDeckApi.BackgroundServices;
 using YuGiOhDeckApi.Notifications;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using YuGiOh.ServiceDefaults;
 
 namespace YuGiOhDeckApi
 {
@@ -20,6 +23,11 @@ namespace YuGiOhDeckApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Traces, metrics and logs (see Shared/YuGiOh.ServiceDefaults). Health probes are left out of traces.
+            builder.AddServiceTelemetry("deck-api")
+                .WithTracing(tracing => tracing.AddAspNetCoreInstrumentation(o => o.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health")))
+                .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 
             builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
             builder.Services.AddSingleton<IMongoDbService, MongoDbService>();
@@ -168,7 +176,6 @@ namespace YuGiOhDeckApi
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddApplicationInsightsTelemetry();
 
             var app = builder.Build();
 

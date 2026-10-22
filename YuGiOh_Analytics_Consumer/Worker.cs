@@ -6,6 +6,7 @@ using MongoDB.Driver;
 using System;             // Fixes BinaryData and Guid
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using YuGiOh.ServiceDefaults;
 
 namespace YuGiOh_Analytics_Consumer
 {
@@ -35,14 +36,7 @@ namespace YuGiOh_Analytics_Consumer
             _analyticsCollection = database.GetCollection<BsonDocument>("CardUsageStats");
             _activityCollection = database.GetCollection<UserActivityDto>("DeckStats");
 
-            var producerConfig = new ProducerConfig
-            {
-                BootstrapServers = _configuration["Kafka:BootstrapServers"],
-                SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslMechanism = SaslMechanism.Plain,
-                SaslUsername = "$ConnectionString",
-                SaslPassword = _configuration["Kafka:ConnectionString"]
-            };
+            var producerConfig = KafkaConnection.Apply(new ProducerConfig(), _configuration);
             _uiProducer = new ProducerBuilder<string, string>(producerConfig).Build();
         }
 
@@ -86,16 +80,11 @@ namespace YuGiOh_Analytics_Consumer
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var config = new ConsumerConfig
+            var config = KafkaConnection.Apply(new ConsumerConfig
             {
-                BootstrapServers = _configuration["Kafka:BootstrapServers"],
                 GroupId = _configuration["Kafka:GroupId"],
-                SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslMechanism = SaslMechanism.Plain,
-                SaslUsername = "$ConnectionString",
-                SaslPassword = _configuration["Kafka:ConnectionString"],
                 AutoOffsetReset = AutoOffsetReset.Earliest // Start from the beginning if it's a new group
-            };
+            }, _configuration);
 
             using var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
             consumer.Subscribe(_configuration["Kafka:Topic"]);
@@ -115,19 +104,29 @@ namespace YuGiOh_Analytics_Consumer
 
                         if (result?.Message?.Value != null)
                         {
-                            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                            var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
-
-                            if (activity != null)
+                            // Continues the trace of the request that published this deck update.
+                            using var span = KafkaTracing.StartProcess(result, config.GroupId ?? "");
+                            try
                             {
-                                activity.Id = Guid.NewGuid().ToString();
+                                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                                var activity = JsonSerializer.Deserialize<UserActivityDto>(result.Message.Value, options);
 
-                                // 1. Save live activity log directly into YuGiOhAnalytics.DeckStats
-                                await _activityCollection.InsertOneAsync(activity, cancellationToken: stoppingToken);
-                                _logger.LogInformation($"[MONGO_SUCCESS] Activity saved for deck: {activity.Title} by {activity.UserName}");
+                                if (activity != null)
+                                {
+                                    activity.Id = Guid.NewGuid().ToString();
 
-                                // 2. Aggregate card frequency stats into MongoDB
-                                await ProcessDeckUpdate(result.Message.Value);
+                                    // 1. Save live activity log directly into YuGiOhAnalytics.DeckStats
+                                    await _activityCollection.InsertOneAsync(activity, cancellationToken: stoppingToken);
+                                    _logger.LogInformation($"[MONGO_SUCCESS] Activity saved for deck: {activity.Title} by {activity.UserName}");
+
+                                    // 2. Aggregate card frequency stats into MongoDB
+                                    await ProcessDeckUpdate(result.Message.Value);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                KafkaTracing.RecordError(span, ex);   // the failure shows up red on the trace
+                                throw;
                             }
                         }
                     }

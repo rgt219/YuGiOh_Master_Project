@@ -5,6 +5,7 @@ WORKDIR /src
 # 2. Copy .csproj files using the exact folder names from your sidebar
 COPY ["YuGiOh_Deck_API/YuGiOhDeckApi.csproj", "YuGiOh_Deck_API/"]
 COPY ["YuGiOh_Analytics_Consumer/YuGiOh_Analytics_Consumer.csproj", "YuGiOh_Analytics_Consumer/"]
+COPY ["Shared/YuGiOh.ServiceDefaults/YuGiOh.ServiceDefaults.csproj", "Shared/YuGiOh.ServiceDefaults/"]
 
 # 3. Restore based on the API project path
 RUN dotnet restore "YuGiOh_Deck_API/YuGiOhDeckApi.csproj"
@@ -14,6 +15,7 @@ RUN dotnet restore "YuGiOh_Deck_API/YuGiOhDeckApi.csproj"
 # 4. Copy the actual source code
 COPY YuGiOh_Deck_API/ YuGiOh_Deck_API/
 COPY YuGiOh_Analytics_Consumer/ YuGiOh_Analytics_Consumer/
+COPY Shared/YuGiOh.ServiceDefaults/ Shared/YuGiOh.ServiceDefaults/
 
 # --- NEW FIX: Manually delete the conflicting file ---
 RUN rm /src/YuGiOh_Analytics_Consumer/appsettings.json
